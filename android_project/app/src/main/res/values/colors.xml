@@ -1,6 +1,6 @@
 <resources>
     <color name="md_theme_primary">#415F91</color>
-    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_onPrimary">#EB4D57</color>
     <color name="md_theme_primaryContainer">#D6E3FF</color>
     <color name="md_theme_onPrimaryContainer">#284777</color>
     <color name="md_theme_secondary">#565F71</color>
