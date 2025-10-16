@@ -2,7 +2,7 @@
 
 Học Phần: Phát triển ứng dụng trên thiết bị di động
 
-Chủ đề: 
+Chủ đề: Xây dựng ứng dụng YumYard trên thiết bị di động phục vụ việc đặt đồ ăn bằng công nghệ Java
 
 
 ## Nhóm sinh viên thực hiện
