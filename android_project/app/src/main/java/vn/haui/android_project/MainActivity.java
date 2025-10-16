@@ -1,5 +1,6 @@
 package vn.haui.android_project;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,18 +15,24 @@ import vn.haui.android_project.view.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
+    String userId, userEmail, userName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        Intent intent = new Intent(MainActivity.this, SplashScreenActivity.class);
-//        startActivity(intent);
+        Intent intent = getIntent();
+
+        if (intent != null) {
+            userId = intent.getStringExtra("USER_ID");
+            userEmail = intent.getStringExtra("USER_EMAIL");
+            userName = intent.getStringExtra("USER_NAME");
+        }
+
 
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Mặc định mở HomeFragment
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.container, new HomeFragment())

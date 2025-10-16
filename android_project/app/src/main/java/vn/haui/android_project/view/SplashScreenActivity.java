@@ -14,6 +14,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 
@@ -21,7 +24,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private LinearLayout onBoardingPanel, splashPanel;
     private ImageButton btnNext;
-    private static final int SPLASH_TIME_OUT = 5000;
+    private static final int SPLASH_TIME_OUT = 2000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,24 +39,30 @@ public class SplashScreenActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                splashPanel.setVisibility(View.GONE);
-                onBoardingPanel.setVisibility(View.VISIBLE);
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+                if (currentUser != null) {
+                    String uid = currentUser.getUid();
+                    String userEmail = currentUser.getEmail();
+                    String displayName = currentUser.getDisplayName();
+                    Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+                    intent.putExtra("USER_ID", uid);
+                    intent.putExtra("USER_EMAIL", userEmail);
+                    intent.putExtra("USER_NAME", displayName);
+                    startActivity(intent);
+                }
+                else {
+                    splashPanel.setVisibility(View.GONE);
+                    onBoardingPanel.setVisibility(View.VISIBLE);
+                }
             }
         }, SPLASH_TIME_OUT);
 
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //check login cache
-                if(true){
-                    Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
-                else {
-                    Intent intent = new Intent(SplashScreenActivity.this, LoginScreenActivity.class);
-                    startActivity(intent);
-                }
-
+                Intent intent = new Intent(SplashScreenActivity.this, LoginScreenActivity.class);
+                startActivity(intent);
             }
         });
     }
