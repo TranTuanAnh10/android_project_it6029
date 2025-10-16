@@ -44,8 +44,16 @@ public class SplashScreenActivity extends AppCompatActivity {
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(SplashScreenActivity.this, LoginScreenActivity.class);
-                startActivity(intent);
+                //check login cache
+                if(true){
+                    Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+                else {
+                    Intent intent = new Intent(SplashScreenActivity.this, LoginScreenActivity.class);
+                    startActivity(intent);
+                }
+
             }
         });
     }
