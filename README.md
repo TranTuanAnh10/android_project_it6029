@@ -7,8 +7,8 @@ Chủ đề:
 
 ## Nhóm sinh viên thực hiện
 
-* Trần Tuấn Anh
-* Nguyễn Xuân Bách (Project Leader)
+* Trần Tuấn Anh (Project Leader)
+* Nguyễn Xuân Bách 
 * Hoàng Phi Hùng
 * Nguyễn Thị Liên
 * Bùi Minh Quân
