@@ -10,8 +10,8 @@ Chủ đề:
 * Trần Tuấn Anh
 * Nguyễn Xuân Bách (Project Leader)
 * Hoàng Phi Hùng
-* Thành viên 4
-* Thành viên 5
+* Nguyễn Thị Liên
+* Bùi Minh Quân
 
 
 
