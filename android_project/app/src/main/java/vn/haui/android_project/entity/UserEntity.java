@@ -11,11 +11,12 @@ public class UserEntity {
     private String role;
     private String createdAt;
     private String lastLogin;
+    private String phoneNumber;
 
     public UserEntity() {
     }
 
-    public UserEntity(String uid, String name, String email, String avatarUrl, String role, String createdAt, String lastLogin) {
+    public UserEntity(String uid, String name, String email, String avatarUrl, String role, String createdAt, String lastLogin, String phoneNumber) {
         this.uid = uid;
         this.name = name;
         this.email = email;
@@ -23,6 +24,15 @@ public class UserEntity {
         this.role = role;
         this.createdAt = createdAt;
         this.lastLogin = lastLogin;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getUid() {

@@ -31,4 +31,9 @@
     <string name="profile_feedback">Feedback</string>
     <string name="profile_about_yumyard">About YumYard</string>
     <string name="profile_log_out">Log Out</string>
+    <string name="profile_email">Email</string>
+    <string name="profile_phone_number">Phone number</string>
+    <string name="profile_name">Name</string>
+    <string name="profile_edit_your_profile">Edit your Profile</string>
+    <string name="profile_save">Save</string>
 </resources>

@@ -1,5 +1,6 @@
 package vn.haui.android_project.service;
 
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -10,10 +11,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import vn.haui.android_project.entity.UserEntity;
@@ -23,9 +28,10 @@ import vn.haui.android_project.enums.UserRole;
 public class FirebaseUserManager {
     private static final String TAG = "FirebaseUserManager";
     private final FirebaseFirestore db;
-
+    private final FirebaseStorage storage; // Thêm Firebase Storage
     public FirebaseUserManager() {
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
     }
 
     // ✅ Lưu hoặc cập nhật người dùng sau khi đăng nhập
@@ -45,7 +51,8 @@ public class FirebaseUserManager {
                         firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl().toString() : "",
                         UserRole.USER.getValue(),
                         getCurrentTime(),
-                        getCurrentTime()
+                        getCurrentTime(),
+                        firebaseUser.getPhoneNumber() != null ? firebaseUser.getPhoneNumber() : ""
                 );
 
                 userRef.set(newUser)
@@ -82,25 +89,64 @@ public class FirebaseUserManager {
                     if (onError != null) onError.accept(e);
                 });
     }
-    // ✅ Hàm cập nhật avatarUrl (khi người dùng thay đổi ảnh)
-    public void updateAvatar(String uid, String newAvatarUrl) {
-        if (uid == null || newAvatarUrl == null) return;
+    public void uploadAvatar(String uid, Uri imageUri, BiConsumer<Boolean, String> onComplete) {
+        if (uid == null || imageUri == null) {
+            onComplete.accept(false, "UID hoặc Image URI không hợp lệ.");
+            return;
+        }
 
-        db.collection(DatabaseTable.USERS.getValue()).document(uid)
-                .update("avatarUrl", newAvatarUrl, "updatedAt", FieldValue.serverTimestamp())
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Cập nhật avatar thành công"))
-                .addOnFailureListener(e -> Log.e(TAG, "Lỗi cập nhật avatar", e));
+        // Tạo đường dẫn trên Firebase Storage: avatars/{uid}/{tên file}
+        StorageReference storageRef = storage.getReference()
+                .child("avatars")
+                .child(uid)
+                .child("profile.jpg"); // Có thể dùng UUID.randomUUID().toString() để tên file là duy nhất
+
+        // Bắt đầu tải file lên
+        UploadTask uploadTask = storageRef.putFile(imageUri);
+
+        uploadTask.continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                throw task.getException();
+            }
+            // Lấy URL tải xuống sau khi upload thành công
+            return storageRef.getDownloadUrl();
+        }).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Uri downloadUri = task.getResult();
+                Log.d(TAG, "✅ Tải ảnh lên thành công, URL: " + downloadUri.toString());
+                onComplete.accept(true, downloadUri.toString());
+            } else {
+                Log.e(TAG, "❌ Lỗi khi tải ảnh lên", task.getException());
+                onComplete.accept(false, "Lỗi: " + task.getException().getMessage());
+            }
+        });
     }
 
-    // ✅ Hàm cập nhật tên, email,... nếu cần
-    public void updateUserInfo(String uid, Map<String, Object> updates) {
-        if (uid == null || updates == null) return;
+    // --- HÀM CẬP NHẬT USERINFO MỚI ---
+    /**
+     * Cập nhật thông tin người dùng vào Firestore.
+     * @param uid UID của người dùng.
+     * @param updates Map chứa các trường cần cập nhật.
+     * @param onSuccess Callback khi thành công.
+     * @param onError Callback khi thất bại.
+     */
+    public void updateUser(String uid, Map<String, Object> updates, Consumer<Void> onSuccess, @Nullable Consumer<Exception> onError) {
+        if (uid == null || updates == null || updates.isEmpty()) {
+            if (onError != null) onError.accept(new IllegalArgumentException("Dữ liệu cập nhật không hợp lệ."));
+            return;
+        }
 
-        updates.put("updatedAt", FieldValue.serverTimestamp());
+        updates.put("updatedAt", FieldValue.serverTimestamp()); // Luôn cập nhật thời gian
         db.collection(DatabaseTable.USERS.getValue()).document(uid)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Cập nhật thông tin user thành công"))
-                .addOnFailureListener(e -> Log.e(TAG, "Lỗi cập nhật user", e));
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Cập nhật thông tin user thành công");
+                    if (onSuccess != null) onSuccess.accept(aVoid);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Lỗi cập nhật user", e);
+                    if (onError != null) onError.accept(e);
+                });
     }
 
 

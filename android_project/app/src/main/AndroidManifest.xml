@@ -16,6 +16,9 @@
             android:name=".view.LoginScreenActivity"
             android:exported="true" />
         <activity
+            android:name=".view.EditProfileScreenActivity"
+            android:exported="true" />
+        <activity
             android:name=".view.SplashScreenActivity"
             android:exported="true" >
             <intent-filter>

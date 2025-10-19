@@ -8,12 +8,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,6 +29,7 @@ public class ProfileFragment extends Fragment {
 
     Button btn_logout;
     ImageView imgUser;
+    ImageButton editProfile;
     TextView tvUserName, tvUserEmail;
     View view;
     @Nullable
@@ -76,7 +80,10 @@ public class ProfileFragment extends Fragment {
                 imgUser.setImageResource(R.drawable.ic_user);
             }
         });
-
+        editProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileFragment.this.getContext(), EditProfileScreenActivity.class);
+            startActivity(intent);
+        });
         btn_logout.setOnClickListener(v -> logoutUser());
     }
     public void logoutUser() {
@@ -93,5 +100,6 @@ public class ProfileFragment extends Fragment {
         imgUser = view.findViewById(R.id.iv_avatar);
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail =view.findViewById(R.id.tv_user_email);
+        editProfile=view.findViewById(R.id.iv_edit_profile);
     }
 }
