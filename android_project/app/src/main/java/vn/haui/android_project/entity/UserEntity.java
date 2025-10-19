@@ -1,0 +1,83 @@
+package vn.haui.android_project.entity;
+
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
+public class UserEntity {
+    private String uid;
+    private String name;
+    private String email;
+    private String avatarUrl;
+    private String role;
+    private String createdAt;
+    private String lastLogin;
+
+    public UserEntity() {
+    }
+
+    public UserEntity(String uid, String name, String email, String avatarUrl, String role, String createdAt, String lastLogin) {
+        this.uid = uid;
+        this.name = name;
+        this.email = email;
+        this.avatarUrl = avatarUrl;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.lastLogin = lastLogin;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(String lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+}

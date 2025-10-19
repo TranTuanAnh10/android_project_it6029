@@ -21,6 +21,7 @@ import com.google.firebase.auth.*;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.service.FirebaseUserManager;
 
 public class LoginScreenActivity extends AppCompatActivity {
 
@@ -84,6 +85,8 @@ public class LoginScreenActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            FirebaseUserManager userManager = new FirebaseUserManager();
+                            userManager.saveOrUpdateUser(user);
                             gotoMain(user);
                         }
                     } else {
@@ -121,6 +124,8 @@ public class LoginScreenActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            FirebaseUserManager userManager = new FirebaseUserManager();
+                            userManager.saveOrUpdateUser(user);
                             gotoMain(user);
                         }
                     } else {

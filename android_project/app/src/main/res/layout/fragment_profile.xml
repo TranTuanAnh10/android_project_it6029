@@ -73,10 +73,9 @@
                 app:layout_constraintTop_toTopOf="@id/iv_avatar" />
 
             <TextView
-                android:id="@+id/tv_membership"
+                android:id="@+id/tv_user_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Silver membership"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="@id/tv_user_name"
