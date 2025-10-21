@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
@@ -36,10 +37,11 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
 
     EditText otp1, otp2, otp3, otp4, otp5, otp6;
     Button btnConfirm;
-    String phoneNumber, verificationId,uid;
+    String phoneNumber, verificationId, uid;
     TextView txPhone, tvResend;
     private PhoneAuthProvider.ForceResendingToken resendToken;
     private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,6 +142,7 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
         // Gọi hàm chung để liên kết
         linkPhoneCredentialToCurrentUser(credential);
     }
+
     private void linkPhoneCredentialToCurrentUser(PhoneAuthCredential credential) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
@@ -165,7 +168,9 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
                     } else {
                         Exception e = task.getException();
                         Log.e("OTP", "Link failed", e);
-                        if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                        if (e instanceof FirebaseAuthUserCollisionException) {
+                            Toast.makeText(this, "Số điện thoại này đã được sử dụng bởi một tài khoản khác.", Toast.LENGTH_LONG).show();
+                        } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
                             Toast.makeText(this, "Mã OTP không đúng.", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(this, "Xác minh thất bại!", Toast.LENGTH_SHORT).show();
