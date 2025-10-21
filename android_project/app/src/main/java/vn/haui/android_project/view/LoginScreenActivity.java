@@ -14,13 +14,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
+import com.google.firebase.firestore.DocumentReference;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.service.FirebaseUserManager;
 
 public class LoginScreenActivity extends AppCompatActivity {
@@ -135,13 +138,28 @@ public class LoginScreenActivity extends AppCompatActivity {
     }
 
     private void gotoMain(@NonNull FirebaseUser user) {
-        Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
-        intent.putExtra("USER_ID", user.getUid());
-        intent.putExtra("USER_EMAIL", user.getEmail());
-        intent.putExtra("USER_NAME", user.getDisplayName());
-        if (user.getPhotoUrl() != null)
-            intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
-        startActivity(intent);
-        finish();
+        FirebaseUserManager userManager = new FirebaseUserManager();
+        userManager.getUserByUid(user.getUid(), userData -> {
+            // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
+            String phone = (String) userData.getOrDefault("phoneNumber", "");
+            if (phone.isBlank()){
+                // chua co std thi day den nhap std
+                Intent intent = new Intent(LoginScreenActivity.this, PhoneScreenActivity.class);
+                startActivity(intent);
+                finish();
+            }else {
+                // da co std thi day den main
+                Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
+                intent.putExtra("USER_ID", user.getUid());
+                intent.putExtra("USER_EMAIL", user.getEmail());
+                intent.putExtra("USER_NAME", user.getDisplayName());
+                if (user.getPhotoUrl() != null)
+                    intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+                startActivity(intent);
+                finish();
+            }
+        }, error -> {
+            Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
+        });
     }
 }

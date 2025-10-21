@@ -7,8 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -19,6 +21,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.service.FirebaseUserManager;
 
 public class SplashScreenActivity extends AppCompatActivity {
 
@@ -42,14 +45,7 @@ public class SplashScreenActivity extends AppCompatActivity {
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
                 if (currentUser != null) {
-                    String uid = currentUser.getUid();
-                    String userEmail = currentUser.getEmail();
-                    String displayName = currentUser.getDisplayName();
-                    Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
-                    intent.putExtra("USER_ID", uid);
-                    intent.putExtra("USER_EMAIL", userEmail);
-                    intent.putExtra("USER_NAME", displayName);
-                    startActivity(intent);
+                    gotoMain(currentUser);
                 }
                 else {
                     splashPanel.setVisibility(View.GONE);
@@ -71,5 +67,33 @@ public class SplashScreenActivity extends AppCompatActivity {
         splashPanel = findViewById(R.id.splash_panel);
         onBoardingPanel = findViewById(R.id.on_boarding_panel);
         btnNext = findViewById(R.id.btnNext);
+    }
+
+
+    private void gotoMain(@NonNull FirebaseUser user) {
+        FirebaseUserManager userManager = new FirebaseUserManager();
+        userManager.getUserByUid(user.getUid(), userData -> {
+            // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
+            String phone = (String) userData.getOrDefault("phoneNumber", "");
+            if (phone.isBlank()){
+                // chua co std thi day den nhap std
+                Intent intent = new Intent(SplashScreenActivity.this, PhoneScreenActivity.class);
+                intent.putExtra("CURRENT_USER", user);
+                startActivity(intent);
+                finish();
+            }else {
+                // da co std thi day den main
+                Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+                intent.putExtra("USER_ID", user.getUid());
+                intent.putExtra("USER_EMAIL", user.getEmail());
+                intent.putExtra("USER_NAME", user.getDisplayName());
+                if (user.getPhotoUrl() != null)
+                    intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+                startActivity(intent);
+                finish();
+            }
+        }, error -> {
+            Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
+        });
     }
 }

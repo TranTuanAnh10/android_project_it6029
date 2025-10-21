@@ -11,6 +11,18 @@
         <item name="android:drawablePadding">16dp</item>
         <item name="android:drawableEnd">@drawable/ic_switch</item>
     </style>
+    <style name="OtpBoxStyle">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_margin">6dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:inputType">number</item>
+        <item name="android:background">@drawable/bg_otp</item>
+        <item name="android:maxLength">1</item>
+        <item name="android:textColor">#000000</item>
+    </style>
+
     <string name="reward_points">RewardPoints</string>
     <string name="reward_points_count">7.000</string>
     <string name="order_placed">Order placed</string>
