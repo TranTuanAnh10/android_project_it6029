@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.MyApp.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxBackgroundColor">@color/md_theme_onSecondary</item>
+        <item name="boxStrokeColor">@color/md_theme_primary</item>
+        <item name="hintTextColor">@color/md_theme_secondary</item>
+        <item name="placeholderTextColor">@color/md_theme_secondary</item>
+    </style>
+    <style name="ShapeAppearanceOverlay.App.CornerLeftRounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <color name="color_text_home_page_brown">#6D5758</color>
+    <color name="color_text_home_page_red">#C34753</color>
+    <color name="color_text_home_page_green">#0EA465</color>
+    <color name="color_text_home_page_yellow">#FFC000</color>
+    <color name="color_text_home_page_time_flash_deals_bg">#F6A860</color>
+    <color name="color_text_home_page_text_black">#343434</color>
+    <color name="color_text_home_page_bg_orange">#F8EBEC</color>
+    <color name="color_text_home_page_bg_green">#C3E8D8</color>
+
+</resources>
