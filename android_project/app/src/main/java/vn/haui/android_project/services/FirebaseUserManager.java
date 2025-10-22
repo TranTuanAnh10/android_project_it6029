@@ -1,4 +1,4 @@
-package vn.haui.android_project.service;
+package vn.haui.android_project.services;
 
 import android.net.Uri;
 import android.os.Build;
@@ -6,7 +6,6 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
@@ -16,7 +15,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;

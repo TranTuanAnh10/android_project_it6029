@@ -1,6 +1,9 @@
 package vn.haui.android_project.view;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -8,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +19,23 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
-import vn.haui.android_project.service.FirebaseUserManager;
+import vn.haui.android_project.entity.DeviceToken;
+import vn.haui.android_project.entity.UserEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.services.FirebaseUserManager;
 
 public class ProfileFragment extends Fragment {
 
@@ -84,14 +96,11 @@ public class ProfileFragment extends Fragment {
             Intent intent = new Intent(ProfileFragment.this.getContext(), EditProfileScreenActivity.class);
             startActivity(intent);
         });
-        btn_logout.setOnClickListener(v -> logoutUser());
+        btn_logout.setOnClickListener(v -> logoutUser(authUser.getUid()));
     }
-    public void logoutUser() {
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        mAuth.signOut();
-
+    public void logoutUser(String userId) {
+        logoutAndRemoveToken(userId);
         Intent intent = new Intent(view.getContext(), LoginScreenActivity.class);
-
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
@@ -102,4 +111,35 @@ public class ProfileFragment extends Fragment {
         tvUserEmail =view.findViewById(R.id.tv_user_email);
         editProfile=view.findViewById(R.id.iv_edit_profile);
     }
+    private void logoutAndRemoveToken(String userId) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(currentToken -> {
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    DocumentReference userRef = db.collection(DatabaseTable.USERS.getValue()).document(userId);
+
+                    userRef.get().addOnSuccessListener(snapshot -> {
+                        if (snapshot.exists()) {
+                            UserEntity user = snapshot.toObject(UserEntity.class);
+                            if (user != null && user.getTokens() != null) {
+                                // lọc ra danh sách token còn lại (xoá token hiện tại)
+                                List<DeviceToken> updatedTokens = new ArrayList<>();
+                                for (DeviceToken t : user.getTokens()) {
+                                    if (!t.getToken().equals(currentToken)) {
+                                        updatedTokens.add(t);
+                                    }
+                                }
+
+                                // cập nhật lại danh sách token
+                                userRef.update("tokens", updatedTokens)
+                                        .addOnSuccessListener(a -> Log.d("Logout", "Đã xoá token thành công"))
+                                        .addOnFailureListener(e -> Log.e("Logout", "Lỗi khi xoá token", e));
+                            }
+                        }
+                    });
+
+                    // Xoá session Firebase (nếu bạn dùng Firebase Auth)
+                    FirebaseAuth.getInstance().signOut();
+                });
+    }
+
 }

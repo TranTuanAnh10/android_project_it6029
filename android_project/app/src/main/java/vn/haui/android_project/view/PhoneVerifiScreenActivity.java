@@ -17,7 +17,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
@@ -31,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
-import vn.haui.android_project.service.FirebaseUserManager;
+import vn.haui.android_project.services.FirebaseUserManager;
 
 public class PhoneVerifiScreenActivity extends AppCompatActivity {
 

@@ -2,6 +2,9 @@ package vn.haui.android_project.entity;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @IgnoreExtraProperties
 public class UserEntity {
     private String uid;
@@ -12,7 +15,7 @@ public class UserEntity {
     private String createdAt;
     private String lastLogin;
     private String phoneNumber;
-
+    private List<DeviceToken> tokens;
     public UserEntity() {
     }
 
@@ -30,7 +33,18 @@ public class UserEntity {
     public String getPhoneNumber() {
         return phoneNumber;
     }
+    public List<DeviceToken> getTokens() {
+        return tokens;
+    }
 
+    public void setTokens(List<DeviceToken> tokens) {
+        this.tokens = tokens;
+    }
+
+    public void addToken(DeviceToken token) {
+        if (this.tokens == null) this.tokens = new ArrayList<>();
+        this.tokens.add(token);
+    }
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }

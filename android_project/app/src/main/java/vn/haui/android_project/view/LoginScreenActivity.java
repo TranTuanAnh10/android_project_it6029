@@ -14,17 +14,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
-import com.google.firebase.firestore.DocumentReference;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
-import vn.haui.android_project.enums.DatabaseTable;
-import vn.haui.android_project.service.FirebaseUserManager;
+import vn.haui.android_project.services.FirebaseUserManager;
 
 public class LoginScreenActivity extends AppCompatActivity {
 

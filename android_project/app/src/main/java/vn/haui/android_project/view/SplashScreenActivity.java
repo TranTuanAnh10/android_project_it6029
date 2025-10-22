@@ -1,10 +1,12 @@
 package vn.haui.android_project.view;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -12,6 +14,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -21,7 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
-import vn.haui.android_project.service.FirebaseUserManager;
+import vn.haui.android_project.services.FirebaseUserManager;
 
 public class SplashScreenActivity extends AppCompatActivity {
 
@@ -39,6 +43,14 @@ public class SplashScreenActivity extends AppCompatActivity {
             return insets;
         });
         mapping();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
