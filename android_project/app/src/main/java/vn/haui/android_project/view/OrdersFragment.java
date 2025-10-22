@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import vn.haui.android_project.R;
 
@@ -25,6 +27,10 @@ public class OrdersFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    Button btnDeliver, btnHistory, btnBasket;
+
+    TextView label;
 
     public OrdersFragment() {
         // Required empty public constructor
@@ -61,6 +67,60 @@ public class OrdersFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_orders, container, false);
+        View view =  inflater.inflate(R.layout.fragment_orders, container, false);
+        btnDeliver = view.findViewById(R.id.btnDeliver);
+        btnHistory = view.findViewById(R.id.btnHistory);
+        btnBasket = view.findViewById(R.id.btnBasket);
+        label = view.findViewById(R.id.orders_fragment_label);
+        // Mặc định hiển thị tab "Deliver now"
+        replaceChildFragment(new OrdersActiveFragment());
+
+        btnDeliver.setOnClickListener(v -> {
+            replaceChildFragment(new OrdersActiveFragment());
+            setActiveButton(btnDeliver);
+            label.setText("Active orders");
+        });
+
+        btnHistory.setOnClickListener(v -> {
+            replaceChildFragment(new OrdersHistoryFragment());
+            setActiveButton(btnHistory);
+            label.setText("All orders");
+
+        });
+
+        btnBasket.setOnClickListener(v -> {
+            replaceChildFragment(new OrdersBasketFragment());
+            setActiveButton(btnBasket);
+            label.setText("In-basket items");
+
+
+        });
+
+        return view;
+
+    }
+    private void replaceChildFragment(Fragment fragment)
+    {
+            getChildFragmentManager().beginTransaction().replace(R.id.ordersContentFrame,fragment).commit();
+    }
+    private void setActiveButton(Button activeButton) {
+        // Màu bạn định nghĩa trong colors.xml
+        int activeColor = getResources().getColor(R.color.md_theme_primary, null);
+        int inactiveColor = getResources().getColor(R.color.md_theme_surfaceVariant, null);
+        int activeText = getResources().getColor(android.R.color.white, null);
+        int inactiveText = getResources().getColor(R.color.md_theme_onBackground, null);
+
+        // Reset tất cả
+        btnDeliver.setBackgroundTintList(android.content.res.ColorStateList.valueOf(inactiveColor));
+        btnHistory.setBackgroundTintList(android.content.res.ColorStateList.valueOf(inactiveColor));
+        btnBasket.setBackgroundTintList(android.content.res.ColorStateList.valueOf(inactiveColor));
+
+        btnDeliver.setTextColor(inactiveText);
+        btnHistory.setTextColor(inactiveText);
+        btnBasket.setTextColor(inactiveText);
+
+        // Kích hoạt nút hiện tại
+        activeButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(activeColor));
+        activeButton.setTextColor(activeText);
     }
 }
