@@ -30,7 +30,7 @@
                 android:layout_alignParentStart="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="12dp"
-                android:src="@drawable/ic_arrow_back" /> <!-- Đổi sang #fff nếu nền tối -->
+                android:src="@drawable/ic_arrow_back" />
 
             <!-- 🏷️ Tiêu đề ở giữa -->
             <TextView

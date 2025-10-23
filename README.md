@@ -16,5 +16,5 @@ Chủ đề: Xây dựng ứng dụng YumYard trên thiết bị di động ph�
 
 
 ## Báo cáo
-* [Phiếu báo cáo học tập](#)
-* [Báo cáo thực nghiệm](#)
+* [Biên bản làm việc nhóm](https://docs.google.com/spreadsheets/d/1h64uau236-DXDGLcbBuJ5rZFODcHfU3r62cTJhgJMGA/edit?usp=sharing)
+* [Báo cáo thực nghiệm](https://docs.google.com/document/d/1SG9fEtrk1rG5wEIHy-tXIJ5sjNqVIXoMcTAJrGDpfYo/edit?usp=sharing)
