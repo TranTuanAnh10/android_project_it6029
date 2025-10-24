@@ -1,0 +1,72 @@
+{
+  "project_info": {
+    "project_number": "859550527329",
+    "firebase_url": "https://haui-23d87-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "haui-23d87",
+    "storage_bucket": "haui-23d87.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859550527329:android:ee13e0623cd92721e89f20",
+        "android_client_info": {
+          "package_name": "vn.haui.android_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "859550527329-k00msp9nld2iclfvogi4lolfvnamejkb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "vn.haui.android_project",
+            "certificate_hash": "9c74b38df909d8ca50f1e02473bcaa3019e5f0e6"
+          }
+        },
+        {
+          "client_id": "859550527329-m4vms3bjounv5u7su9a0il3bugj10ke3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "vn.haui.android_project",
+            "certificate_hash": "6c0f8830cbafd0ad523b5565a69d259c15545156"
+          }
+        },
+        {
+          "client_id": "859550527329-pn3h4gnnjv9ftj68i1glvdgqcqh03v97.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "vn.haui.android_project",
+            "certificate_hash": "0bc875b0d5a84060c1d2ef2ade1adfd529b2e6b5"
+          }
+        },
+        {
+          "client_id": "859550527329-rd326fg2o7qkiputg4hnptf49523pqe2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "vn.haui.android_project",
+            "certificate_hash": "ddc9cc86b393dbaed5adf757effaf872be8adecc"
+          }
+        },
+        {
+          "client_id": "859550527329-o5ufkbjddcdmqfg10f7obrvvudmmaq9n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAn8yvs5EUDcAJZFEy3NnZsKVuRdYvfDRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "859550527329-o5ufkbjddcdmqfg10f7obrvvudmmaq9n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
