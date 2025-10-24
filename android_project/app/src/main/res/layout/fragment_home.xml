@@ -6,7 +6,7 @@
     <!-- Toàn bộ phần hiển thị có thể cuộn -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="1158dp"
         android:fillViewport="true">
 
         <LinearLayout
@@ -25,10 +25,14 @@
                 android:padding="16dp">
 
                 <include layout="@layout/layout_browser_cuisines" />
+
                 <include layout="@layout/layout_flash_deals" />
-                 <include layout="@layout/layout_top_picks" />
-                 <include layout="@layout/layout_best_selling" />
-                 <include layout="@layout/layout_ready_for_lunch" />
+
+                <include layout="@layout/layout_top_picks" />
+
+                <include layout="@layout/layout_best_selling" />
+
+                <include layout="@layout/layout_ready_for_lunch" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

@@ -23,5 +23,9 @@
     <color name="color_text_home_page_text_black">#343434</color>
     <color name="color_text_home_page_bg_orange">#F8EBEC</color>
     <color name="color_text_home_page_bg_green">#C3E8D8</color>
+    <style name="RoundedImageStyle">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
 
 </resources>
