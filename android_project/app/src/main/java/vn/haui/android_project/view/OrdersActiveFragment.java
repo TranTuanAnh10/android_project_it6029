@@ -3,12 +3,18 @@ package vn.haui.android_project.view;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.Order;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,6 +35,7 @@ public class OrdersActiveFragment extends Fragment {
     public OrdersActiveFragment() {
         // Required empty public constructor
     }
+    private RecyclerView recyclerView;
 
     /**
      * Use this factory method to create a new instance of
@@ -61,6 +68,33 @@ public class OrdersActiveFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_orders_active, container, false);
+        View view =  inflater.inflate(R.layout.fragment_orders_active, container, false);
+        recyclerView = view.findViewById(R.id.rvActiveOrders);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // 🧩 Dữ liệu mẫu
+        List<Order> orders = new ArrayList<>();
+        orders.add(new Order(
+                "The Daily Grind Hub",
+                "1 item",
+                "Estimate arrival: 10:25",
+                "Order placed",
+                "$20",
+                R.drawable.image_pizza
+        ));
+        orders.add(new Order(
+                "CFK",
+                "1 item",
+                "Estimate arrival: 10:25",
+                "Order placed",
+                "$20",
+                R.drawable.img_pizza_ga_nuong_bbq
+        ));
+
+        // Gắn adapter
+        OrderAdapter adapter = new OrderAdapter(orders);
+        recyclerView.setAdapter(adapter);
+
+        return view;
     }
 }

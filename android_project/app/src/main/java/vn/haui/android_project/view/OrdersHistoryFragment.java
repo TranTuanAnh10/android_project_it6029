@@ -3,12 +3,17 @@ package vn.haui.android_project.view;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.List;
+
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.Order;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,6 +34,7 @@ public class OrdersHistoryFragment extends Fragment {
     public OrdersHistoryFragment() {
         // Required empty public constructor
     }
+    private RecyclerView recyclerView;
 
     /**
      * Use this factory method to create a new instance of
@@ -61,6 +67,34 @@ public class OrdersHistoryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_orders_history, container, false);
+        View view =  inflater.inflate(R.layout.fragment_orders_history, container, false);
+
+        recyclerView = view.findViewById(R.id.rvHistoryOrders);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        List<Order> orderList = List.of(
+                new Order(
+                        "The Daily Grind Hub",
+                        "1 item",
+                        "Estimate arrival: 10:25",
+                        "Order placed",
+                        "$20",
+                        R.drawable.image_pizza
+                ),new Order(
+                        "Bugger Kings",
+                        "1 item",
+                        "Estimate arrival: 10:25",
+                        "Order placed",
+                        "$10",
+                        R.drawable.banh_mi_op_la
+                )
+        );
+        // Gắn adapter
+        OrderAdapter adapter = new OrderAdapter(orderList);
+        recyclerView.setAdapter(adapter);
+
+        return view;
+
     }
 }

@@ -3,12 +3,20 @@ package vn.haui.android_project.view;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.FoodItem;
+import vn.haui.android_project.entity.Store;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,10 +65,39 @@ public class OrdersBasketFragment extends Fragment {
         }
     }
 
+    RecyclerView rvBasketStores;
+    List<Store> storeList;
+    BasketStoreAdapter adapter;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_orders_basket, container, false);
-    }
+        View view =  inflater.inflate(R.layout.fragment_orders_basket, container, false);
+
+
+        rvBasketStores = view.findViewById(R.id.rvBasketOrders);
+        rvBasketStores.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        storeList = new ArrayList<>();
+
+        // tạo dữ liệu giả
+        List<FoodItem> pizzaList1 = new ArrayList<>();
+        pizzaList1.add(new FoodItem("Pizza Margherita", "Large size, extra Grated Parmesan", "$70", R.drawable.img_pizza, 2));
+        pizzaList1.add(new FoodItem("Pizza Pepperoni", "Large size, no extras", "$60", R.drawable.img_pizza_thap_cam, 2));
+
+        storeList.add(new Store("Pizzeria da Giuseppe", R.drawable.img_pizza_thap_cam, pizzaList1, true));
+
+        List<FoodItem> pizzaList2 = new ArrayList<>();
+        pizzaList2.add(new FoodItem("Pizza Hải sản", "Seafood, cheese crust", "$85", R.drawable.img_pizza_thap_cam, 1));
+        pizzaList2.add(new FoodItem("Pizza BBQ", "BBQ sauce, extra cheese", "$75", R.drawable.img_pizza, 3));
+
+        storeList.add(new Store("Pizza Roma", R.drawable.img_pizza, pizzaList2, true));
+
+        adapter = new BasketStoreAdapter(getContext(), storeList);
+
+        Log.d("TEST", "Store count: " + storeList.size());
+
+        rvBasketStores.setAdapter(adapter);
+
+        return view;    }
 }

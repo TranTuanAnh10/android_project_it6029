@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:context=".view.OrdersBasketFragment">
+
+
+
+    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp">
+
+
+        <!-- Header của quán -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:layout_weight="4"
+            >
+            <ImageButton
+                android:id="@+id/btnDeleteStore"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/bin"
+                android:layout_marginEnd="5sp"
+                android:scaleType="fitCenter"
+                android:background="@android:color/transparent"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/imgStore"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/image_pizza"
+                android:scaleType="centerCrop"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tvStoreName"
+                android:text="Pizzeria da Giuseppe"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:textColor="#222222"
+                android:layout_weight="1"/>
+
+            <ImageButton
+                android:id="@+id/btnExpand"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_arrow_down"
+                android:background="@color/md_theme_onBackground"
+                />
+        </LinearLayout>
+
+        <!-- Danh sách món trong quán -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvItems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Nút đặt hàng -->
+        <Button
+            android:id="@+id/btnPlaceOrder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Place this Order"
+            android:backgroundTint="#F8BBD0"
+            android:textColor="#C2185B"
+            android:layout_marginTop="8dp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+</FrameLayout>

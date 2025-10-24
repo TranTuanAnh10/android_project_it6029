@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:text="Orders"
             android:textColor="#222222"
-            android:textSize="24sp"
+            android:textSize="34sp"
             android:textStyle="bold" />
 
         <ImageView
@@ -80,8 +80,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Active orders"
-        android:textSize="15dp"
+        android:textSize="25dp"
         android:id="@+id/orders_fragment_label"
+        android:textColor="@color/color_text_home_page_text_black"
         android:paddingLeft="12dp"
         />
 
@@ -91,6 +92,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="10dp" />
+        android:padding="5dp" />
 
 </LinearLayout>
