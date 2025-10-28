@@ -26,10 +26,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Hiển thị chi tiết đơn hàng (dữ liệu mẫu) lên UI.
-     * Trong ứng dụng thực tế, dữ liệu này sẽ được lấy từ Intent hoặc Firestore.
-     */
     private void displayOrderDetails() {
         // Cập nhật thông tin tổng quan
         binding.tvEstimateTime.setText("10:10");
@@ -48,8 +44,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
       }
 
     private void setupListeners() {
-        // Nút Quay lại
-        binding.btnBack.setOnClickListener(v -> finish());
 
         // Nút Hủy đơn hàng
         binding.btnCancelOrder.setOnClickListener(v -> {

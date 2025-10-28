@@ -18,6 +18,7 @@
 
             <!-- Vòng tròn xám -->
             <ImageView
+                android:id="@+id/step_delivering"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/ic_delivering_order"
@@ -25,6 +26,7 @@
 
             <!-- Đường kẻ (chỉ cho Delivering) -->
             <View
+                android:id="@+id/step_finish_line"
                 android:layout_width="2dp"
                 android:layout_height="0dp"
                 android:layout_weight="1"
@@ -41,7 +43,7 @@
                 android:id="@+id/order_inactive_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Delivering"
+                android:text="@string/delivering"
                 android:textColor="#343434"
                 android:textSize="16sp"
                 android:textStyle="normal" />
@@ -49,7 +51,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Driver will soon deliver to you, please stay tuned."
+                android:text="@string/deliveringDesc"
                 android:textColor="#999999"
                 android:textSize="14sp" />
         </LinearLayout>

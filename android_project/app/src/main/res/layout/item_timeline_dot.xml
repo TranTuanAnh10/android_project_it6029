@@ -16,7 +16,7 @@
 
         <!-- Dot/Icon -->
         <ImageView
-            android:id="@+id/timeline_icon"
+            android:id="@+id/step_pickingUp"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/ic_picking_up_order"
@@ -24,7 +24,7 @@
 
         <!-- Line (Nếu không phải bước cuối) -->
         <View
-            android:id="@+id/timeline_line"
+            android:id="@+id/step_delivering_line"
             android:layout_width="2dp"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -42,7 +42,7 @@
             android:id="@+id/timeline_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Picking up"
+            android:text="@string/pickingUp"
             android:textColor="#343434"
             android:textSize="16sp"
             android:textStyle="normal" />
@@ -51,7 +51,7 @@
             android:id="@+id/timeline_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Driver is picking up your Order."
+            android:text="@string/pickingUpDesc"
             android:textColor="#666666"
             android:textSize="14sp" />
     </LinearLayout>
