@@ -578,14 +578,14 @@
 
 
         <Button
-            android:id="@+id/btn_rate_order"
+            android:id="@+id/btn_confirm_order"
             android:visibility="gone"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            android:text="@string/rateOrder"
+            android:text="@string/confirmOrder"
             android:textColor="#E04040"
             android:backgroundTint="#FFFFFF"
             style="@style/Widget.MaterialComponents.Button.TextButton"

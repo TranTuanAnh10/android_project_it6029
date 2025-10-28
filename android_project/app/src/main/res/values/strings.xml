@@ -26,5 +26,5 @@
     <string name="deliveringDesc">Đang giao hàng</string>
     <string name="finishDesc">Đã giao hàng thành công</string>
     <string name="cancelOrder">Cancel Order</string>
-    <string name="rateOrder">Rate Order</string>
+    <string name="confirmOrder">Confirm Order</string>
 </resources>

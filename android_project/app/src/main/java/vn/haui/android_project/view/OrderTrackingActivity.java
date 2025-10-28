@@ -2,17 +2,18 @@ package vn.haui.android_project.view;
 
 import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
-import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,7 +54,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     ;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
 
-    private Button btnCancelOrder, btnRateOrder;
+    private Button btnCancelOrder, btnConfirmOrder;
     // =============================
 
     // View con trong layoutDetail
@@ -140,8 +141,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
             }
         });
 
-        // Hiển thị dữ liệu mẫu
-//        displayOrderDetails();
+        btnConfirmOrder.setOnClickListener(v -> {
+            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin.", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void mappingLayoutSummary() {
@@ -168,7 +170,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
         stepFinishLine = layoutDetail.findViewById(R.id.step_finish_line);
 
         btnCancelOrder = layoutDetail.findViewById(R.id.btn_cancel_order);
-        btnRateOrder = layoutDetail.findViewById(R.id.btn_rate_order);
+        btnConfirmOrder = layoutDetail.findViewById(R.id.btn_confirm_order);
 
 
         //
@@ -335,7 +337,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
             tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.deliveringDesc));
         } else if (status.equals(MyConstant.FINISH)) {
             btnCancelOrder.setVisibility(GONE);
-            btnRateOrder.setVisibility(VISIBLE);
+            btnConfirmOrder.setVisibility(VISIBLE);
 
             stepFinish.setImageResource(R.drawable.ic_finish_order_active);
             stepFinishLine.setBackgroundColor(Color.parseColor("#EB4D57"));
