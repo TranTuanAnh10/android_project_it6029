@@ -42,7 +42,7 @@ public class ProfileFragment extends Fragment {
     Button btn_logout;
     ImageView imgUser;
     ImageButton editProfile;
-    TextView tvUserName, tvUserEmail;
+    TextView tvUserName, tvUserEmail,pointYumyard;
     View view;
     @Nullable
     @Override
@@ -97,6 +97,10 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
         btn_logout.setOnClickListener(v -> logoutUser(authUser.getUid()));
+        pointYumyard.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileFragment.this.getContext(), OrderDetailsActivity.class);
+            startActivity(intent);
+        });
     }
     public void logoutUser(String userId) {
         logoutAndRemoveToken(userId);
@@ -110,6 +114,7 @@ public class ProfileFragment extends Fragment {
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail =view.findViewById(R.id.tv_user_email);
         editProfile=view.findViewById(R.id.iv_edit_profile);
+        pointYumyard=view.findViewById(R.id.point_yumyard);
     }
     private void logoutAndRemoveToken(String userId) {
         FirebaseMessaging.getInstance().getToken()
