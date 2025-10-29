@@ -32,6 +32,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import vn.haui.android_project.R;
@@ -234,41 +235,48 @@ public class OrderTrackingActivity extends AppCompatActivity {
         if (tvTotalValue != null) tvTotalValue.setText("$115");
     }
 
-
     /**
-     * Ghi đơn hàng mẫu vào Firebase
+     * Ghi dữ liệu mẫu (3 vị trí: shipper, cửa hàng, người nhận)
      */
     private void writeSampleOrder() {
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", "CA321457");
-        orderData.put("status", MyConstant.PREPARED);
+        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
         orderData.put("driver", "Adam West");
         orderData.put("licensePlate", "34 LD 5225");
         orderData.put("deliveryFee", "$0");
         orderData.put("discount", "-$15");
         orderData.put("total", "$115");
 
-        // ✅ Thêm vị trí mẫu
+        // --- Vị trí shipper ---
         Map<String, Object> shipperLocation = new HashMap<>();
         shipperLocation.put("lat", 21.0285);
         shipperLocation.put("lng", 105.8542);
 
+        // --- Vị trí cửa hàng ---
+        Map<String, Object> storeLocation = new HashMap<>();
+        storeLocation.put("lat", 21.031);
+        storeLocation.put("lng", 105.852);
+
+        // --- Vị trí người nhận ---
         Map<String, Object> receiverLocation = new HashMap<>();
         receiverLocation.put("lat", 21.035);
         receiverLocation.put("lng", 105.85);
 
         orderData.put("shipper", shipperLocation);
+        orderData.put("store", storeLocation);
         orderData.put("receiver", receiverLocation);
 
         orderRef.setValue(orderData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Order data written successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to write order: " + e.getMessage()));
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
     }
 
 
 
+
     /**
-     * Lắng nghe realtime thay đổi đơn hàng
+     * Lắng nghe realtime thay đổi đơn hàng (Firebase)
      */
     private void listenOrderRealtime() {
         orderRef.addValueEventListener(new ValueEventListener() {
@@ -284,18 +292,21 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String discount = snapshot.child("discount").getValue(String.class);
                 String total = snapshot.child("total").getValue(String.class);
 
-                // ✅ Cập nhật thông tin đơn
+                // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total);
 
-                // ✅ Cập nhật realtime vị trí shipper trên map
+                // ✅ Lấy vị trí shipper realtime
                 DataSnapshot shipperSnap = snapshot.child("shipper");
                 if (shipperSnap.exists()) {
                     Double lat = shipperSnap.child("lat").getValue(Double.class);
                     Double lng = shipperSnap.child("lng").getValue(Double.class);
 
                     if (lat != null && lng != null) {
+                        // --- Gửi JS sang WebView ---
                         runOnUiThread(() -> {
-                            String js = String.format("updateLocation(%f, %f)", lat, lng);
+                            String js = String.format(Locale.US,
+                                    "updateLocation(%f, %f, '%s')",
+                                    lat, lng, status != null ? status : "");
                             webViewMap.evaluateJavascript(js, null);
                         });
                     }
@@ -308,6 +319,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     private void updateOrderUI(String orderId, String status, String driver,
