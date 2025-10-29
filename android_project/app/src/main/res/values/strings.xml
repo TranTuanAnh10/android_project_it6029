@@ -15,4 +15,16 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="default_web_client_id">859550527329-o5ufkbjddcdmqfg10f7obrvvudmmaq9n.apps.googleusercontent.com</string>
     <string name="otp_message">"Please enter the 6-digit-OTP we've sent to your phone number:"</string>
+
+    <string name="prepared">Đặt hàng</string>
+    <string name="pickingUp">Chuẩn bị</string>
+    <string name="delivering">Giao hàng</string>
+    <string name="finish">Thành công</string>
+
+    <string name="preparedDesc">Đơn hàng đã được đặt</string>
+    <string name="pickingUpDesc">Đang chuẩn bị hàng</string>
+    <string name="deliveringDesc">Đang giao hàng</string>
+    <string name="finishDesc">Đã giao hàng thành công</string>
+    <string name="cancelOrder">Cancel Order</string>
+    <string name="confirmOrder">Confirm Order</string>
 </resources>

@@ -37,6 +37,9 @@
             android:name=".view.OrderDetailsActivity"
             android:exported="true" />
         <activity
+            android:name=".view.OrderTrackingActivity"
+            android:exported="true" />
+        <activity
             android:name=".view.SplashScreenActivity"
             android:exported="true" >
             <intent-filter>

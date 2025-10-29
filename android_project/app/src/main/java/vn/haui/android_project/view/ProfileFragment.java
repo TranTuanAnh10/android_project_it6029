@@ -98,7 +98,7 @@ public class ProfileFragment extends Fragment {
         });
         btn_logout.setOnClickListener(v -> logoutUser(authUser.getUid()));
         pointYumyard.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileFragment.this.getContext(), OrderDetailsActivity.class);
+            Intent intent = new Intent(ProfileFragment.this.getContext(), OrderTrackingActivity.class);
             startActivity(intent);
         });
     }

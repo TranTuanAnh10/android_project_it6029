@@ -29,16 +29,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/btn_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:src="@drawable/ic_arrow_back"
-            app:layout_constraintBottom_toBottomOf="@+id/tv_header_title"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/tv_header_title"
-            tools:ignore="ContentDescription" />
 
         <!-- ==================================== -->
         <!-- 2. ORDER SUMMARY -->
@@ -60,13 +50,11 @@
 
             <!-- Spacer -->
             <TextView
+                android:id="@+id/tv_status_tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_truck_order"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
-                android:text="Standard Delivery"
-
                 android:textColor="#343434"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -109,7 +97,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
-            android:text="Order ID: CA321457"
             android:textColor="#343434"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -117,7 +104,7 @@
 
         <!-- Status Tag -->
         <TextView
-            android:id="@+id/tv_status_tag"
+            android:id="@+id/tv_status_desc_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -147,7 +134,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@+id/tv_status_tag"
+            app:layout_constraintTop_toBottomOf="@+id/tv_status_desc_tag"
             tools:layout_editor_absoluteX="15dp">
 
             <!-- Timeline Item: Prepared -->
@@ -578,7 +565,27 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            android:text="Cancel Order"
+            android:text="@string/cancelOrder"
+            android:textColor="#E04040"
+            android:backgroundTint="#FFFFFF"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:strokeColor="#E04040"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_total_label" />
+
+
+        <Button
+            android:id="@+id/btn_confirm_order"
+            android:visibility="gone"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="16dp"
+            android:text="@string/confirmOrder"
             android:textColor="#E04040"
             android:backgroundTint="#FFFFFF"
             style="@style/Widget.MaterialComponents.Button.TextButton"
