@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -46,6 +47,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private LinearLayout layoutSummary, layoutDetail;
     private View mapContainer;
+    private WebView webViewMap;
 
     // View con trong layoutDetail
     private TextView tvEstimateArrival, tvOrderId, tvStatusTag, tvStatusDescTag;
@@ -78,6 +80,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
         layoutSummary = findViewById(R.id.layoutSummary);
         layoutDetail = findViewById(R.id.layoutDetail);
         mapContainer = findViewById(R.id.mapContainer);
+
+        mappingViewMap();
 
         mappingLayoutSummary();
 
@@ -239,14 +243,28 @@ public class OrderTrackingActivity extends AppCompatActivity {
         orderData.put("orderId", "CA321457");
         orderData.put("status", MyConstant.PREPARED);
         orderData.put("driver", "Adam West");
-        orderData.put("licensePlate", "0981094505");
+        orderData.put("licensePlate", "34 LD 5225");
         orderData.put("deliveryFee", "$0");
         orderData.put("discount", "-$15");
         orderData.put("total", "$115");
+
+        // ✅ Thêm vị trí mẫu
+        Map<String, Object> shipperLocation = new HashMap<>();
+        shipperLocation.put("lat", 21.0285);
+        shipperLocation.put("lng", 105.8542);
+
+        Map<String, Object> receiverLocation = new HashMap<>();
+        receiverLocation.put("lat", 21.035);
+        receiverLocation.put("lng", 105.85);
+
+        orderData.put("shipper", shipperLocation);
+        orderData.put("receiver", receiverLocation);
+
         orderRef.setValue(orderData)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Order data written successfully"))
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to write order: " + e.getMessage()));
     }
+
 
 
     /**
@@ -265,7 +283,23 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String fee = snapshot.child("deliveryFee").getValue(String.class);
                 String discount = snapshot.child("discount").getValue(String.class);
                 String total = snapshot.child("total").getValue(String.class);
+
+                // ✅ Cập nhật thông tin đơn
                 updateOrderUI(orderId, status, driver, license, fee, discount, total);
+
+                // ✅ Cập nhật realtime vị trí shipper trên map
+                DataSnapshot shipperSnap = snapshot.child("shipper");
+                if (shipperSnap.exists()) {
+                    Double lat = shipperSnap.child("lat").getValue(Double.class);
+                    Double lng = shipperSnap.child("lng").getValue(Double.class);
+
+                    if (lat != null && lng != null) {
+                        runOnUiThread(() -> {
+                            String js = String.format("updateLocation(%f, %f)", lat, lng);
+                            webViewMap.evaluateJavascript(js, null);
+                        });
+                    }
+                }
             }
 
             @Override
@@ -274,6 +308,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void updateOrderUI(String orderId, String status, String driver,
                                String license, String fee, String discount, String total) {
@@ -349,5 +384,16 @@ public class OrderTrackingActivity extends AppCompatActivity {
             tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.finish));
             tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.finishDesc));
         }
+    }
+
+    private void mappingViewMap() {
+        webViewMap = findViewById(R.id.webViewMap);
+        webViewMap.getSettings().setJavaScriptEnabled(true);
+        webViewMap.getSettings().setAllowFileAccess(true);
+        webViewMap.getSettings().setAllowFileAccessFromFileURLs(true);
+        webViewMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
+// Load map.html trong assets
+        webViewMap.loadUrl("file:///android_asset/map.html");
+
     }
 }
