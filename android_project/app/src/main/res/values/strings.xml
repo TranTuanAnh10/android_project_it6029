@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Android_project</string>
+    <string name="app_name">YumYard</string>
     <string name="onboard_title">Delight Delivered,\n Cravings Satisfied.</string>
     <string name="onboard_subtitle">Savor the convenience of delicious meals delivered right to your doorstep. Let\'s embark on a culinary journey together!</string>
     <string name="title_activity_login">LoginActivity</string>

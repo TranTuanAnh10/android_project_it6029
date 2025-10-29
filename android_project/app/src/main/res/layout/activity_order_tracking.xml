@@ -9,9 +9,16 @@
     <FrameLayout
         android:id="@+id/mapContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#E0E0E0"
-        tools:ignore="MissingConstraints" />
+        android:layout_height="match_parent">
+
+        <WebView
+            android:id="@+id/webViewMap"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#E0E0E0"
+            android:focusable="false"
+            android:clickable="false" />
+    </FrameLayout>
 
     <!-- Bottom Sheet -->
     <com.google.android.material.card.MaterialCardView
