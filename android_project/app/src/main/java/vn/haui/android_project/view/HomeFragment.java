@@ -25,6 +25,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.CategoryItem;
+import vn.haui.android_project.entity.ProductItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class HomeFragment extends Fragment {
     public HomeFragment() { }
 
     private static final String COLLECTION_CATEGORYS = "categorys";
+    private static final String COLLECTION_PRODUCTS = "products";
     View view;
     private FirebaseFirestore db;
     @Nullable
@@ -57,8 +59,25 @@ public class HomeFragment extends Fragment {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CategoryItem item = document.toObject(CategoryItem.class);
                             item.setId(document.getId());
+                            topPicksList.add(item);
                         }
                         populateCuisineLayout(topPicksList);
+                        Log.d(TAG, "Tải Top Picks thành công: " + topPicksList.size() + " mục");
+
+                    } else {
+                        Log.w(TAG, "Lỗi khi tải Top Picks", task.getException());
+                    }
+                });
+        db.collection(COLLECTION_PRODUCTS)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<ProductItem> topPicksList = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            ProductItem item = document.toObject(ProductItem.class);
+                            item.setId(document.getId());
+                            topPicksList.add(item);
+                        }
                         Log.d(TAG, "Tải Top Picks thành công: " + topPicksList.size() + " mục");
 
                     } else {

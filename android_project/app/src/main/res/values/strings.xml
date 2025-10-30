@@ -27,4 +27,8 @@
     <string name="finishDesc">Đã giao hàng thành công</string>
     <string name="cancelOrder">Cancel Order</string>
     <string name="confirmOrder">Confirm Order</string>
+
+<!--    Home Screen-->
+    <string name="category">Categorys</string>
+
 </resources>
