@@ -2,6 +2,7 @@ package vn.haui.android_project.enums;
 
 public enum DatabaseTable {
     USERS("users"),
+    USER_LOCATIONS("user_locations"),
    ;
 
     private final String value;

@@ -61,4 +61,5 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }
