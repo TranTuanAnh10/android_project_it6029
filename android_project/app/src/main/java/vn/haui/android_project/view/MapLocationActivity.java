@@ -114,7 +114,9 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
                     latitude,
                     longitude,
                     address != null ? address : "Địa chỉ không xác định",
-                    true
+                    authUser.getPhoneNumber(),
+                    true,
+                    "Other"
             );
             List<UserLocationEntity> locationList = new ArrayList<>();
             locationList.add(newLocation); // ✅ thêm location hiện tại vào danh sách

@@ -97,7 +97,7 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
         saveRecipients.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileFragment.this.getContext(), LocationScreenActivity.class);
+            Intent intent = new Intent(ProfileFragment.this.getContext(), ChooseRecipientActivity.class);
             startActivity(intent);
         });
         btn_logout.setOnClickListener(v -> logoutUser(authUser.getUid()));

@@ -21,6 +21,7 @@ import com.google.firebase.auth.*;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.services.FirebaseUserManager;
 
 public class LoginScreenActivity extends AppCompatActivity {
@@ -29,6 +30,7 @@ public class LoginScreenActivity extends AppCompatActivity {
     Button btnLogin, btnGoogle;
     FirebaseAuth mAuth;
     GoogleSignInClient mGoogleSignInClient;
+    private FirebaseLocationManager firebaseLocationManager;
     private static final int RC_SIGN_IN = 9001;
 
     @Override
@@ -77,6 +79,7 @@ public class LoginScreenActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_continue);
         btnGoogle = findViewById(R.id.btnGoogle);
+        firebaseLocationManager = new FirebaseLocationManager();
     }
 
     private void signIn(String email, String password) {
@@ -139,12 +142,19 @@ public class LoginScreenActivity extends AppCompatActivity {
         userManager.getUserByUid(user.getUid(), userData -> {
             // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
             String phone = (String) userData.getOrDefault("phoneNumber", "");
-            if (phone.isBlank()){
+            if (phone.isBlank()) {
                 // chua co std thi day den nhap std
                 Intent intent = new Intent(LoginScreenActivity.this, PhoneScreenActivity.class);
                 startActivity(intent);
                 finish();
-            }else {
+            } else {
+                // check xem co dia chi chua => chua co set up dia chi ship mac dinh
+                firebaseLocationManager.checkUserHasLocations(user.getUid(), (hasLocations, message) -> {
+                    if (!hasLocations) {
+                        Intent intent = new Intent(LoginScreenActivity.this, LocationScreenActivity.class);
+                        startActivity(intent);
+                    }
+                });
                 // da co std thi day den main
                 Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
                 intent.putExtra("USER_ID", user.getUid());

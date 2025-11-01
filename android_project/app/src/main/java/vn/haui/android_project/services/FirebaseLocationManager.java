@@ -5,10 +5,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,6 @@ public class FirebaseLocationManager {
     }
 
 
-
     /**
      * 🔄 Cập nhật toạ độ của người dùng (ví dụ khi người dùng di chuyển).
      * Ghi đè trực tiếp các trường trong Document UID.
@@ -86,31 +87,120 @@ public class FirebaseLocationManager {
     }
 
 
-    /**
-     * 📍 Lấy dữ liệu toạ độ cuối cùng của người dùng (lấy toàn bộ document UID).
-     */
-    public void getLocationByUid(String uid, Consumer<DocumentSnapshot> onSuccess,
-                                 @Nullable Consumer<Exception> onError) {
+    public void getSortedLocationsByUid(String uid, BiConsumer<Boolean, List<UserLocationEntity>> onComplete) {
         if (uid == null || uid.isEmpty()) {
-            if (onError != null) onError.accept(new IllegalArgumentException("UID rỗng"));
+            onComplete.accept(false, Collections.emptyList());
             return;
         }
 
-        // --- SỬA ĐỔI: TRUY CẬP TRỰC TIẾP document(uid) và dùng .get() ---
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    // Trả về toàn bộ DocumentSnapshot, bao gồm cả ID và dữ liệu
-                    if (documentSnapshot.exists()) {
-                        Log.d(TAG, "✅ Lấy toạ độ thành công cho UID: " + uid);
-                    } else {
-                        Log.d(TAG, "🔍 Document UID không tồn tại: " + uid);
+                    if (!documentSnapshot.exists()) {
+                        onComplete.accept(true, Collections.emptyList());
+                        return;
                     }
-                    onSuccess.accept(documentSnapshot);
+
+                    Object locationsObject = documentSnapshot.get("locations");
+                    if (!(locationsObject instanceof List)) {
+                        onComplete.accept(true, Collections.emptyList());
+                        return;
+                    }
+
+                    List<UserLocationEntity> locationList = new ArrayList<>();
+                    List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) locationsObject;
+
+                    for (Map<String, Object> locationMap : rawLocations) {
+                        try {
+                            // --- SỬA LỖI: Ánh xạ thủ công (Manual Mapping) ---
+                            UserLocationEntity location = mapToUserLocationEntity(locationMap);
+                            locationList.add(location);
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "❌ Lỗi ánh xạ đối tượng: " + e.getMessage());
+                        }
+                    }
+
+                    // Sắp xếp danh sách (Client-side Sorting)
+                    locationList.sort(Comparator.comparing(UserLocationEntity::isDefaultLocation).reversed());
+
+                    Log.d(TAG, "✅ Lấy và sắp xếp địa chỉ thành công.");
+                    onComplete.accept(true, locationList);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Lỗi lấy toạ độ cho UID: " + uid + " : " + e.getMessage());
-                    if (onError != null) onError.accept(e);
+                    Log.e(TAG, "❌ Lỗi lấy danh sách địa chỉ: " + e.getMessage());
+                    onComplete.accept(false, Collections.emptyList());
                 });
     }
+
+    /**
+     * Hàm hỗ trợ ánh xạ thủ công từ Map sang UserLocationEntity
+     */
+    private UserLocationEntity mapToUserLocationEntity(Map<String, Object> map) {
+        UserLocationEntity location = new UserLocationEntity();
+
+        // Đảm bảo kiểu dữ liệu: Double từ Firestore có thể là Long/Double.
+        // Sử dụng ((Number) map.get(key)).doubleValue() là cách an toàn.
+
+        location.setId((String) map.get("id"));
+        location.setLocationType((String) map.get("locationType"));
+        location.setAddress((String) map.get("address"));
+//        location.setRecipientName((String) map.get("recipientName"));
+        location.setPhoneNumber((String) map.get("phoneNumber"));
+
+        // Xử lý các trường số (double/boolean)
+        Object latValue = map.get("latitude");
+        if (latValue instanceof Number) {
+            location.setLatitude(((Number) latValue).doubleValue());
+        }
+
+        Object lngValue = map.get("longitude");
+        if (lngValue instanceof Number) {
+            location.setLongitude(((Number) lngValue).doubleValue());
+        }
+
+        // Trường Boolean
+        Object isDefaultValue = map.get("defaultLocation");
+        if (isDefaultValue instanceof Boolean) {
+            location.setDefaultLocation((Boolean) isDefaultValue);
+        }
+
+        // TODO: Thêm các trường khác nếu có
+
+        return location;
+    }
+
+
+    public void checkUserHasLocations(String uid, BiConsumer<Boolean, String> onComplete) {
+        if (uid == null || uid.isEmpty()) {
+            onComplete.accept(false, "UID rỗng");
+            return;
+        }
+
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+
+        userDocRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Kiểm tra xem có field "locations" không và có ít nhất 1 phần tử
+                        List<?> locations = (List<?>) documentSnapshot.get("locations");
+                        if (locations != null && !locations.isEmpty()) {
+                            Log.d(TAG, "✅ UID: " + uid + " đã có " + locations.size() + " bản ghi location.");
+                            onComplete.accept(true, "Đã có bản ghi location");
+                        } else {
+                            Log.d(TAG, "⚠️ UID: " + uid + " chưa có bản ghi location nào.");
+                            onComplete.accept(false, "Chưa có bản ghi location");
+                        }
+                    } else {
+                        Log.d(TAG, "⚠️ Document UID: " + uid + " chưa tồn tại trong collection.");
+                        onComplete.accept(false, "Document chưa tồn tại");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Lỗi khi kiểm tra location: " + e.getMessage());
+                    onComplete.accept(false, e.getMessage());
+                });
+    }
+
 }
