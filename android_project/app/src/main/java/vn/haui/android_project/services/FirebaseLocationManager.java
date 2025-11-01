@@ -6,8 +6,11 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -24,26 +27,39 @@ public class FirebaseLocationManager {
     }
 
 
-    public void saveOrUpdateLocation(String uid, UserLocationEntity location, BiConsumer<Boolean, String> onComplete) {
-        if (uid == null || uid.isEmpty() || location == null) {
+    public void appendLocation(String uid, UserLocationEntity newLocation, BiConsumer<Boolean, String> onComplete) {
+        if (uid == null || uid.isEmpty() || newLocation == null) {
             onComplete.accept(false, "UID hoặc Location rỗng");
             return;
         }
-        // --- SỬA ĐỔI: TRUY CẬP TRỰC TIẾP DOCUMENT UID ---
+
         DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
-        // Đặt ID cho location (tùy chọn, có thể dùng chính UID làm ID nếu bạn muốn)
-        location.setId(String.valueOf(System.currentTimeMillis()));
-        // Sử dụng .set(location) để ghi đè toàn bộ document {uid} bằng dữ liệu location
-        userDocRef.set(location)
+
+        // Gán ID duy nhất cho location mới
+        newLocation.setId(String.valueOf(System.currentTimeMillis()));
+
+        userDocRef.update("locations", FieldValue.arrayUnion(newLocation))
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Lưu toạ độ thành công vào UID: " + uid);
+                    Log.d(TAG, "✅ Thêm location mới vào danh sách của UID: " + uid);
                     onComplete.accept(true, uid);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Lỗi lưu toạ độ: " + e.getMessage());
-                    onComplete.accept(false, e.getMessage());
+                    // Nếu field "locations" chưa tồn tại, cần tạo mới document
+                    userDocRef.set(new HashMap<String, Object>() {{
+                                put("locations", List.of(newLocation));
+                            }})
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "✅ Tạo document mới và thêm location đầu tiên cho UID: " + uid);
+                                onComplete.accept(true, uid);
+                            })
+                            .addOnFailureListener(ex -> {
+                                Log.e(TAG, "❌ Lỗi thêm location: " + ex.getMessage());
+                                onComplete.accept(false, ex.getMessage());
+                            });
                 });
     }
+
+
 
     /**
      * 🔄 Cập nhật toạ độ của người dùng (ví dụ khi người dùng di chuyển).

@@ -15,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.UserLocationEntity;
@@ -77,8 +80,8 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
         @JavascriptInterface
         public void onLocationChanged(final double lat, final double lng) {
             runOnUiThread(() -> {
-                latitude=lat;
-                longitude=lng;
+                latitude = lat;
+                longitude = lng;
             });
         }
     }
@@ -113,19 +116,27 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
                     address != null ? address : "Địa chỉ không xác định",
                     true
             );
-            firebaseLocationManager.saveOrUpdateLocation(
+            List<UserLocationEntity> locationList = new ArrayList<>();
+            locationList.add(newLocation); // ✅ thêm location hiện tại vào danh sách
+            firebaseLocationManager.appendLocation(
                     currentUid,
                     newLocation,
-                    (success, resultIdOrError) -> {
+                    (success, msg) -> {
                         if (success) {
-                            Toast.makeText(MapLocationActivity.this, "✅ Lưu toạ độ thành công: " + resultIdOrError, Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(MapLocationActivity.this, MainActivity.class);
+                            intent.putExtra("USER_ID", authUser.getUid());
+                            intent.putExtra("USER_EMAIL", authUser.getEmail());
+                            intent.putExtra("USER_NAME", authUser.getDisplayName());
+                            if (authUser.getPhotoUrl() != null)
+                                intent.putExtra("USER_PHOTO", authUser.getPhotoUrl().toString());
                             startActivity(intent);
-                       } else {
-                            Toast.makeText(MapLocationActivity.this, "❌ Lỗi lưu toạ độ: " + resultIdOrError, Toast.LENGTH_LONG).show();
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Lỗi: " + msg, Toast.LENGTH_LONG).show();
                         }
                     }
             );
+
 
         }
     }
