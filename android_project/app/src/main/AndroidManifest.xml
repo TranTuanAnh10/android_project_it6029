@@ -73,6 +73,9 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".view.SearchResultActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
     </application>

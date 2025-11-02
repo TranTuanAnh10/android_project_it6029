@@ -7,7 +7,7 @@
         <item name="boxCornerRadiusBottomStart">12dp</item>
         <item name="boxCornerRadiusBottomEnd">12dp</item>
         <item name="boxBackgroundColor">@color/md_theme_onSecondary</item>
-        <item name="boxStrokeColor">@color/md_theme_onSecondary</item>
+<!--        <item name="boxStrokeColor">@color/md_theme_onSecondary</item>-->
         <item name="hintTextColor">@color/md_theme_secondary</item>
         <item name="placeholderTextColor">@color/md_theme_secondary</item>
     </style>
