@@ -1,6 +1,8 @@
 package vn.haui.android_project.entity;
 
-public class UserLocationEntity {
+import java.io.Serializable;
+
+public class UserLocationEntity implements Serializable {
     private String id;
     private double latitude;
     private double longitude;

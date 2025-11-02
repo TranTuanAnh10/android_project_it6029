@@ -3,13 +3,18 @@ package vn.haui.android_project.view;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -27,6 +32,7 @@ import java.util.List;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.services.LocationService;
 
 public class EditRecipientActivity extends AppCompatActivity {
     private String locationId, address, phoneNumber, defaultLocation, locationType, recipientName, country, zipCode;
@@ -39,10 +45,20 @@ public class EditRecipientActivity extends AppCompatActivity {
     private static final int DELETE_RESULT_CODE = 100; // Đảm bảo mã này khớp với ChooseRecipientActivity
     private FirebaseLocationManager firebaseLocationManager;
 
+    private WebView webViewMap;
+    private TextView chooseMapEdit;
+    private LocationService locationService;
+    private double latitude, longitude;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_recipient);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_edit_recipient), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
         mapping();
         firebaseLocationManager = new FirebaseLocationManager();
         setupChipStyling(chipHome);
@@ -50,21 +66,20 @@ public class EditRecipientActivity extends AppCompatActivity {
         setupChipStyling(chipOther);
         setupChipGroupListener();
         btnBack.setOnClickListener(v -> finish());
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_edit_recipient), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
         Intent intent = getIntent();
         if (intent != null) {
             locationId = intent.getStringExtra("location_id");
             address = intent.getStringExtra("address");
             phoneNumber = intent.getStringExtra("phoneNumber");
-            defaultLocation = String.valueOf(intent.getBooleanExtra("defaultLocation",false));
+            defaultLocation = String.valueOf(intent.getBooleanExtra("defaultLocation", false));
             locationType = intent.getStringExtra("locationType");
             recipientName = intent.getStringExtra("recipientName");
             country = intent.getStringExtra("country");
             zipCode = intent.getStringExtra("zipCode");
+            latitude = intent.getDoubleExtra("latitude", 0.0);
+            longitude = intent.getDoubleExtra("longitude", 0.0);
+            setupWebView();
+
 
             et_recipient_name.setText(recipientName);
             et_phone_number.setText(phoneNumber);
@@ -90,6 +105,30 @@ public class EditRecipientActivity extends AppCompatActivity {
 
         btn_save.setOnClickListener(v -> saveRecipient());
         btn_delete.setOnClickListener(v -> deleteRecipient());
+        chooseMapEdit.setOnClickListener(v -> {
+            String updatedRecipientName = et_recipient_name.getText().toString().trim();
+            String updatedPhoneNumber = et_phone_number.getText().toString().trim();
+            String updatedAddress = et_address.getText().toString().trim();
+            String updatedCountry = et_country.getText().toString().trim();
+            String updatedZipCode = et_zip_code.getText().toString().trim();
+            String updatedLocationType = getSelectedLocationType();
+            boolean isDefault = switchDefaultAddress != null && switchDefaultAddress.isChecked();
+            UserLocationEntity locationToSave = new UserLocationEntity(
+                    locationId,
+                    updatedRecipientName,
+                    latitude, longitude,
+                    updatedAddress,
+                    updatedPhoneNumber,
+                    isDefault,
+                    updatedLocationType,
+                    updatedCountry,
+                    updatedZipCode
+            );
+            Intent intent1 = new Intent(EditRecipientActivity.this, SelectLocationActivity.class);
+            intent1.putExtra("locationToSave", locationToSave);
+            intent1.putExtra("activityView", "updateChoose");
+            startActivity(intent1);
+        });
     }
 
     private void mapping() {
@@ -107,6 +146,45 @@ public class EditRecipientActivity extends AppCompatActivity {
         chipHome = findViewById(R.id.chip_home);
         chipWork = findViewById(R.id.chip_work);
         chipOther = findViewById(R.id.chip_other);
+        webViewMap = findViewById(R.id.webview_map_edit);
+        locationService = new LocationService(this);
+        chooseMapEdit= findViewById(R.id.chooseMapEdit);
+    }
+
+    private void setupWebView() {
+        // Cài đặt cơ bản (Giữ nguyên)
+        webViewMap.getSettings().setJavaScriptEnabled(true);
+        webViewMap.getSettings().setDomStorageEnabled(true);
+        webViewMap.addJavascriptInterface(new WebAppInterfaceEdit(), "Android");
+        webViewMap.setVerticalScrollBarEnabled(false);
+        webViewMap.setHorizontalScrollBarEnabled(false);
+        webViewMap.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        webViewMap.setOnTouchListener((v, event) -> (event.getAction() == MotionEvent.ACTION_MOVE));
+        webViewMap.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                // Đảm bảo hàm centerMapAtLocation đã tồn tại
+                centerMapAtLocation(latitude, longitude, 14);
+            }
+        });
+        webViewMap.loadUrl("file:///android_asset/map_selector.html");
+    }
+    private void centerMapAtLocation(double lat, double lng, int zoom) {
+        final String jsCode = String.format("javascript:centerMapAtLocation(%.6f, %.6f, %d);", lat, lng, zoom);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webViewMap.evaluateJavascript(jsCode, null);
+        } else {
+            webViewMap.loadUrl(jsCode);
+        }
+    }
+    public class WebAppInterfaceEdit {
+        @JavascriptInterface
+        public void onLocationChanged(final double lat, final double lng) {
+            runOnUiThread(() -> {
+                latitude = lat;
+                longitude = lng;
+            });
+        }
     }
 
     private void setupChipStyling(Chip chip) {
@@ -207,7 +285,7 @@ public class EditRecipientActivity extends AppCompatActivity {
         UserLocationEntity locationToSave = new UserLocationEntity(
                 locationId,
                 updatedRecipientName,
-                0, 0,
+                latitude, longitude,
                 updatedAddress,
                 updatedPhoneNumber,
                 isDefault,
@@ -219,7 +297,7 @@ public class EditRecipientActivity extends AppCompatActivity {
             performUpdate(authUser.getUid(), locationToSave);
             return;
         }
-        firebaseLocationManager.hasDefaultLocation(authUser.getUid(), (success, hasDefault) -> {
+        firebaseLocationManager.hasDefaultLocation(authUser.getUid(),locationId, (success, hasDefault) -> {
             if (success) {
                 if (hasDefault) {
                     Toast.makeText(this, "Địa chỉ mặc định đã tồn tại. Vui lòng tắt tùy chọn này hoặc chỉnh sửa địa chỉ mặc định cũ.", Toast.LENGTH_LONG).show();
@@ -236,9 +314,8 @@ public class EditRecipientActivity extends AppCompatActivity {
     private void performUpdate(String uid, UserLocationEntity location) {
         firebaseLocationManager.updateLocation(uid, location, (isSuccess, message) -> {
             if (isSuccess) {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("location_id", location.getId());
-                setResult(RESULT_OK, resultIntent);
+                Intent intent1 = new Intent(EditRecipientActivity.this, ChooseRecipientActivity.class);
+                startActivity(intent1);
                 finish();
             } else {
                 Toast.makeText(EditRecipientActivity.this, "❌ Lỗi cập nhật: " + message, Toast.LENGTH_LONG).show();

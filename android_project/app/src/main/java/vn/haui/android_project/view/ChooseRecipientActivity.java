@@ -24,6 +24,7 @@ import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.RecipientAdapter;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.services.LocationService;
 
 // BẮT BUỘC: Implement Interface để nhận sự kiện click từ Adapter
 public class ChooseRecipientActivity extends AppCompatActivity
@@ -39,7 +40,9 @@ public class ChooseRecipientActivity extends AppCompatActivity
     private static final int EDIT_RECIPIENT_REQUEST_CODE = 1;
     private static final int ADD_RECIPIENT_REQUEST_CODE = 2;
     private static final int DELETE_RESULT_CODE = 100; // Mã tùy chỉnh cho thao tác xóa
-
+    private double latitude, longitude;
+    private String address;
+    private LocationService locationService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,19 +54,46 @@ public class ChooseRecipientActivity extends AppCompatActivity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        locationService = new LocationService(this);
         firebaseLocationManager = new FirebaseLocationManager();
         recyclerRecipients = findViewById(R.id.recycler_recipients);
         btnAddRecipient = findViewById(R.id.btn_add_recipient);
         recipientAdapter = new RecipientAdapter(recipientList, this, this);
         recyclerRecipients.setLayoutManager(new LinearLayoutManager(this));
         recyclerRecipients.setAdapter(recipientAdapter);
-        loadRecipients();
         btnAddRecipient.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AddRecipientActivity.class);
-            startActivityForResult(intent, ADD_RECIPIENT_REQUEST_CODE);
+            getLocation();
         });
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadRecipients();
+    }
+    private void startSelectLocationActivity() {
+        Intent intent = new Intent(this, SelectLocationActivity.class);
+        intent.putExtra("activityView", "addNew");
+        intent.putExtra("latitude", latitude);
+        intent.putExtra("longitude", longitude);
+        intent.putExtra("address", address);
+        startActivityForResult(intent, ADD_RECIPIENT_REQUEST_CODE);
+    }
 
+    private void getLocation() {
+        locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
+            @Override
+            public void onLocationResult(double la, double log, String add) {
+                latitude = la;
+                longitude = log;
+                address = add;
+                startSelectLocationActivity();
+            }
+            @Override
+            public void onLocationError(String errorMessage) {
+                Toast.makeText(ChooseRecipientActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private void loadRecipients() {
         FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
         if (authUser == null) {
@@ -91,7 +121,6 @@ public class ChooseRecipientActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == EDIT_RECIPIENT_REQUEST_CODE || requestCode == ADD_RECIPIENT_REQUEST_CODE) {
             if (resultCode == RESULT_OK || resultCode == DELETE_RESULT_CODE) {
-                loadRecipients();
                 String message;
                 if (requestCode == ADD_RECIPIENT_REQUEST_CODE && resultCode == RESULT_OK) {
                     message = "Địa chỉ mới đã được thêm thành công.";
@@ -115,6 +144,9 @@ public class ChooseRecipientActivity extends AppCompatActivity
         intent.putExtra("defaultLocation", location.isDefaultLocation());
         intent.putExtra("country", location.getCountry());
         intent.putExtra("zipCode", location.getZipCode());
+
+        intent.putExtra("latitude", location.getLatitude());
+        intent.putExtra("longitude", location.getLongitude());
         startActivityForResult(intent, EDIT_RECIPIENT_REQUEST_CODE);
     }
     @Override

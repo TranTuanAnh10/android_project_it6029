@@ -7,9 +7,11 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,12 +28,15 @@ import vn.haui.android_project.services.FirebaseLocationManager;
 public class MapLocationActivity extends AppCompatActivity implements CustomLocationDialog.LocationDialogListener {
     private WebView webViewMap;
     private double latitude, longitude;
-    private String address;
+    private String address, activityView;
     private Button btnConfirmLocation;
     private TextView tvDetailAddress;
-
+    ImageButton btn_back_local;
     private FirebaseLocationManager firebaseLocationManager;
 
+    private UserLocationEntity userLocationEntity = new UserLocationEntity();
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,14 +44,24 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
         webViewMap = findViewById(R.id.webview_map);
         tvDetailAddress = findViewById(R.id.tv_detail_address);
         btnConfirmLocation = findViewById(R.id.btn_confirm_location);
+        btn_back_local = findViewById(R.id.btn_back_local);
         firebaseLocationManager = new FirebaseLocationManager();
         btnConfirmLocation.setOnClickListener(v -> showCustomLocationDialog());
+        btn_back_local.setOnClickListener(v -> finish());
         Intent intent = getIntent();
         if (intent != null) {
             latitude = intent.getDoubleExtra("latitude", 0.0);
             longitude = intent.getDoubleExtra("longitude", 0.0);
             address = intent.getStringExtra("address");
+            activityView = intent.getStringExtra("activityView");
             if (address != null) tvDetailAddress.setText(address);
+            if ("updateChoose".equals(activityView) && intent.hasExtra("locationToSave")) {
+                userLocationEntity = intent.getParcelableExtra("locationToSave",UserLocationEntity.class);
+                latitude = userLocationEntity.getLatitude();
+                longitude = userLocationEntity.getLongitude();
+                address = userLocationEntity.getAddress();
+                tvDetailAddress.setText(address);
+            }
         }
         setupWebView();
         centerMapAtLocation(32.986, -96.756, 17);
@@ -98,51 +113,72 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
     @Override
     public void onLocationOptionChosen(boolean isOkSelected) {
         if (isOkSelected) {
-            FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (authUser == null) {
-                Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            if ("addNew".endsWith(activityView)) {
+                Intent intent1 = new Intent(MapLocationActivity.this, AddRecipientActivity.class);
+                intent1.putExtra("latitude", latitude);
+                intent1.putExtra("longitude", longitude);
+                intent1.putExtra("address", address);
+                startActivity(intent1);
                 finish();
-                return;
-            }
-            String currentUid = authUser.getUid();
-            if (currentUid.isEmpty() || latitude == 0.0 || longitude == 0.0) {
-                Toast.makeText(this, "Không có đủ dữ liệu (UID hoặc tọa độ) để lưu.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            UserLocationEntity newLocation = new UserLocationEntity(
-                    String.valueOf(System.currentTimeMillis()),
-                    null,
-                    latitude,
-                    longitude,
-                    address != null ? address : "Địa chỉ không xác định",
-                    authUser.getPhoneNumber(),
-                    true,
-                    "Other",
-                    null,
-                    null
-            );
-            List<UserLocationEntity> locationList = new ArrayList<>();
-            locationList.add(newLocation); // ✅ thêm location hiện tại vào danh sách
-            firebaseLocationManager.appendLocation(
-                    currentUid,
-                    newLocation,
-                    (success, msg) -> {
-                        if (success) {
-                            Intent intent = new Intent(MapLocationActivity.this, MainActivity.class);
-                            intent.putExtra("USER_ID", authUser.getUid());
-                            intent.putExtra("USER_EMAIL", authUser.getEmail());
-                            intent.putExtra("USER_NAME", authUser.getDisplayName());
-                            if (authUser.getPhotoUrl() != null)
-                                intent.putExtra("USER_PHOTO", authUser.getPhotoUrl().toString());
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(this, "Lỗi: " + msg, Toast.LENGTH_LONG).show();
+            } else if ("updateChoose".endsWith(activityView)) {
+                Intent intent1 = new Intent(MapLocationActivity.this, EditRecipientActivity.class);
+                intent1.putExtra("location_id", userLocationEntity.getId());
+                intent1.putExtra("recipientName", userLocationEntity.getRecipientName());
+                intent1.putExtra("phoneNumber", userLocationEntity.getPhoneNumber());
+                intent1.putExtra("address", userLocationEntity.getAddress());
+                intent1.putExtra("locationType", userLocationEntity.getLocationType());
+                intent1.putExtra("defaultLocation", userLocationEntity.isDefaultLocation());
+                intent1.putExtra("country", userLocationEntity.getCountry());
+                intent1.putExtra("zipCode", userLocationEntity.getZipCode());
+                intent1.putExtra("latitude", userLocationEntity.getLatitude());
+                intent1.putExtra("longitude", userLocationEntity.getLongitude());
+                startActivity(intent1);
+                finish();
+            } else {
+                FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (authUser == null) {
+                    Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+                String currentUid = authUser.getUid();
+                if (currentUid.isEmpty() || latitude == 0.0 || longitude == 0.0) {
+                    Toast.makeText(this, "Không có đủ dữ liệu (UID hoặc tọa độ) để lưu.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                UserLocationEntity newLocation = new UserLocationEntity(
+                        String.valueOf(System.currentTimeMillis()),
+                        "Địa chỉ mặc định",
+                        latitude,
+                        longitude,
+                        address != null ? address : "Địa chỉ không xác định",
+                        authUser.getPhoneNumber(),
+                        true,
+                        "Other",
+                        null,
+                        null
+                );
+                List<UserLocationEntity> locationList = new ArrayList<>();
+                locationList.add(newLocation); // ✅ thêm location hiện tại vào danh sách
+                firebaseLocationManager.appendLocation(
+                        currentUid,
+                        newLocation,
+                        (success, msg) -> {
+                            if (success) {
+                                Intent intent = new Intent(MapLocationActivity.this, MainActivity.class);
+                                intent.putExtra("USER_ID", authUser.getUid());
+                                intent.putExtra("USER_EMAIL", authUser.getEmail());
+                                intent.putExtra("USER_NAME", authUser.getDisplayName());
+                                if (authUser.getPhotoUrl() != null)
+                                    intent.putExtra("USER_PHOTO", authUser.getPhotoUrl().toString());
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(this, "Lỗi: " + msg, Toast.LENGTH_LONG).show();
+                            }
                         }
-                    }
-            );
-
-
+                );
+            }
         }
     }
 }

@@ -3,10 +3,16 @@ package vn.haui.android_project.view;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -27,6 +33,7 @@ import java.util.List;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.services.LocationService;
 
 public class AddRecipientActivity extends AppCompatActivity {
     private EditText et_recipient_name, et_phone_number, et_address, et_country, et_zip_code;
@@ -36,6 +43,15 @@ public class AddRecipientActivity extends AppCompatActivity {
     private Chip chipHome, chipWork, chipOther;
     private SwitchMaterial switchDefaultAddress;
     private FirebaseLocationManager firebaseLocationManager;
+
+    private TextView chooseMap;
+    private LocationService locationService;
+
+    private double latitude, longitude;
+    private String address;
+
+    private WebView webViewMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,13 +68,32 @@ public class AddRecipientActivity extends AppCompatActivity {
         setupChipStyling(chipHome);
         setupChipStyling(chipWork);
         setupChipStyling(chipOther);
-        setupChipGroupListener();
 
+        Intent intent1 = getIntent();
+        if (intent1 != null) {
+            latitude = intent1.getDoubleExtra("latitude", 0.0);
+            longitude = intent1.getDoubleExtra("longitude", 0.0);
+            address = intent1.getStringExtra("address");
+            if (address != null) et_address.setText(address);
+        }
+        setupChipGroupListener();
+        setupWebView();
+        chooseMap.setOnClickListener(v -> {
+            Intent intent = new Intent(AddRecipientActivity.this, SelectLocationActivity.class);
+            intent.putExtra("latitude", latitude);
+            intent.putExtra("longitude", longitude);
+            intent.putExtra("address", address);
+            startActivity(intent);
+        });
         btnBack.setOnClickListener(v -> finish());
         btn_save.setOnClickListener(v -> saveRecipient());
     }
 
+
+
     private void mapping() {
+        webViewMap= findViewById(R.id.webview_map_add);
+        chooseMap = findViewById(R.id.chooseMap);
         et_recipient_name = findViewById(R.id.et_recipient_name);
         et_phone_number = findViewById(R.id.et_phone_number);
         et_address = findViewById(R.id.et_address);
@@ -71,7 +106,9 @@ public class AddRecipientActivity extends AppCompatActivity {
         chipWork = findViewById(R.id.chip_work);
         chipOther = findViewById(R.id.chip_other);
         switchDefaultAddress = findViewById(R.id.switch_default_address);
+        locationService = new LocationService(this);
     }
+
     private void setupChipStyling(Chip chip) {
         if (chip == null) return;
         int COLOR_RED = Color.parseColor("#EB4D57");
@@ -140,7 +177,7 @@ public class AddRecipientActivity extends AppCompatActivity {
             return;
         }
         String finalUpdatedPhoneNumber = updatedPhoneNumber;
-        firebaseLocationManager.hasDefaultLocation(authUser.getUid(), (success, hasDefault) -> {
+        firebaseLocationManager.hasDefaultLocation(authUser.getUid(),null, (success, hasDefault) -> {
             if (success) {
                 if (hasDefault) {
                     Toast.makeText(this, "Đã có 1 địa chỉ mặc định khác. Vui lòng tắt tùy chọn này để lưu.", Toast.LENGTH_LONG).show();
@@ -152,7 +189,43 @@ public class AddRecipientActivity extends AppCompatActivity {
             }
         });
     }
+    private void setupWebView() {
+        // Cài đặt cơ bản (Giữ nguyên)
+        webViewMap.getSettings().setJavaScriptEnabled(true);
+        webViewMap.getSettings().setDomStorageEnabled(true);
+        webViewMap.addJavascriptInterface(new WebAppInterfaceAdd(), "Android");
+        webViewMap.setVerticalScrollBarEnabled(false);
+        webViewMap.setHorizontalScrollBarEnabled(false);
+        webViewMap.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        webViewMap.setOnTouchListener((v, event) -> (event.getAction() == MotionEvent.ACTION_MOVE));
+        webViewMap.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                // Đảm bảo hàm centerMapAtLocation đã tồn tại
+                centerMapAtLocation(latitude, longitude, 14);
+            }
+        });
+        webViewMap.loadUrl("file:///android_asset/map_selector.html");
+    }
+    private void centerMapAtLocation(double lat, double lng, int zoom) {
+        // Tạo chuỗi JavaScript để gọi hàm
+        final String jsCode = String.format("javascript:centerMapAtLocation(%.6f, %.6f, %d);", lat, lng, zoom);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webViewMap.evaluateJavascript(jsCode, null);
+        } else {
+            webViewMap.loadUrl(jsCode);
+        }
+    }
+    public class WebAppInterfaceAdd {
+        @JavascriptInterface
+        public void onLocationChanged(final double lat, final double lng) {
+            runOnUiThread(() -> {
+                latitude = lat;
+                longitude = lng;
+            });
+        }
+    }
     private UserLocationEntity buildLocationEntity(
             boolean isDefault, String recipientName, String phoneNumber, String address,
             String locationType, String country, String zipCode) {
@@ -160,7 +233,7 @@ public class AddRecipientActivity extends AppCompatActivity {
         return new UserLocationEntity(
                 String.valueOf(System.currentTimeMillis()),
                 recipientName,
-                0, 0, // lat/lng
+                latitude, longitude, // lat/lng
                 address,
                 phoneNumber,
                 isDefault,
@@ -176,8 +249,8 @@ public class AddRecipientActivity extends AppCompatActivity {
                 location,
                 (success, msg) -> {
                     if (success) {
-                        Intent resultIntent = new Intent();
-                        setResult(RESULT_OK, resultIntent);
+                        Intent intent = new Intent(this, ChooseRecipientActivity.class);
+                        startActivity(intent);
                         finish();
                     } else {
                         Toast.makeText(AddRecipientActivity.this, "❌ Lỗi thêm địa chỉ: " + msg, Toast.LENGTH_LONG).show();

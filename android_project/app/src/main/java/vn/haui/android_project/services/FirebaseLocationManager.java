@@ -227,7 +227,7 @@ public class FirebaseLocationManager {
     }
 
 
-    public void hasDefaultLocation(String uid, BiConsumer<Boolean, Boolean> onComplete) {
+    public void hasDefaultLocation(String uid, String excludeLocationId, BiConsumer<Boolean, Boolean> onComplete) {
         if (uid == null || uid.isEmpty()) {
             onComplete.accept(false, false); // success=false, hasDefault=false
             return;
@@ -235,11 +235,9 @@ public class FirebaseLocationManager {
 
         DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
 
-        // Lấy dữ liệu từ Firestore
         userDocRef.get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (!documentSnapshot.exists()) {
-                        // Document không tồn tại -> Không có địa chỉ
                         onComplete.accept(true, false);
                         return;
                     }
@@ -247,26 +245,28 @@ public class FirebaseLocationManager {
                     List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) documentSnapshot.get("locations");
 
                     if (rawLocations == null || rawLocations.isEmpty()) {
-                        // Danh sách rỗng
                         onComplete.accept(true, false);
                         return;
                     }
 
                     // Duyệt qua danh sách để kiểm tra trường isDefaultLocation
                     for (Map<String, Object> map : rawLocations) {
-                        // Trong Firestore, Boolean được lưu dưới dạng java.lang.Boolean
                         Boolean isDefault = (Boolean) map.get("defaultLocation");
+                        String currentId = (String) map.get("id"); // Cần lấy ID của bản ghi hiện tại
 
-                        if (isDefault != null && isDefault) {
-                            onComplete.accept(true, true); // Thành công, và CÓ địa chỉ mặc định
+                        boolean isExcluded = excludeLocationId != null &&
+                                currentId != null &&
+                                currentId.equals(excludeLocationId);
+
+                        if (!isExcluded && isDefault != null && isDefault) {
+                            onComplete.accept(true, true); // Thành công, và CÓ địa chỉ mặc định khác
                             return;
                         }
                     }
 
-                    onComplete.accept(true, false); // Thành công, nhưng KHÔNG có địa chỉ mặc định
+                    onComplete.accept(true, false); // Thành công, nhưng KHÔNG có địa chỉ mặc định khác
                 })
                 .addOnFailureListener(e -> {
-                    // Log.e(TAG, "Lỗi khi kiểm tra địa chỉ mặc định: " + e.getMessage());
                     onComplete.accept(false, false); // Thất bại, không có địa chỉ mặc định
                 });
     }
