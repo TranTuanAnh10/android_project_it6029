@@ -111,12 +111,15 @@ public class MapLocationActivity extends AppCompatActivity implements CustomLoca
             }
             UserLocationEntity newLocation = new UserLocationEntity(
                     String.valueOf(System.currentTimeMillis()),
+                    null,
                     latitude,
                     longitude,
                     address != null ? address : "Địa chỉ không xác định",
                     authUser.getPhoneNumber(),
                     true,
-                    "Other"
+                    "Other",
+                    null,
+                    null
             );
             List<UserLocationEntity> locationList = new ArrayList<>();
             locationList.add(newLocation); // ✅ thêm location hiện tại vào danh sách

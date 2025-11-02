@@ -5,8 +5,11 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Transaction;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,29 +64,59 @@ public class FirebaseLocationManager {
                 });
     }
 
-
-    /**
-     * 🔄 Cập nhật toạ độ của người dùng (ví dụ khi người dùng di chuyển).
-     * Ghi đè trực tiếp các trường trong Document UID.
-     */
-    public void updateLocation(String uid, Map<String, Object> updates,
-                               Consumer<Void> onSuccess, @Nullable Consumer<Exception> onError) {
-        if (uid == null || uid.isEmpty()) {
-            if (onError != null) onError.accept(new IllegalArgumentException("UID rỗng"));
-            return;
-        }
-
-        // --- SỬA ĐỔI: TRUY CẬP TRỰC TIẾP document(uid) ---
-        db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "✅ Cập nhật toạ độ thành công cho UID: " + uid);
-                    if (onSuccess != null) onSuccess.accept(aVoid);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "❌ Lỗi khi cập nhật toạ độ cho UID: " + uid + " : " + e.getMessage());
-                    if (onError != null) onError.accept(e);
-                });
+    public void updateLocation(String uid, UserLocationEntity updatedLocation, BiConsumer<Boolean, String> onComplete) {
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+        String targetId = updatedLocation.getId();
+        final Gson gson = new Gson(); // Khởi tạo Gson
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userDocRef);
+            if (!snapshot.exists()) {
+                try {
+                    throw new Exception("Document người dùng không tồn tại.");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) snapshot.get("locations");
+            if (rawLocations == null) {
+                try {
+                    throw new Exception("Danh sách locations rỗng. Không tìm thấy ID để cập nhật.");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            List<UserLocationEntity> currentLocations = new ArrayList<>();
+            for (Map<String, Object> map : rawLocations) {
+                String jsonString = gson.toJson(map);
+                UserLocationEntity location = gson.fromJson(jsonString, UserLocationEntity.class);
+                currentLocations.add(location);
+            }
+            List<UserLocationEntity> newLocations = new ArrayList<>(currentLocations);
+            boolean found = false;
+            for (int i = 0; i < newLocations.size(); i++) {
+                UserLocationEntity existingLocation = newLocations.get(i);
+                if (targetId.equals(existingLocation.getId())) {
+                    newLocations.set(i, updatedLocation); // Thay thế đối tượng cũ
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                try {
+                    throw new Exception("Không tìm thấy location với ID: " + targetId + " để cập nhật.");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            transaction.update(userDocRef, "locations", newLocations);
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d(TAG, "Cập nhật location thành công cho UID: " + uid + ", ID: " + targetId);
+            onComplete.accept(true, uid);
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Lỗi cập nhật location: " + e.getMessage());
+            onComplete.accept(false, "Cập nhật thất bại: " + e.getMessage());
+        });
     }
 
 
@@ -139,35 +172,25 @@ public class FirebaseLocationManager {
      */
     private UserLocationEntity mapToUserLocationEntity(Map<String, Object> map) {
         UserLocationEntity location = new UserLocationEntity();
-
-        // Đảm bảo kiểu dữ liệu: Double từ Firestore có thể là Long/Double.
-        // Sử dụng ((Number) map.get(key)).doubleValue() là cách an toàn.
-
         location.setId((String) map.get("id"));
         location.setLocationType((String) map.get("locationType"));
         location.setAddress((String) map.get("address"));
-//        location.setRecipientName((String) map.get("recipientName"));
         location.setPhoneNumber((String) map.get("phoneNumber"));
-
-        // Xử lý các trường số (double/boolean)
         Object latValue = map.get("latitude");
         if (latValue instanceof Number) {
             location.setLatitude(((Number) latValue).doubleValue());
         }
-
         Object lngValue = map.get("longitude");
         if (lngValue instanceof Number) {
             location.setLongitude(((Number) lngValue).doubleValue());
         }
-
-        // Trường Boolean
         Object isDefaultValue = map.get("defaultLocation");
         if (isDefaultValue instanceof Boolean) {
             location.setDefaultLocation((Boolean) isDefaultValue);
         }
-
-        // TODO: Thêm các trường khác nếu có
-
+        location.setRecipientName((String) map.get("recipientName"));
+        location.setCountry((String) map.get("country"));
+        location.setZipCode((String) map.get("zipCode"));
         return location;
     }
 
@@ -203,4 +226,95 @@ public class FirebaseLocationManager {
                 });
     }
 
+
+    public void hasDefaultLocation(String uid, BiConsumer<Boolean, Boolean> onComplete) {
+        if (uid == null || uid.isEmpty()) {
+            onComplete.accept(false, false); // success=false, hasDefault=false
+            return;
+        }
+
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+
+        // Lấy dữ liệu từ Firestore
+        userDocRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        // Document không tồn tại -> Không có địa chỉ
+                        onComplete.accept(true, false);
+                        return;
+                    }
+
+                    List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) documentSnapshot.get("locations");
+
+                    if (rawLocations == null || rawLocations.isEmpty()) {
+                        // Danh sách rỗng
+                        onComplete.accept(true, false);
+                        return;
+                    }
+
+                    // Duyệt qua danh sách để kiểm tra trường isDefaultLocation
+                    for (Map<String, Object> map : rawLocations) {
+                        // Trong Firestore, Boolean được lưu dưới dạng java.lang.Boolean
+                        Boolean isDefault = (Boolean) map.get("defaultLocation");
+
+                        if (isDefault != null && isDefault) {
+                            onComplete.accept(true, true); // Thành công, và CÓ địa chỉ mặc định
+                            return;
+                        }
+                    }
+
+                    onComplete.accept(true, false); // Thành công, nhưng KHÔNG có địa chỉ mặc định
+                })
+                .addOnFailureListener(e -> {
+                    // Log.e(TAG, "Lỗi khi kiểm tra địa chỉ mặc định: " + e.getMessage());
+                    onComplete.accept(false, false); // Thất bại, không có địa chỉ mặc định
+                });
+    }
+    public void deleteLocationById(String uid, String locationId, BiConsumer<Boolean, String> onComplete) {
+        if (uid == null || uid.isEmpty() || locationId == null || locationId.isEmpty()) {
+            onComplete.accept(false, "UID hoặc Location ID rỗng");
+            return;
+        }
+        Gson gson = new Gson();
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            DocumentSnapshot snapshot = transaction.get(userDocRef);
+            List<UserLocationEntity> currentLocations = new ArrayList<>();
+
+            // 1. Đọc dữ liệu hiện tại
+            if (snapshot.exists()) {
+                List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) snapshot.get("locations");
+                if (rawLocations != null) {
+                    for (Map<String, Object> map : rawLocations) {
+                        currentLocations.add(gson.fromJson(gson.toJson(map), UserLocationEntity.class));
+                    }
+                }
+            }
+
+            // 2. Tìm và xóa địa điểm theo ID
+            // Sử dụng removeIf để xóa đối tượng thỏa mãn điều kiện
+            boolean wasRemoved = currentLocations.removeIf(loc -> loc.getId().equals(locationId));
+
+            if (!wasRemoved) {
+                // Đây là lỗi nếu bạn chắc chắn ID tồn tại, nhưng không ảnh hưởng đến Transaction
+                try {
+                    throw new Exception("Location ID không được tìm thấy trong danh sách.");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            // 3. Ghi đè toàn bộ danh sách đã cập nhật (đã xóa)
+            transaction.set(userDocRef, Map.of("locations", currentLocations));
+
+            return null; // Trả về null khi Transaction thành công
+        }).addOnSuccessListener(aVoid -> {
+            // Log.d(TAG, "✅ Xóa location thành công: " + locationId);
+            onComplete.accept(true, "Xóa thành công.");
+        }).addOnFailureListener(e -> {
+            // Log.e(TAG, "❌ Lỗi transaction khi xóa location: " + e.getMessage());
+            onComplete.accept(false, "Lỗi xóa địa điểm: " + e.getMessage());
+        });
+    }
 }

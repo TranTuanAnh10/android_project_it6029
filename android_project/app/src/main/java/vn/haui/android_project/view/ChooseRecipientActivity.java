@@ -1,11 +1,12 @@
 package vn.haui.android_project.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,58 +25,54 @@ import vn.haui.android_project.adapter.RecipientAdapter;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.services.FirebaseLocationManager;
 
-public class ChooseRecipientActivity extends AppCompatActivity {
+// BẮT BUỘC: Implement Interface để nhận sự kiện click từ Adapter
+public class ChooseRecipientActivity extends AppCompatActivity
+        implements RecipientAdapter.OnLocationActionListener {
 
     private RecyclerView recyclerRecipients;
     private Button btnAddRecipient;
     private FirebaseLocationManager firebaseLocationManager;
-
-    // Khai báo Adapter là biến thành viên để dễ dàng tham chiếu và cập nhật
     private RecipientAdapter recipientAdapter;
-
-    // Khởi tạo danh sách trống ban đầu (để tránh lỗi NullPointerException)
     private List<UserLocationEntity> recipientList = new ArrayList<>();
+
+    // Khai báo Request Code để nhận biết Activity nào trả về
+    private static final int EDIT_RECIPIENT_REQUEST_CODE = 1;
+    private static final int ADD_RECIPIENT_REQUEST_CODE = 2;
+    private static final int DELETE_RESULT_CODE = 100; // Mã tùy chỉnh cho thao tác xóa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_choose_recipient);
-        // Cập nhật ID layout cho setOnApplyWindowInsetsListener
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_choose_recipient), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Đặt padding cho toàn bộ activity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
         firebaseLocationManager = new FirebaseLocationManager();
-        // --- 1. Ánh xạ Views ---
         recyclerRecipients = findViewById(R.id.recycler_recipients);
         btnAddRecipient = findViewById(R.id.btn_add_recipient);
-        // --- 2. Khởi tạo RecyclerView và Adapter trống ---
-        // Khởi tạo Adapter với list trống
-        recipientAdapter = new RecipientAdapter(recipientList,this);
+        recipientAdapter = new RecipientAdapter(recipientList, this, this);
         recyclerRecipients.setLayoutManager(new LinearLayoutManager(this));
         recyclerRecipients.setAdapter(recipientAdapter);
-        // --- 3. Tải dữ liệu từ Firebase ---
         loadRecipients();
-        // --- 4. Xử lý Sự kiện Nút "Add Recipient" ---
         btnAddRecipient.setOnClickListener(v -> {
-            // TODO: Chuyển sang màn hình thêm địa chỉ mới
-            // Intent intent = new Intent(this, AddNewRecipientActivity.class);
-            // startActivity(intent);
+            Intent intent = new Intent(this, AddRecipientActivity.class);
+            startActivityForResult(intent, ADD_RECIPIENT_REQUEST_CODE);
         });
     }
 
     private void loadRecipients() {
         FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
         if (authUser == null) {
-            Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Bạn chưa đăng nhập. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
         firebaseLocationManager.getSortedLocationsByUid(authUser.getUid(), (success, sortedList) -> {
             if (success) {
-                // Xóa dữ liệu cũ và thêm dữ liệu mới đã sắp xếp
                 recipientList.clear();
                 if (sortedList != null) {
                     recipientList.addAll(sortedList);
@@ -88,5 +85,47 @@ public class ChooseRecipientActivity extends AppCompatActivity {
                 Toast.makeText(this, "Lỗi khi tải danh sách địa chỉ.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == EDIT_RECIPIENT_REQUEST_CODE || requestCode == ADD_RECIPIENT_REQUEST_CODE) {
+            if (resultCode == RESULT_OK || resultCode == DELETE_RESULT_CODE) {
+                loadRecipients();
+                String message;
+                if (requestCode == ADD_RECIPIENT_REQUEST_CODE && resultCode == RESULT_OK) {
+                    message = "Địa chỉ mới đã được thêm thành công.";
+                } else if (resultCode == RESULT_OK) {
+                    message = "Địa chỉ đã được cập nhật thành công.";
+                } else {
+                    message = "Địa chỉ đã được xóa.";
+                }
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    @Override
+    public void onEditClick(UserLocationEntity location) {
+        Intent intent = new Intent(this, EditRecipientActivity.class);
+        intent.putExtra("location_id", location.getId());
+        intent.putExtra("recipientName", location.getRecipientName());
+        intent.putExtra("phoneNumber", location.getPhoneNumber());
+        intent.putExtra("address", location.getAddress());
+        intent.putExtra("locationType", location.getLocationType());
+        intent.putExtra("defaultLocation", location.isDefaultLocation());
+        intent.putExtra("country", location.getCountry());
+        intent.putExtra("zipCode", location.getZipCode());
+        startActivityForResult(intent, EDIT_RECIPIENT_REQUEST_CODE);
+    }
+    @Override
+    public void onSelectLocation(UserLocationEntity location) {
+        // Xử lý logic chọn địa chỉ, thường là kết thúc Activity và trả về kết quả
+        Toast.makeText(this, "Đã chọn địa chỉ: " + location.getLocationType(), Toast.LENGTH_SHORT).show();
+
+        // Ví dụ hoàn chỉnh để trả về kết quả cho màn hình trước đó:
+        // Intent resultIntent = new Intent();
+        // resultIntent.putExtra("selected_location_id", location.getId());
+        // setResult(RESULT_OK, resultIntent);
+        // finish();
     }
 }

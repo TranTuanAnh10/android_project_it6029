@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
     <style name="Widget.MyApp.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopStart">12dp</item>
         <item name="boxCornerRadiusTopEnd">12dp</item>
         <item name="boxCornerRadiusBottomStart">12dp</item>
         <item name="boxCornerRadiusBottomEnd">12dp</item>
         <item name="boxBackgroundColor">@color/md_theme_onSecondary</item>
-        <item name="boxStrokeColor">@color/md_theme_primary</item>
+        <item name="boxStrokeColor">@color/md_theme_onSecondary</item>
         <item name="hintTextColor">@color/md_theme_secondary</item>
         <item name="placeholderTextColor">@color/md_theme_secondary</item>
     </style>
+
     <style name="ShapeAppearanceOverlay.App.CornerLeftRounded" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">16dp</item>
@@ -23,5 +25,20 @@
     <color name="color_text_home_page_text_black">#343434</color>
     <color name="color_text_home_page_bg_orange">#F8EBEC</color>
     <color name="color_text_home_page_bg_green">#C3E8D8</color>
+
+
+    <item name="chipBackgroundColorSelector" type="color">
+        <selector>
+            <item android:color="#EB4D57" android:state_checked="true" />
+            <item android:color="#F0F0F0" />
+        </selector>
+    </item>
+
+    <item name="chipTextIconSelector" type="color">
+        <selector>
+            <item android:color="@android:color/white" android:state_checked="true" />
+            <item android:color="@android:color/black" />
+        </selector>
+    </item>
 
 </resources>
