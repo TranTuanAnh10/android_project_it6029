@@ -19,6 +19,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".view.ConfirmPaymentActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.AddRecipientActivity"
             android:exported="false" />
         <activity

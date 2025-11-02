@@ -1,6 +1,7 @@
 package vn.haui.android_project.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,10 +75,7 @@ public class BasketStoreAdapter extends RecyclerView.Adapter<BasketStoreAdapter.
             notifyItemRangeChanged(position, list.size());
         });
         holder.btnPlaceOrder.setOnClickListener(v ->
-                // chỉ demo toast
-                android.widget.Toast.makeText(context,
-                        "Order placed for " + store.getStoreName(),
-                        android.widget.Toast.LENGTH_SHORT).show()
+                context.startActivity(new Intent(context, ConfirmPaymentActivity.class))
         );
     }
 
