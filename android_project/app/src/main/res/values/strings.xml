@@ -41,4 +41,8 @@
     <string name="country">Country</string>
     <string name="zip_code">Zip Code</string>
     <string name="choose_from_map">Chọn địa chỉ mới</string>
+
+<!--    Home Screen-->
+    <string name="category">Categorys</string>
+
 </resources>
