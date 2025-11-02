@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.services.FirebaseUserManager;
 
 public class PhoneVerifiScreenActivity extends AppCompatActivity {
@@ -40,6 +41,8 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
     TextView txPhone, tvResend;
     private PhoneAuthProvider.ForceResendingToken resendToken;
     private FirebaseAuth mAuth;
+
+    private FirebaseLocationManager firebaseLocationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +93,7 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
         btnConfirm = findViewById(R.id.btn_continue_otp);
         txPhone = findViewById(R.id.tv_phone_number);
         tvResend = findViewById(R.id.tv_resend);
+        firebaseLocationManager= new FirebaseLocationManager();
         setupOtpInputs();
     }
 
@@ -159,6 +163,14 @@ public class PhoneVerifiScreenActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Xác minh số điện thoại thành công!", Toast.LENGTH_SHORT).show();
                         updatePhoneNumberInFirestore(currentUser.getUid(), phoneNumber);
+                        //  kiem tra dia chi ship da co chua
+                        // check xem co dia chi chua => chua co set up dia chi ship mac dinh
+                        firebaseLocationManager.checkUserHasLocations(currentUser.getUid(), (hasLocations, message) -> {
+                            if (!hasLocations) {
+                                Intent intent = new Intent(PhoneVerifiScreenActivity.this, LocationScreenActivity.class);
+                                startActivity(intent);
+                            }
+                        });
                         // Chuyển về màn hình chính hoặc màn hình profile
                         Intent intent = new Intent(PhoneVerifiScreenActivity.this, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/location_screen"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:gravity="center_horizontal">
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select your location"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#1E1E1E"
+        android:layout_marginTop="40dp" />
+
+    <!-- Hình minh hoạ -->
+    <ImageView
+        android:id="@+id/imgIllustration"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/ic_delivery_location"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/app_name" />
+
+    <!-- Câu hỏi chính -->
+    <TextView
+        android:id="@+id/tvQuestion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Where should we deliver to?"
+        android:textSize="18sp"
+        android:textColor="#FF3B30"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="40dp" />
+
+    <!-- Mô tả phụ -->
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your location and phone number\nshould be provided for delivery"
+        android:textSize="14sp"
+        android:textColor="#777"
+        android:gravity="center"
+        android:layout_marginTop="10dp" />
+
+    <!-- Nút chọn vị trí -->
+    <Button
+        android:id="@+id/btnSelectLocation"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginBottom="30dp"
+        android:backgroundTint="@color/md_theme_onPrimary"
+        android:fontFamily="sans-serif-medium"
+        android:text="Select your location"
+        android:textAllCaps="false"
+        android:textColor="@color/md_theme_onSecondary" />
+
+</LinearLayout>

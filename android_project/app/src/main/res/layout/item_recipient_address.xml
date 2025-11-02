@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:id="@+id/card_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@drawable/bg_normal_address_card">
+
+        <FrameLayout
+            android:layout_width="90dp"
+            android:layout_height="84dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_map"
+            android:padding="12dp">
+
+            <ImageView
+                android:id="@+id/img_location_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Location Icon"
+                android:src="@drawable/bg_location_map" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_location_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your location"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tv_full_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3891 Ranchview Dr. Richardson, California..."
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tv_recipient_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bruno Andersons - 0123456789"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"/>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/img_edit_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="Edit"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

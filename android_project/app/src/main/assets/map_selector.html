@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Location Selector Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <style>
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            position: absolute;
+            top: 0; left: 0;
+            right: 0; bottom: 0;
+            z-index: 1;
+        }
+        /* --- Pin cố định ở giữa màn hình (giống như ảnh) --- */
+        .map-pin {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* Dịch chuyển để đầu pin nằm chính xác ở tâm */
+            transform: translate(-50%, -100%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .map-pin img {
+            /* Tùy chỉnh kích thước Pin */
+            width: 35px;
+            height: 35px;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="map-pin">
+    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Location Pin">
+</div>
+
+<script>
+    var map;
+
+    // --- 1. Khởi tạo map ---
+    function initMap() {
+        // Khởi tạo Leaflet map
+        map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false,
+            // Đặt view ban đầu là Hà Nội (hoặc tọa độ mặc định của bạn)
+        }).setView([21.0285, 105.8542], 15);
+
+        // Thêm nền map
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+            attribution: '&copy; CartoDB & OpenStreetMap'
+        }).addTo(map);
+
+        // Lắng nghe sự kiện di chuyển map để gửi tọa độ mới về Android
+        map.on('moveend', sendCenterToAndroid);
+
+        // Gửi tọa độ ban đầu sau khi map tải xong
+        map.on('load', sendCenterToAndroid);
+    }
+
+    // --- 2. HÀM CHÍNH: Căn giữa bản đồ theo tọa độ truyền vào ---
+    window.centerMapAtLocation = function(lat, lng, zoomLevel) {
+        if (!map) {
+            console.error("Bản đồ chưa được khởi tạo!");
+            return;
+        }
+        // Đặt bản đồ tại tọa độ mới với hiệu ứng mượt
+        map.flyTo([lat, lng], zoomLevel || 15, { duration: 0.8 });
+    }
+
+    // --- 3. Hàm gửi toạ độ trung tâm về Android ---
+    function sendCenterToAndroid() {
+        if (!map) return;
+
+        const center = map.getCenter();
+        const lat = center.lat;
+        const lng = center.lng;
+
+        // Gửi toạ độ về giao diện Java (Android)
+        if (window.Android && window.Android.onLocationChanged) {
+            window.Android.onLocationChanged(lat, lng);
+        }
+    }
+
+    // Bắt đầu khởi tạo bản đồ khi trang được tải
+    document.addEventListener('DOMContentLoaded', initMap);
+
+</script>
+</body>
+</html>
