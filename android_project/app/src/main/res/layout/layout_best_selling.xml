@@ -26,12 +26,12 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:text="See all >"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/color_text_home_page_red" />
+<!--        <com.google.android.material.textview.MaterialTextView-->
+<!--            android:text="See all >"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textAppearance="?attr/textAppearanceBodyLarge"-->
+<!--            android:textColor="@color/color_text_home_page_red" />-->
     </LinearLayout>
 
     <!-- Horizontal scroll -->
@@ -42,7 +42,7 @@
         android:scrollbars="none">
 
         <LinearLayout
-            android:id="@+id/layoutTopPicks"
+            android:id="@+id/layoutBestSelling"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
