@@ -251,6 +251,7 @@ public class HomeFragment extends Fragment {
             ImageView ivProductImage = itemView.findViewById(R.id.rfl_image);
             TextView ivType = itemView.findViewById(R.id.rfl_tag);
             TextView tvProductCategory = itemView.findViewById(R.id.rfl_category);
+            TextView tvProductDesc = itemView.findViewById(R.id.rfl_desc);
             TextView tvProductName = itemView.findViewById(R.id.rfl_name);
             TextView tvProductRating = itemView.findViewById(R.id.rfl_rate);
             TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
@@ -259,6 +260,7 @@ public class HomeFragment extends Fragment {
             ivType.setText("Top Rate");
 
             tvProductName.setText(item.getName());
+            tvProductDesc.setText(item.getDescription());
             tvProductCategory.setText(item.getCategory());
             tvProductRating.setText(String.valueOf(item.getRate()));
 
