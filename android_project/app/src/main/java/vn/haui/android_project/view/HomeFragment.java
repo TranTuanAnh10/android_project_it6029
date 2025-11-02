@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
@@ -15,9 +16,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.view.Gravity;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -28,7 +32,11 @@ import vn.haui.android_project.entity.CategoryItem;
 import vn.haui.android_project.entity.ProductItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.text.DecimalFormat;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
 
@@ -37,6 +45,8 @@ public class HomeFragment extends Fragment {
     private static final String COLLECTION_CATEGORYS = "categorys";
     private static final String COLLECTION_PRODUCTS = "products";
     View view;
+
+    LinearLayout topPickLayout, bestSellerLayout;
     private FirebaseFirestore db;
     @Nullable
     @Override
@@ -45,10 +55,16 @@ public class HomeFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         this.view = view;
+        mapping();
         db = FirebaseFirestore.getInstance();
         loadAllHomeData();
         return view;
     }
+    private void mapping(){
+        topPickLayout = view.findViewById(R.id.layoutTopPicks);
+        bestSellerLayout = view.findViewById(R.id.layoutBestSelling);
+    }
+
     private void loadAllHomeData() {
 
         db.collection(COLLECTION_CATEGORYS)
@@ -62,8 +78,6 @@ public class HomeFragment extends Fragment {
                             topPicksList.add(item);
                         }
                         populateCuisineLayout(topPicksList);
-                        Log.d(TAG, "Tải Top Picks thành công: " + topPicksList.size() + " mục");
-
                     } else {
                         Log.w(TAG, "Lỗi khi tải Top Picks", task.getException());
                     }
@@ -72,13 +86,23 @@ public class HomeFragment extends Fragment {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        List<ProductItem> topPicksList = new ArrayList<>();
+                        List<ProductItem> productItems = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             ProductItem item = document.toObject(ProductItem.class);
                             item.setId(document.getId());
-                            topPicksList.add(item);
+                            productItems.add(item);
                         }
-                        Log.d(TAG, "Tải Top Picks thành công: " + topPicksList.size() + " mục");
+                        List<ProductItem> topPickLists = productItems.stream().filter(item -> item.getRate() > 4.5).collect(Collectors.toList());
+                        populateProductLayout(topPickLists, topPickLayout, 0);
+                        List<ProductItem> bestSellingList = new ArrayList<>();
+                        List<ProductItem> listCopy = new ArrayList<>(productItems);
+                        Collections.shuffle(listCopy);
+                        int countItemUsed = Math.min(5, listCopy.size());
+                        List<ProductItem> randomUniqueItems = listCopy.subList(0, countItemUsed);
+
+                        populateProductLayout(randomUniqueItems, bestSellerLayout, 1);
+                        populateProductReadyToLunch(productItems);
+                        Log.d(TAG, "Tải Top Picks thành công: " + productItems.size() + " mục");
 
                     } else {
                         Log.w(TAG, "Lỗi khi tải Top Picks", task.getException());
@@ -131,16 +155,6 @@ public class HomeFragment extends Fragment {
             textView.setLayoutParams(textLayoutParams);
             textView.setText(item.getName());
 
-            // Thiết lập giao diện văn bản và màu sắc
-            // Lấy từ theme (cách tốt nhất)
-//            textView.setTextAppearance(R..attr.textAppearanceBodyMedium); // Sử dụng style chuẩn
-            // Hoặc textView.setTextAppearance(R.attr.textAppearanceBodyMedium); // Nếu dùng Material Theme
-
-            // Lấy màu từ theme
-            // textView.setTextColor(MaterialColors.getColor(context, R.attr.colorOnSurfaceVariant, Color.GRAY));
-
-            // Hoặc set cứng (không khuyến khích)
-            // textView.setTextColor(Color.parseColor("#..."));
 
             itemLayout.addView(imageView);
             itemLayout.addView(textView);
@@ -154,11 +168,137 @@ public class HomeFragment extends Fragment {
             parentLayout.addView(itemLayout);
         }
     }
+    private void populateProductLayout(List<ProductItem> items, LinearLayout parent, int type) {
+        if (parent == null || getContext() == null) {
+            Log.e(TAG, "Parent LinearLayout cho Product bị null");
+            return;
+        }
+
+
+        parent.removeAllViews();
+        Context context = getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        for (ProductItem item : items) {
+            View itemView = inflater.inflate(R.layout.item_product, parent, false);
+
+            ImageView ivProductImage = itemView.findViewById(R.id.ivProductImage);
+            ImageView toprate = itemView.findViewById(R.id.iv_icon_type);
+            TextView bestSelling = itemView.findViewById(R.id.iv_text_type);
+//            TextView tvProductCategory = itemView.findViewById(R.id.tvProductCategory);
+            TextView tvProductName = itemView.findViewById(R.id.tvProductName);
+//            TextView tvProductRating = itemView.findViewById(R.id.tvProductRating);
+            TextView tvProductPrice = itemView.findViewById(R.id.tvProductPrice);
+
+            switch (type){
+                case 0:
+                    toprate.setImageResource(R.drawable.ic_tag);
+                    bestSelling.setText("Top Rate");
+                    bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_red));
+                    break;
+                case 1:
+                    toprate.setImageResource(R.drawable.ic_trending_up);
+                    bestSelling.setText("Best Selling");
+                    bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_green));
+                    break;
+            }
+            tvProductName.setText(item.getName());
+//            tvProductCategory.setText(item.getCategory());
+//            tvProductRating.setText(String.valueOf(item.getRate()));
+
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            String formattedPrice = formatter.format(item.getPrice()) + "đ";
+            tvProductPrice.setText(formattedPrice);
+
+            String itemName = item.getImage();
+            int index = itemName.lastIndexOf('.');
+            if (index != -1) {
+                itemName = itemName.substring(0, index);
+            }
+            int drawableId = context.getResources().getIdentifier(
+                    itemName,
+                    "drawable",
+                    context.getPackageName()
+            );
+            ivProductImage.setImageResource(drawableId);
+//            Glide.with(context)
+//                    .load(drawableId)
+//                    .placeholder(R.drawable.img_cake)
+//                    .error(R.drawable.ic_burger)
+//                    .into(ivProductImage);
+
+            itemView.setOnClickListener(v -> {
+                onProductItemClick(item);
+            });
+
+            parent.addView(itemView);
+        }
+    }
+    private void populateProductReadyToLunch(List<ProductItem> items) {
+        LinearLayout parent = view.findViewById(R.id.layoutReadyForLunch);
+        if (parent == null || getContext() == null) {
+            Log.e(TAG, "Parent LinearLayout cho Product bị null");
+            return;
+        }
+
+        parent.removeAllViews();
+        Context context = getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        for (ProductItem item : items) {
+            View itemView = inflater.inflate(R.layout.item_product_full, parent, false);
+
+            ImageView ivProductImage = itemView.findViewById(R.id.rfl_image);
+            TextView ivType = itemView.findViewById(R.id.rfl_tag);
+            TextView tvProductCategory = itemView.findViewById(R.id.rfl_category);
+            TextView tvProductName = itemView.findViewById(R.id.rfl_name);
+            TextView tvProductRating = itemView.findViewById(R.id.rfl_rate);
+            TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
+
+
+            ivType.setText("Top Rate");
+
+            tvProductName.setText(item.getName());
+            tvProductCategory.setText(item.getCategory());
+            tvProductRating.setText(String.valueOf(item.getRate()));
+
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            String formattedPrice = formatter.format(item.getPrice()) + "đ";
+            tvProductPrice.setText(formattedPrice);
+
+            String itemName = item.getImage();
+            int index = itemName.lastIndexOf('.');
+            if (index != -1) {
+                itemName = itemName.substring(0, index);
+            }
+            int drawableId = context.getResources().getIdentifier(
+                    itemName,
+                    "drawable",
+                    context.getPackageName()
+            );
+            ivProductImage.setImageResource(drawableId);
+//            Glide.with(context)
+//                    .load(drawableId)
+//                    .placeholder(R.drawable.img_cake)
+//                    .error(R.drawable.ic_burger)
+//                    .into(ivProductImage);
+
+            itemView.setOnClickListener(v -> {
+                onProductItemClick(item);
+            });
+
+            parent.addView(itemView);
+        }
+    }
+
+    private void onProductItemClick(ProductItem item){
+        Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
+    }
+
+
     private void onCuisineItemClicked(CategoryItem item) {
         Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
 
-        // Hoặc: điều hướng sang fragment/activity khác
-        // ví dụ: findNavController().navigate(R.id.action_to_detailsFragment);
     }
     private static int dpToPx(Context context, int dp) {
         return (int) TypedValue.applyDimension(
