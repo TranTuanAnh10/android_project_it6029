@@ -3,7 +3,9 @@ package vn.haui.android_project.view;
 import static android.content.ContentValues.TAG;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -14,6 +16,8 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.material.textfield.TextInputEditText;
 
 import android.view.Gravity;
 import android.widget.ImageView;
@@ -39,15 +43,19 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
+    // Khai báo biến ở đây để có thể truy cập trong onResume
+    private TextInputEditText edtSearch;
+    LinearLayout topPickLayout, bestSellerLayout;
 
-    public HomeFragment() { }
+    public HomeFragment() {
+    }
 
     private static final String COLLECTION_CATEGORYS = "categorys";
     private static final String COLLECTION_PRODUCTS = "products";
     View view;
 
-    LinearLayout topPickLayout, bestSellerLayout;
     private FirebaseFirestore db;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -308,5 +316,35 @@ public class HomeFragment extends Fragment {
                 dp,
                 context.getResources().getDisplayMetrics()
         );
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // 1. Ánh xạ ô TextInputEditText từ layout
+        // Gán vào biến thành viên đã khai báo ở trên
+        edtSearch = view.findViewById(R.id.edtSearch);
+
+        // 2. Gắn sự kiện click cho ô tìm kiếm
+        edtSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 3. Tạo Intent để mở màn hình tìm kiếm mới
+                Intent intent = new Intent(getActivity(), SearchResultActivity.class);
+
+                // 4. Bắt đầu Activity mới
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Luôn kiểm tra xem edtSearch đã được khởi tạo chưa trước khi sử dụng
+        if (edtSearch != null) {
+            edtSearch.clearFocus();
+        }
     }
 }
