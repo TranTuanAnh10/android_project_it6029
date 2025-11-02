@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
@@ -36,11 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.model.AddressAdapter;
 import vn.haui.android_project.model.LocationItem;
 import vn.haui.android_project.services.LocationService;
 
-public class SelectLocationActivity extends AppCompatActivity{
+public class SelectLocationActivity extends AppCompatActivity {
     private static final int REQUEST_LOCATION_PERMISSION = 1001;
     private static final long DELAY = 800; // 0.8 giây sau khi ngừng gõ mới call API
     private final Handler handler = new Handler();
@@ -50,7 +53,7 @@ public class SelectLocationActivity extends AppCompatActivity{
     private LinearLayout btnGoToMap;
     private ListView listRecent;
 
-    private String address;
+    private String address, activityView;
     private double latitude, longitude;
 
     private LocationService locationService;
@@ -59,7 +62,8 @@ public class SelectLocationActivity extends AppCompatActivity{
     private final List<String> addressList = new ArrayList<>();
     private final List<LocationItem> locationList = new ArrayList<>();
 
-
+    private UserLocationEntity userLocation;
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,20 +87,30 @@ public class SelectLocationActivity extends AppCompatActivity{
         btnUseMyLocation = findViewById(R.id.btnUseMyLocation);
         btnGoToMap = findViewById(R.id.btnChooseFromMap); // 🔹 Thêm nút này trong XML
         listRecent = findViewById(R.id.listRecent);
-
+        userLocation = new UserLocationEntity();
         addressAdapter = new AddressAdapter(this, addressList);
         listRecent.setAdapter(addressAdapter);
 
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void setupIntentData() {
         Intent intent = getIntent();
         if (intent != null) {
-            latitude = parseDoubleSafe(intent.getStringExtra("latitude"));
-            longitude = parseDoubleSafe(intent.getStringExtra("longitude"));
-            address = intent.getStringExtra("address");
-            if (address != null) etSearchAddress.setText(address);
+            activityView = intent.getStringExtra("activityView");
+            if ("updateChoose".equals(activityView)) {
+                userLocation = intent.getParcelableExtra("locationToSave", UserLocationEntity.class);
+                latitude = userLocation.getLatitude();
+                longitude = userLocation.getLongitude();
+                address = userLocation.getAddress();
+                etSearchAddress.setText(address);
+            } else {
+                latitude = intent.getDoubleExtra("latitude", 0.0);
+                longitude = intent.getDoubleExtra("longitude", 0.0);
+                address = intent.getStringExtra("address");
+                if (address != null) etSearchAddress.setText(address);
+            }
         }
     }
 
@@ -150,10 +164,16 @@ public class SelectLocationActivity extends AppCompatActivity{
                 intent.putExtra("latitude", latitude);
                 intent.putExtra("longitude", longitude);
                 intent.putExtra("address", address);
+                intent.putExtra("activityView", activityView);
+                userLocation.setLatitude(latitude);
+                userLocation.setLongitude(longitude);
+                userLocation.setAddress(address);
+                intent.putExtra("locationToSave", userLocation);
                 startActivity(intent);
             }
         });
     }
+
     private void getLocation() {
         locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
             @Override

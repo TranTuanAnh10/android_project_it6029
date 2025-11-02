@@ -1,6 +1,8 @@
 package vn.haui.android_project.entity;
 
-public class UserLocationEntity {
+import java.io.Serializable;
+
+public class UserLocationEntity implements Serializable {
     private String id;
     private double latitude;
     private double longitude;
@@ -9,17 +11,49 @@ public class UserLocationEntity {
     private boolean defaultLocation;
 
     private String locationType;
+    private String recipientName;
+    private String country;
+    private String zipCode;
 
     public UserLocationEntity() {}
 
-    public UserLocationEntity(String id, double latitude, double longitude, String address, String phoneNumber, boolean defaultLocation, String locationType) {
+    public UserLocationEntity(String id,String recipientName, double latitude, double longitude, String address,
+                              String phoneNumber, boolean defaultLocation, String locationType,
+                              String country, String zipCode) {
         this.id = id;
+        this.recipientName= recipientName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
         this.phoneNumber= phoneNumber;
         this.defaultLocation = defaultLocation;
         this.locationType= locationType;
+        this.country=country;
+        this.zipCode=zipCode;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
     }
 
     public boolean isDefaultLocation() {

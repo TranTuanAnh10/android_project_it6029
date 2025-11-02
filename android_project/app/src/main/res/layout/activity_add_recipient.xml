@@ -2,11 +2,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_edit_recipient"
+    android:id="@+id/activity_add_recipient"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".view.EditRecipientActivity">
+    tools:context=".view.AddRecipientActivity">
 
     <LinearLayout
         android:id="@+id/header_container"
@@ -31,7 +31,7 @@
             android:layout_marginStart="-32dp"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            android:text="Edit Recipient"
+            android:text="Add Recipient"
             android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -193,7 +193,7 @@
 
             <TextView
                 style="@style/TextAppearance.AppCompat.Small"
-                android:id="@+id/chooseMapEdit"
+                android:id="@+id/chooseMap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -217,7 +217,7 @@
                     android:src="@drawable/ic_location_poin" />
 
                 <WebView
-                    android:id="@+id/webview_map_edit"
+                    android:id="@+id/webview_map_add"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
             </RelativeLayout>
@@ -256,16 +256,6 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp">
-
-        <Button
-            android:id="@+id/btn_delete"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_delivering_order"
-            android:text="@string/delete"
-            android:textColor="#FF4560" />
 
         <Button
             android:id="@+id/btn_save"

@@ -27,6 +27,20 @@
     <string name="finishDesc">Đã giao hàng thành công</string>
     <string name="cancelOrder">Cancel Order</string>
     <string name="confirmOrder">Confirm Order</string>
+    <string name="home">Home</string>
+    <string name="work">Work</string>
+    <string name="other">Other</string>
+    <string name="delete">Delete</string>
+
+    <string name="location_type">Location type</string>
+    <string name="recipient_name">Recipient name</string>
+    <string name="phone_number">Phone number</string>
+
+    <string name="address">Address</string>
+    <string name="set_as_default_address">Set as default address</string>
+    <string name="country">Country</string>
+    <string name="zip_code">Zip Code</string>
+    <string name="choose_from_map">Chọn địa chỉ mới</string>
 
 <!--    Home Screen-->
     <string name="category">Categorys</string>
