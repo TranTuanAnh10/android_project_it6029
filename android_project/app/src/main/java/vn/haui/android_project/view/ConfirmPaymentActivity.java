@@ -1,5 +1,7 @@
 package vn.haui.android_project.view;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +14,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -37,13 +41,13 @@ import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.Payment
 
 // 2. IMPLEMENT INTERFACE VOUCHERSELECTIONLISTENER
 public class ConfirmPaymentActivity extends AppCompatActivity
-        implements VoucherSelectionListener,PaymentSelectionListener {
+        implements VoucherSelectionListener, PaymentSelectionListener {
 
     // --- Recipient Info Views ---
     private TextView tvTapToChange;
     private TextView tvLocationTitle;
     private TextView tvAddressDetail;
-    private TextView tvRecipientContact;
+    private TextView tvRecipientContact, tvRecipientPhone;
 
     // --- Order Views ---
     private RecyclerView recyclerOrderItems;
@@ -56,10 +60,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private TextView tvVoucherDiscount;
 
     // --- Payment Views
-     private TextView tvTapToChangePayment;
-     private TextView tvPaymentType;
-     private TextView tvPaymentDetails;
-     private ImageView ivPaymentIcon;
+    private TextView tvTapToChangePayment;
+    private TextView tvPaymentType;
+    private TextView tvPaymentDetails;
+    private ImageView ivPaymentIcon, imgLocationIcon;
 
     // --- Summary Views ---
     private TextView tvAllItems;
@@ -78,6 +82,9 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private TextView tvSchedule15min, tvSchedule30min, tvSchedule45min, tvSchedule1hour;
     private TextView tvPickup1000, tvPickup1030, tvPickup1100, tvPickup1130;
 
+
+    private ActivityResultLauncher<Intent> locationSelectionLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,7 +99,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         mapViews();
         loadMockData();
         setupListeners();
-
+        registerLocationSelectionLauncher(); // Đăng ký ActivityResultLauncher(chon dia chi)
 
         mapDeliveryViews();
         setupDeliveryListeners();
@@ -107,6 +114,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvLocationTitle = findViewById(R.id.tv_location_title);
         tvAddressDetail = findViewById(R.id.tv_address_detail);
         tvRecipientContact = findViewById(R.id.tv_recipient_contact);
+        tvRecipientPhone = findViewById(R.id.tv_recipient_phone);
+        imgLocationIcon = findViewById(R.id.img_location_icon);
 
         // Order Items
         recyclerOrderItems = findViewById(R.id.recycler_order_items);
@@ -129,6 +138,39 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         btnPlaceOrder = findViewById(R.id.btn_place_order);
     }
 
+    private void registerLocationSelectionLauncher() {
+        locationSelectionLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // Kiểm tra xem có kết quả thành công được trả về không
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            // Lấy dữ liệu địa chỉ mới từ Intent
+                            String newAddressDetail = data.getStringExtra("new_address_detail");
+                            String newContact = data.getStringExtra("new_recipient_contact");
+                            String newTitle = data.getStringExtra("new_location_title");
+                            String phoneNumber = data.getStringExtra("new_phone_number");
+
+                            // Cập nhật giao diện trong ConfirmPaymentActivity
+                            if (tvLocationTitle != null) tvLocationTitle.setText(newTitle);
+                            if (tvAddressDetail != null) tvAddressDetail.setText(newAddressDetail);
+                            if (tvRecipientContact != null) tvRecipientContact.setText(newContact);
+                            if (tvRecipientPhone != null) tvRecipientPhone.setText(phoneNumber);
+                            if ("Home".equals(newTitle)) {
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
+                            } else if ("Work".equals(newTitle)) {
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
+                            } else {
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker);
+                            }
+                            Toast.makeText(this, "Địa chỉ mới đã được cập nhật!", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+        );
+    }
+
     private void setupListeners() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
@@ -136,7 +178,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         // Bắt sự kiện click vào khu vực thay đổi người nhận
         if (tvTapToChange != null) {
             tvTapToChange.setOnClickListener(v ->
-                    Toast.makeText(this, "Mở màn hình chọn địa chỉ", Toast.LENGTH_SHORT).show()
+                    {
+                        Intent intent = new Intent(this, ChooseRecipientActivity.class);
+                        locationSelectionLauncher.launch(intent);
+                    }
             );
         }
 
@@ -150,11 +195,13 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             tvTapToChangePayment.setOnClickListener(v -> showPaymentBottomSheet());
         }
     }
+
     // HÀM MỞ PAYMENT BOTTOM SHEET
     private void showPaymentBottomSheet() {
         ChoosePaymentBottomSheet bottomSheet = ChoosePaymentBottomSheet.newInstance(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
+
     // HÀM MỞ VOUCHER BOTTOM SHEET
     private void showVoucherBottomSheet() {
         // Dùng newInstance(this) vì Activity này đã implement VoucherSelectionListener
@@ -215,6 +262,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         }
         Toast.makeText(this, "Payment method updated: " + details, Toast.LENGTH_SHORT).show();
     }
+
     private void loadMockData() {
         // --- 1. Dữ liệu Người nhận ---
         tvLocationTitle.setText("Your Location (Office)");
@@ -293,9 +341,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             containerPickUpOrder.setActivated(false);
 
             scheduleTimeSelectionContainer.setVisibility(View.GONE);
-            if (ivScheduleDropdown != null) ivScheduleDropdown.setImageResource(R.drawable.ic_arrow_drop_down);
+            if (ivScheduleDropdown != null)
+                ivScheduleDropdown.setImageResource(R.drawable.ic_arrow_drop_down);
             pickupTimeSelectionContainer.setVisibility(View.GONE);
-            if (ivPickupDropdown != null) ivPickupDropdown.setImageResource(R.drawable.ic_arrow_drop_down);
+            if (ivPickupDropdown != null)
+                ivPickupDropdown.setImageResource(R.drawable.ic_arrow_drop_down);
 
             rbStandardDelivery.setChecked(false);
             rbScheduleOrder.setChecked(false);
@@ -308,18 +358,23 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 containerScheduleOrder.setActivated(true);
                 rbScheduleOrder.setChecked(true);
                 scheduleTimeSelectionContainer.setVisibility(View.VISIBLE);
-                if (ivScheduleDropdown != null) ivScheduleDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
+                if (ivScheduleDropdown != null)
+                    ivScheduleDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
             } else if (v.getId() == R.id.container_pick_up_order) {
                 containerPickUpOrder.setActivated(true);
                 rbPickUpOrder.setChecked(true);
                 pickupTimeSelectionContainer.setVisibility(View.VISIBLE);
-                if (ivPickupDropdown != null) ivPickupDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
+                if (ivPickupDropdown != null)
+                    ivPickupDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
             }
         };
 
-        if (containerStandardDelivery != null) containerStandardDelivery.setOnClickListener(deliveryOptionClickListener);
-        if (containerScheduleOrder != null) containerScheduleOrder.setOnClickListener(deliveryOptionClickListener);
-        if (containerPickUpOrder != null) containerPickUpOrder.setOnClickListener(deliveryOptionClickListener);
+        if (containerStandardDelivery != null)
+            containerStandardDelivery.setOnClickListener(deliveryOptionClickListener);
+        if (containerScheduleOrder != null)
+            containerScheduleOrder.setOnClickListener(deliveryOptionClickListener);
+        if (containerPickUpOrder != null)
+            containerPickUpOrder.setOnClickListener(deliveryOptionClickListener);
 
         if (containerStandardDelivery != null) {
             containerStandardDelivery.callOnClick();
