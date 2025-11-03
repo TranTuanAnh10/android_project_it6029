@@ -248,7 +248,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 String lastDigits = parts[parts.length - 1];
 
                 // Layout gốc của bạn có Text là "VISA •3282", nên giữ format này
-                tvPaymentDetails.setText("•" + lastDigits.replace("*", "")); // Hiển thị •3282
+                tvPaymentDetails.setText(lastDigits); // Hiển thị •3282
 
                 // PHẢI CÓ FILE NÀY!
                 ivPaymentIcon.setImageResource(R.drawable.ic_abount_yumyard);

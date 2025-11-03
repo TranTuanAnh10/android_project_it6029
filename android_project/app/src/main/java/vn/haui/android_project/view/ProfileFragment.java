@@ -42,7 +42,7 @@ public class ProfileFragment extends Fragment {
     Button btn_logout;
     ImageView imgUser;
     ImageButton editProfile;
-    TextView tvUserName, tvUserEmail,pointYumyard,saveRecipients;
+    TextView tvUserName, tvUserEmail,pointYumyard,saveRecipients,paymentMethods;
     View view;
     @Nullable
     @Override
@@ -105,6 +105,10 @@ public class ProfileFragment extends Fragment {
             Intent intent = new Intent(ProfileFragment.this.getContext(), OrderTrackingActivity.class);
             startActivity(intent);
         });
+        paymentMethods.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileFragment.this.getContext(), PaymentMethodsActivity.class);
+            startActivity(intent);
+        });
     }
     public void logoutUser(String userId) {
         logoutAndRemoveToken(userId);
@@ -120,6 +124,7 @@ public class ProfileFragment extends Fragment {
         editProfile=view.findViewById(R.id.iv_edit_profile);
         pointYumyard=view.findViewById(R.id.point_yumyard);
         saveRecipients=view.findViewById(R.id.save_recipients);
+        paymentMethods=view.findViewById(R.id.payment_methods);
     }
     private void logoutAndRemoveToken(String userId) {
         FirebaseMessaging.getInstance().getToken()
