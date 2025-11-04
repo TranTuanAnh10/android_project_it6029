@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginTop="12dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/rfl_image"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/img_cake"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerLeftRounded" />
+
+    <!-- Nội dung -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:orientation="vertical">
+
+        <!-- Tên + Rating -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/rfl_name"
+                android:text="Culinary Compass"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- Rating -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_tag_orange"
+                android:orientation="horizontal"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:gravity="center_vertical">
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Mô tả -->
+        <TextView
+            android:id="@+id/rfl_desc"
+            android:text="Bánh mì giòn kẹp thịt nướng, rau và dưa góp."
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Deal rows -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingEnd="10dp"
+            >
+
+
+            <TextView
+                android:id="@+id/rfl_price"
+                android:text="10000d"
+                android:textColor="@color/color_text_home_page_red"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/btn_cart_minus"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="-"
+                    android:textSize="20sp"
+                    app:layout_constraintBottom_toBottomOf="@id/cart_quantity"
+                    app:layout_constraintEnd_toStartOf="@id/cart_quantity"
+                    app:layout_constraintTop_toTopOf="@id/cart_quantity" />
+
+                <TextView
+                    android:id="@+id/cart_quantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:text="2"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@id/btn_cart_plus"
+                    app:layout_constraintEnd_toStartOf="@id/btn_cart_plus"
+                    app:layout_constraintTop_toTopOf="@id/btn_cart_plus" />
+
+                <TextView
+                    android:id="@+id/btn_cart_plus"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/button_plus_background"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textSize="20sp"
+                    app:layout_constraintBottom_toBottomOf="@id/rfl_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/rfl_image"
+                    app:layout_constraintVertical_bias="0.8" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

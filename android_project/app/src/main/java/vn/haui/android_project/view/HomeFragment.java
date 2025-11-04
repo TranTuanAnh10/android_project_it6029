@@ -2,7 +2,9 @@ package vn.haui.android_project.view;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -28,10 +30,18 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.Cart;
+import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.CategoryItem;
 import vn.haui.android_project.entity.ProductItem;
 
@@ -55,6 +65,7 @@ public class HomeFragment extends Fragment {
     View view;
 
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
 
     @Nullable
     @Override
@@ -66,6 +77,7 @@ public class HomeFragment extends Fragment {
         mapping();
         db = FirebaseFirestore.getInstance();
         loadAllHomeData();
+        mAuth = FirebaseAuth.getInstance();
         return view;
     }
     private void mapping(){
@@ -302,10 +314,75 @@ public class HomeFragment extends Fragment {
     }
 
     private void onProductItemClick(ProductItem item){
-        Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+
+        builder.setTitle("Xác nhận");
+        builder.setMessage("Bạn có chắc chắn muốn thêm "+ item.getName() + " vào giỏ hàng không?");
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                addToCartRealtimeDB(item);
+            }
+        });
+
+        builder.setNegativeButton("Hủy", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
+    private void addToCartRealtimeDB(ProductItem clickedProduct) {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            Toast.makeText(getContext(), "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userId = mAuth.getCurrentUser().getUid();
+        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+                .getReference("carts")
+                .child(userId);
 
+        cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Cart cart = snapshot.getValue(Cart.class);
+
+                if (cart == null) {
+                    cart = new Cart(new ArrayList<>());
+                }
+
+                boolean itemFound = false;
+                if (cart.items == null) cart.items = new ArrayList<>();
+
+                for (CartItem item : cart.items) {
+                    // Giả sử ProductItem cũng được thiết kế cho RTDB
+                    if (item.item_details.getId().equals(clickedProduct.getId())) {
+                        item.quantity = item.quantity + 1;
+                        itemFound = true;
+                        break;
+                    }
+                }
+
+                if (!itemFound) {
+                    cart.items.add(new CartItem(clickedProduct, 1));
+                }
+
+                cartRef.setValue(cart)
+                        .addOnSuccessListener(aVoid ->
+                                Toast.makeText(getContext(), "Đã thêm vào giỏ hàng (RTDB)", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e ->
+                                Log.e(TAG, "Lỗi ghi RTDB", e));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Lỗi đọc RTDB", error.toException());
+            }
+        });
+    }
     private void onCuisineItemClicked(CategoryItem item) {
         Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
 

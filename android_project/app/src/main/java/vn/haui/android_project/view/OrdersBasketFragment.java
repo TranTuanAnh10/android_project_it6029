@@ -1,7 +1,11 @@
 package vn.haui.android_project.view;
 
+import static android.content.ContentValues.TAG;
+
+import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,12 +14,27 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.Cart;
+import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.FoodItem;
+import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.Store;
 
 /**
@@ -33,6 +52,8 @@ public class OrdersBasketFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private FirebaseAuth mAuth;
 
     public OrdersBasketFragment() {
         // Required empty public constructor
@@ -63,41 +84,94 @@ public class OrdersBasketFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        mAuth = FirebaseAuth.getInstance();
     }
 
-    RecyclerView rvBasketStores;
+    LinearLayout rvBasketStores;
     List<Store> storeList;
     BasketStoreAdapter adapter;
+    View view;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_orders_basket, container, false);
-
+        this.view = view;
 
         rvBasketStores = view.findViewById(R.id.rvBasketOrders);
-        rvBasketStores.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        storeList = new ArrayList<>();
+        loadCart();
 
-        // tạo dữ liệu giả
-        List<FoodItem> pizzaList1 = new ArrayList<>();
-        pizzaList1.add(new FoodItem("Pizza Margherita", "Large size, extra Grated Parmesan", "$70", R.drawable.img_pizza, 2));
-        pizzaList1.add(new FoodItem("Pizza Pepperoni", "Large size, no extras", "$60", R.drawable.img_pizza_thap_cam, 2));
+        return view;
+    }
+    private void loadCart() {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            Toast.makeText(getContext(), "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userId = mAuth.getCurrentUser().getUid();
+        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+                .getReference("carts")
+                .child(userId);
 
-        storeList.add(new Store("Pizzeria da Giuseppe", R.drawable.img_pizza_thap_cam, pizzaList1, true));
+        cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Cart cart = snapshot.getValue(Cart.class);
 
-        List<FoodItem> pizzaList2 = new ArrayList<>();
-        pizzaList2.add(new FoodItem("Pizza Hải sản", "Seafood, cheese crust", "$85", R.drawable.img_pizza_thap_cam, 1));
-        pizzaList2.add(new FoodItem("Pizza BBQ", "BBQ sauce, extra cheese", "$75", R.drawable.img_pizza, 3));
+                if (cart == null) {
+                    cart = new Cart(new ArrayList<>());
+                }
 
-        storeList.add(new Store("Pizza Roma", R.drawable.img_pizza, pizzaList2, true));
+                updateCart(cart);
+            }
 
-        adapter = new BasketStoreAdapter(getContext(), storeList);
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Lỗi đọc RTDB", error.toException());
+                Toast.makeText(view.getContext(), "Lỗi đọc RTDB " + error.toException(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    private void updateCart(Cart cart){
+        LinearLayout parent = rvBasketStores;
+        parent.removeAllViews();
+        Context context = getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        for (CartItem cartItem : cart.items) {
+            ProductItem item = cartItem.item_details;
+            View itemView = inflater.inflate(R.layout.item_product_cart, parent, false);
 
-        Log.d("TEST", "Store count: " + storeList.size());
+            ImageView ivProductImage = itemView.findViewById(R.id.rfl_image);
+            TextView tvProductDesc = itemView.findViewById(R.id.rfl_desc);
+            TextView tvProductName = itemView.findViewById(R.id.rfl_name);
+            TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
+            TextView tvQuantity = itemView.findViewById(R.id.cart_quantity);
+            TextView btnMinus = itemView.findViewById(R.id.btn_cart_minus);
+            TextView btnPlus = itemView.findViewById(R.id.btn_cart_plus);
 
-        rvBasketStores.setAdapter(adapter);
+            tvProductName.setText(item.getName());
+            tvProductDesc.setText(item.getDescription());
+            tvQuantity.setText(cartItem.getQuantity());
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            String formattedPrice = formatter.format(item.getPrice()) + "đ";
+            tvProductPrice.setText(formattedPrice);
 
-        return view;    }
+            String itemName = item.getImage();
+            int index = itemName.lastIndexOf('.');
+            if (index != -1) {
+                itemName = itemName.substring(0, index);
+            }
+            int drawableId = context.getResources().getIdentifier(
+                    itemName,
+                    "drawable",
+                    context.getPackageName()
+            );
+            ivProductImage.setImageResource(drawableId);
+
+
+            parent.addView(itemView);
+        }
+    }
+
 }
