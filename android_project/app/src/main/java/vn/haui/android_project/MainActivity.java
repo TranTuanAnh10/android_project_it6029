@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             userName = intent.getStringExtra("USER_NAME");
         }
 
-
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         saveUserFcmToken();
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 

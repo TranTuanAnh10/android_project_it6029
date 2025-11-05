@@ -132,7 +132,8 @@
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp"
-                android:layout_marginEnd="4dp" />
+                android:layout_marginEnd="4dp"
+                android:visibility="invisible" />
 
             <TextView
                 android:layout_width="wrap_content"

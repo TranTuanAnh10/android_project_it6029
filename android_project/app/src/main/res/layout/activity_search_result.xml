@@ -28,7 +28,6 @@
             android:scaleType="centerInside"
             android:src="@drawable/ic_arrow_back" /> <!-- Thêm scaleType để icon đẹp hơn -->
 
-        <!-- Ô tìm kiếm: Thay đổi quan trọng ở đây -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/inputSearch"
             style="@style/Widget.MyApp.TextInputLayout.OutlinedBox"
@@ -46,7 +45,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:hint="Bún đậu, bánh mì, trà sữa"
-                android:inputType="text" />
+                android:inputType="text"
+                android:imeOptions="actionSearch"/>
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 

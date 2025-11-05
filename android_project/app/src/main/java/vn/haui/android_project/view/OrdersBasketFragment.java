@@ -28,6 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import vn.haui.android_project.R;
@@ -40,8 +41,7 @@ import vn.haui.android_project.entity.Store;
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link OrdersBasketFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+ * create an instance of this fragment. */
 public class OrdersBasketFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
@@ -90,6 +90,8 @@ public class OrdersBasketFragment extends Fragment {
     LinearLayout rvBasketStores;
     List<Store> storeList;
     BasketStoreAdapter adapter;
+
+    private Cart cartData;
     View view;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -122,8 +124,8 @@ public class OrdersBasketFragment extends Fragment {
                 if (cart == null) {
                     cart = new Cart(new ArrayList<>());
                 }
-
-                updateCart(cart);
+                cartData = cart;
+                updateCart(cartData);
             }
 
             @Override
@@ -152,7 +154,7 @@ public class OrdersBasketFragment extends Fragment {
 
             tvProductName.setText(item.getName());
             tvProductDesc.setText(item.getDescription());
-            tvQuantity.setText(cartItem.getQuantity());
+            tvQuantity.setText(cartItem.quantityToString());
             DecimalFormat formatter = new DecimalFormat("#,###");
             String formattedPrice = formatter.format(item.getPrice()) + "đ";
             tvProductPrice.setText(formattedPrice);
@@ -168,10 +170,78 @@ public class OrdersBasketFragment extends Fragment {
                     context.getPackageName()
             );
             ivProductImage.setImageResource(drawableId);
-
+            btnMinus.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CartItem itemNew = updateLocalQuantity(item.getId(), -1);
+                    if (itemNew.getQuantity() > 0){
+                        tvQuantity.setText(itemNew.quantityToString());
+                    }
+                    else{
+                        parent.removeView(itemView);
+                    }
+                }
+            });
+            btnPlus.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CartItem itemNew = updateLocalQuantity(item.getId(), 1);
+                    if (itemNew.getQuantity() > 0){
+                        tvQuantity.setText(itemNew.quantityToString());
+                    }
+                    else{
+                        parent.removeView(itemView);
+                    }
+                }
+            });
 
             parent.addView(itemView);
         }
     }
 
+    public CartItem updateLocalQuantity(String productId, int change) {
+        if (cartData == null || cartData.items == null) return null;
+
+        Iterator<CartItem> iterator = cartData.items.iterator();
+        CartItem item = null;
+        while (iterator.hasNext()) {
+            item = iterator.next();
+            if (item.item_details.getId().equals(productId)) {
+                item.quantity = (item.getQuantity() + change);
+
+                if (item.getQuantity() <= 0) {
+                    iterator.remove();
+                }
+                break;
+            }
+        }
+        return item;
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        syncLocalCartToFirebase();
+    }
+
+    private void syncLocalCartToFirebase() {
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            return;
+        }
+        Cart cartToSave = cartData;
+
+        if (cartToSave == null || cartToSave.items == null) {
+            return;
+        }
+
+        String userId = mAuth.getCurrentUser().getUid();
+        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+                .getReference("carts")
+                .child(userId);
+
+        cartRef.setValue(cartToSave)
+                .addOnSuccessListener(aVoid ->
+                        Log.d(TAG, "Sync giỏ hàng 'Basket' lên Firebase thành công!"))
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Lỗi khi sync giỏ hàng 'Basket'!", e));
+    }
 }

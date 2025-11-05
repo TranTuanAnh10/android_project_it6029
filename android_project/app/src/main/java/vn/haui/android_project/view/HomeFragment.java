@@ -358,9 +358,8 @@ public class HomeFragment extends Fragment {
                 if (cart.items == null) cart.items = new ArrayList<>();
 
                 for (CartItem item : cart.items) {
-                    // Giả sử ProductItem cũng được thiết kế cho RTDB
                     if (item.item_details.getId().equals(clickedProduct.getId())) {
-                        item.quantity = item.quantity + 1;
+                        item.quantity = item.getQuantity() + 1;
                         itemFound = true;
                         break;
                     }
@@ -372,7 +371,7 @@ public class HomeFragment extends Fragment {
 
                 cartRef.setValue(cart)
                         .addOnSuccessListener(aVoid ->
-                                Toast.makeText(getContext(), "Đã thêm vào giỏ hàng (RTDB)", Toast.LENGTH_SHORT).show())
+                                Toast.makeText(getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
                         .addOnFailureListener(e ->
                                 Log.e(TAG, "Lỗi ghi RTDB", e));
             }
@@ -385,7 +384,9 @@ public class HomeFragment extends Fragment {
     }
     private void onCuisineItemClicked(CategoryItem item) {
         Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
-
+        Intent intent = new Intent(getActivity(), SearchResultActivity.class);
+        intent.putExtra("category", item.getName());
+        startActivity(intent);
     }
     private static int dpToPx(Context context, int dp) {
         return (int) TypedValue.applyDimension(
@@ -399,18 +400,13 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Ánh xạ ô TextInputEditText từ layout
-        // Gán vào biến thành viên đã khai báo ở trên
         edtSearch = view.findViewById(R.id.edtSearch);
 
-        // 2. Gắn sự kiện click cho ô tìm kiếm
         edtSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 3. Tạo Intent để mở màn hình tìm kiếm mới
                 Intent intent = new Intent(getActivity(), SearchResultActivity.class);
 
-                // 4. Bắt đầu Activity mới
                 startActivity(intent);
             }
         });
@@ -419,7 +415,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Luôn kiểm tra xem edtSearch đã được khởi tạo chưa trước khi sử dụng
         if (edtSearch != null) {
             edtSearch.clearFocus();
         }
