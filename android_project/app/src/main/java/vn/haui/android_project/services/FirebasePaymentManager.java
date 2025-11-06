@@ -212,7 +212,8 @@ public class FirebasePaymentManager {
             existingCard.cardNumber = (String) updates.getOrDefault("cardNumber", existingCard.cardNumber);
             existingCard.expirationDate = (String) updates.getOrDefault("expirationDate", existingCard.expirationDate);
             existingCard.cvv = (String) updates.getOrDefault("cvv", existingCard.cvv);
-            // Cần cập nhật last4Digits và cardType nếu cardNumber thay đổi
+            existingCard.cardType = (String) updates.getOrDefault("cardType", existingCard.cardType);
+            existingCard.last4Digits = (String) updates.getOrDefault("last4Digits", existingCard.last4Digits);
 
             // 3. Gọi hàm updateCard (logic transaction) hiện có của bạn
             updateCard(uid, existingCard, onComplete);

@@ -1,6 +1,8 @@
 package vn.haui.android_project.view;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher; // Import quan trọng
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -44,10 +46,7 @@ public class EditCardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_card);
 
-        // Khởi tạo Manager
         paymentManager = FirebasePaymentManager.getInstance();
-
-        // 1. Lấy ID thẻ từ Intent
         currentCardId = getIntent().getStringExtra("card_id");
 
         if (currentCardId == null) {
@@ -58,7 +57,7 @@ public class EditCardActivity extends AppCompatActivity {
 
         mapViews();
         loadCardData();
-        setupListener();
+        setupListener(); // <-- Sẽ gọi setupTextWatchers() bên trong
     }
 
     private void mapViews() {
@@ -70,19 +69,19 @@ public class EditCardActivity extends AppCompatActivity {
         btnEditCard = findViewById(R.id.btn_edit_card);
         btnBack = findViewById(R.id.btn_back);
         btnDelete = findViewById(R.id.btn_delete);
-        cardBackgroundView = findViewById(R.id.card_background_view);
+
+        // 💡 Giữ ID của cardBackgroundView chính xác theo layout của bạn
+        cardBackgroundView = findViewById(R.id.bg_card_mock);
         tvMockCardNumber = findViewById(R.id.tv_mock_card_number);
         tvMockCardHolder = findViewById(R.id.tv_mock_card_holder);
         tvMockExpiryDate = findViewById(R.id.tv_mock_expiry_date);
         ivCardTypeLogo = findViewById(R.id.iv_card_type_logo);
-
     }
 
     /**
      * Tải dữ liệu thẻ hiện tại từ Firestore và điền vào các EditText.
      */
     private void loadCardData() {
-        // Sử dụng Manager để lấy dữ liệu chi tiết của một thẻ
         paymentManager.getCardDetails(currentCardId, (card, error) -> {
             if (error != null) {
                 Toast.makeText(this, "Không thể tải dữ liệu thẻ.", Toast.LENGTH_SHORT).show();
@@ -91,11 +90,12 @@ public class EditCardActivity extends AppCompatActivity {
             if (card != null) {
                 // Điền dữ liệu vào form
                 etNameOnCard.setText(card.getNameOnCard());
+                // Khi tải, dùng số thẻ đã được định dạng cho form edit
                 etCardNumber.setText(formatCardNumberForEdit(card.getCardNumber()));
                 etExpirationDate.setText(card.getExpirationDate());
                 etCvv.setText(card.getCvv());
 
-                // Cập nhật xem trước thẻ (tương tự như AddCardActivity)
+                // Cập nhật xem trước thẻ
                 updateCardPreview(card);
             }
         });
@@ -107,26 +107,32 @@ public class EditCardActivity extends AppCompatActivity {
     private void updateCardPreview(PaymentCard card) {
         if (card == null || tvMockCardNumber == null) return;
 
-        // Chỉ hiển thị 4 số cuối (hoặc toàn bộ số thẻ)
+        // Cập nhật text từ dữ liệu tải về
         tvMockCardNumber.setText(formatCardNumberForPreview(card.getCardNumber()));
         tvMockCardHolder.setText(card.getNameOnCard());
         tvMockExpiryDate.setText(card.getExpirationDate());
 
-        // Đặt background và logo (Hàm này cần được định nghĩa)
+        // Đặt background và logo lần đầu
         setCardBackgroundAndLogo(card.getCardType());
     }
 
     private void setCardBackgroundAndLogo(String cardType) {
-//        if (cardBackgroundView == null || ivCardTypeLogo == null) return;
+        // Thêm kiểm tra Null View an toàn
+        if (cardBackgroundView == null || ivCardTypeLogo == null) return;
+
         int backgroundResId;
         int logoResId;
-        if (cardType.equals(MyConstant.CARD_MASTERCARD)) {
+
+        // 🏆 Fix Lỗi NullPointerException: Gọi equals() trên hằng số
+        String type = cardType != null ? cardType : "";
+
+        if (MyConstant.CARD_MASTERCARD.equals(type)) {
             backgroundResId = R.drawable.bg_mastercard_gradient;
             logoResId = R.drawable.ic_mastercard_logo;
-        } else if (cardType.equals(MyConstant.Card_VISA)) {
+        } else if (MyConstant.Card_VISA.equals(type)) {
             backgroundResId = R.drawable.bg_visa_gradient;
             logoResId = R.drawable.ic_visa_logo;
-        } else if (cardType.equals(MyConstant.CARD_JCB)) {
+        } else if (MyConstant.CARD_JCB.equals(type)) {
             backgroundResId = R.drawable.bg_jcb_gradient;
             logoResId = R.drawable.ic_jbc_logo;
         } else {
@@ -143,10 +149,52 @@ public class EditCardActivity extends AppCompatActivity {
         btnEditCard.setOnClickListener(v -> updateCard());
         btnDelete.setOnClickListener(v -> deleteCard());
 
+        // 🌟 Thiết lập TextWatchers để cập nhật trực tiếp
+        setupTextWatchers();
+    }
+
+    /**
+     * Thiết lập các TextWatcher cho EditText để cập nhật UI ngay lập tức.
+     */
+    private void setupTextWatchers() {
+
+        // 1. Name on Card (Tên chủ thẻ)
+        etNameOnCard.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(tvMockCardHolder != null) tvMockCardHolder.setText(s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        // 2. Card Number (Số thẻ) - Cần Format và thay đổi Logo/Màu
+        etCardNumber.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Lấy số thẻ thô
+                String rawNumber = s.toString().replaceAll("\\s+", "");
+                // 1. Cập nhật số thẻ xem trước
+                if(tvMockCardNumber != null) tvMockCardNumber.setText(formatCardNumberForPreview(rawNumber));
+                // 2. Xác định loại thẻ và cập nhật giao diện
+                String type = determineCardType(rawNumber);
+                setCardBackgroundAndLogo(type);
+            }
+            @Override public void afterTextChanged(Editable s) {
+                // (Tùy chọn: Thêm logic format số thẻ tự động 4-4-4-4 ở đây)
+            }
+        });
+
+        // 3. Expiration Date (Ngày hết hạn)
+        etExpirationDate.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(tvMockExpiryDate != null) tvMockExpiryDate.setText(s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
     }
 
     private void updateCard() {
-        // 1. Thu thập dữ liệu và validate (Giữ nguyên)
         String newName = etNameOnCard.getText().toString().trim();
         String newCardNumber = etCardNumber.getText().toString().replaceAll("\\s+", "");
         String newExpiry = etExpirationDate.getText().toString().trim();
@@ -156,22 +204,20 @@ public class EditCardActivity extends AppCompatActivity {
             Toast.makeText(this, "Vui lòng điền đầy đủ và chính xác thông tin.", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // 2. Tạo đối tượng Map chứa các trường cần cập nhật (Giữ nguyên)
         Map<String, Object> updates = new HashMap<>();
         updates.put("nameOnCard", newName);
         updates.put("cardNumber", newCardNumber);
         updates.put("expirationDate", newExpiry);
         updates.put("cvv", newCvv);
+        updates.put("cardType", determineCardType(newCardNumber));
+        updates.put("last4Digits", newCardNumber.substring(newCardNumber.length() - 4));
 
-        // 3. GỌI MANAGER SỬ DỤNG CALLBACK (Đã sửa)
-        // Gọi hàm mới trong Manager và xử lý kết quả bằng callback
+
         paymentManager.updateCardByFields(currentCardId, updates, (isSuccess, message) -> {
             if (isSuccess) {
                 Toast.makeText(this, "Cập nhật thẻ thành công!", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
-                // Hiển thị message lỗi chi tiết từ Manager
                 Log.e("EDIT_CARD", "Update failed: " + message);
                 Toast.makeText(this, "Lỗi khi cập nhật thẻ: " + message, Toast.LENGTH_LONG).show();
             }
@@ -179,40 +225,32 @@ public class EditCardActivity extends AppCompatActivity {
     }
 
     private void deleteCard() {
-        // Hiển thị hộp thoại xác nhận trước khi xóa (nên làm trong ứng dụng thật)
-        // new AlertDialog.Builder(this) ... .show();
-
-        // GỌI MANAGER VỚI CALLBACK
+        // ... (Hàm này giữ nguyên) ...
         paymentManager.deleteCard(currentCardId, (isSuccess, message) -> {
             if (isSuccess) {
                 Toast.makeText(this, "Đã xóa thẻ thành công.", Toast.LENGTH_SHORT).show();
-                finish(); // Đóng Activity sau khi xóa thành công
+                finish();
             } else {
-                // Hiển thị thông báo lỗi chi tiết từ Manager
                 Log.e("DELETE_CARD", "Lỗi xóa thẻ: " + message);
                 Toast.makeText(this, "Lỗi khi xóa thẻ: " + message, Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    // Hàm hỗ trợ format (Giả định: Không lưu đầy đủ số thẻ trong DB)
     private String formatCardNumberForEdit(String rawNumber) {
-        // Tùy thuộc vào cách bạn lưu trữ. Nếu bạn lưu full, trả về full number.
-        // Đây chỉ là một placeholder. Nếu bạn chỉ lưu 4 số cuối, bạn sẽ cần ẩn phần còn lại.
         return rawNumber;
     }
 
     private String formatCardNumberForPreview(String rawNumber) {
-        // Định dạng hiển thị thẻ (ví dụ: **** **** **** 1234)
         if (rawNumber == null || rawNumber.length() < 4) return rawNumber;
+        // Hiển thị xxxx xxxx xxxx YYYY
         return "**** **** **** " + rawNumber.substring(rawNumber.length() - 4);
     }
 
-    // Cần hàm này trong thực tế để xác định loại thẻ (Visa/MC) từ số thẻ
-    private String detectCardType(String cardNumber) {
-        // Placeholder
-        if (cardNumber.startsWith("4")) return "VISA";
-        if (cardNumber.startsWith("5")) return "MASTERCARD";
-        return "UNKNOWN";
+    private String determineCardType(String cardNumber) {
+        if (cardNumber.startsWith("4")) return MyConstant.Card_VISA;
+        if (cardNumber.startsWith("5")) return MyConstant.CARD_MASTERCARD;
+        if (cardNumber.startsWith("3")) return MyConstant.CARD_JCB;
+        return MyConstant.Card_OTHER;
     }
 }
