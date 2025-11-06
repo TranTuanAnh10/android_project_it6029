@@ -219,12 +219,12 @@ public class HomeFragment extends Fragment {
             switch (type){
                 case 0:
                     toprate.setImageResource(R.drawable.ic_tag);
-                    bestSelling.setText("Top Rate");
+                    bestSelling.setText(R.string.top_rate);
                     bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_red));
                     break;
                 case 1:
                     toprate.setImageResource(R.drawable.ic_trending_up);
-                    bestSelling.setText("Best Selling");
+                    bestSelling.setText(R.string.best_selling);
                     bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_green));
                     break;
             }
@@ -283,7 +283,7 @@ public class HomeFragment extends Fragment {
             TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
 
 
-            ivType.setText("Top Rate");
+            ivType.setText(R.string.top_rate);
 
             tvProductName.setText(item.getName());
             tvProductDesc.setText(item.getDescription());
