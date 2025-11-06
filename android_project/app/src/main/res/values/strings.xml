@@ -44,5 +44,7 @@
 
     <!--    Home Screen-->
     <string name="category">Categorys</string>
+    <string name="top_rate">Đánh giá cao</string>
+    <string name="best_selling">Bán chạy</string>
 
 </resources>

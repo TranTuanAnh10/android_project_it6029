@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import com.google.android.material.textfield.TextInputEditText;
 
 import android.view.Gravity;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -56,6 +57,7 @@ public class HomeFragment extends Fragment {
     // Khai báo biến ở đây để có thể truy cập trong onResume
     private TextInputEditText edtSearch;
     LinearLayout topPickLayout, bestSellerLayout;
+    FrameLayout loadingPanel;
 
     public HomeFragment() {
     }
@@ -83,10 +85,11 @@ public class HomeFragment extends Fragment {
     private void mapping(){
         topPickLayout = view.findViewById(R.id.layoutTopPicks);
         bestSellerLayout = view.findViewById(R.id.layoutBestSelling);
+        loadingPanel = view.findViewById(R.id.loadingOverlay);
     }
 
     private void loadAllHomeData() {
-
+        showLoading(true);
         db.collection(COLLECTION_CATEGORYS)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -124,8 +127,11 @@ public class HomeFragment extends Fragment {
                         populateProductReadyToLunch(productItems);
                         Log.d(TAG, "Tải Top Picks thành công: " + productItems.size() + " mục");
 
+                        showLoading(false);
                     } else {
                         Log.w(TAG, "Lỗi khi tải Top Picks", task.getException());
+
+                        showLoading(false);
                     }
                 });
     }
@@ -213,12 +219,12 @@ public class HomeFragment extends Fragment {
             switch (type){
                 case 0:
                     toprate.setImageResource(R.drawable.ic_tag);
-                    bestSelling.setText("Top Rate");
+                    bestSelling.setText(R.string.top_rate);
                     bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_red));
                     break;
                 case 1:
                     toprate.setImageResource(R.drawable.ic_trending_up);
-                    bestSelling.setText("Best Selling");
+                    bestSelling.setText(R.string.best_selling);
                     bestSelling.setTextColor(ContextCompat.getColor(view.getContext(), R.color.color_text_home_page_green));
                     break;
             }
@@ -277,7 +283,7 @@ public class HomeFragment extends Fragment {
             TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
 
 
-            ivType.setText("Top Rate");
+            ivType.setText(R.string.top_rate);
 
             tvProductName.setText(item.getName());
             tvProductDesc.setText(item.getDescription());
@@ -383,7 +389,7 @@ public class HomeFragment extends Fragment {
         });
     }
     private void onCuisineItemClicked(CategoryItem item) {
-        Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getActivity(), SearchResultActivity.class);
         intent.putExtra("category", item.getName());
         startActivity(intent);
@@ -410,6 +416,10 @@ public class HomeFragment extends Fragment {
                 startActivity(intent);
             }
         });
+    }
+
+    private void showLoading(boolean isShow){
+        loadingPanel.setVisibility(isShow ? View.VISIBLE : View.GONE);
     }
 
     @Override

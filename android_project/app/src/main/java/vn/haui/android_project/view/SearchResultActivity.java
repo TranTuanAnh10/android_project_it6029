@@ -248,7 +248,7 @@ public class SearchResultActivity extends AppCompatActivity {
             TextView tvProductPrice = itemView.findViewById(R.id.rfl_price);
 
 
-            ivType.setText("Top Rate");
+            ivType.setText(R.string.top_rate);
 
             tvProductName.setText(item.getName());
             tvProductDesc.setText(item.getDescription());
