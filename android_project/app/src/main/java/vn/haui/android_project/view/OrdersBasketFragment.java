@@ -3,6 +3,7 @@ package vn.haui.android_project.view;
 import static android.content.ContentValues.TAG;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -108,8 +109,12 @@ public class OrdersBasketFragment extends Fragment {
         btnOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Order", Toast.LENGTH_SHORT).show();
-                // VIẾT CODE CỦA BẠN VÀO ĐÂY
+                Context context = getActivity();
+                if (context == null) {
+                    return;
+                }
+                Intent intent = new Intent(context, ConfirmPaymentActivity.class);
+                startActivity(intent);
             }
         });
         loadCart();

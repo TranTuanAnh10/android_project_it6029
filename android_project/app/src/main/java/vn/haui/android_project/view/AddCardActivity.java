@@ -60,7 +60,9 @@ public class AddCardActivity extends AppCompatActivity {
     }
 
     private void setupListener() {
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
         btnAddCard.setOnClickListener(v -> saveCardToFirebase());
     }
 

@@ -31,17 +31,14 @@ import java.util.List;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderProductAdapter;
 import vn.haui.android_project.entity.OrderProduct;
-
-// 1. IMPORT CÁC BOTTOM SHEET VÀ INTERFACE
+import vn.haui.android_project.entity.PaymentCard; // Cần import PaymentCard
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet.VoucherSelectionListener;
-import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet.VoucherSelectionListener;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
-import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
+import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener; // Dùng interface mới
 
-// 2. IMPLEMENT INTERFACE VOUCHERSELECTIONLISTENER
 public class ConfirmPaymentActivity extends AppCompatActivity
-        implements VoucherSelectionListener, PaymentSelectionListener {
+        implements VoucherSelectionListener, PaymentSelectionListener { // Implement cả hai interface
 
     // --- Recipient Info Views ---
     private TextView tvTapToChange;
@@ -54,15 +51,15 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private EditText etNoteToRestaurant;
     private OrderProductAdapter productAdapter;
 
-    // --- VOUCHER VIEWS MỚI ---
+    // --- VOUCHER VIEWS ---
     private TextView tvTapToChangeVoucher;
     private TextView tvVoucherCode;
     private TextView tvVoucherDiscount;
 
-    // --- Payment Views
+    // --- Payment Views ---
     private TextView tvTapToChangePayment;
-    private TextView tvPaymentType;
-    private TextView tvPaymentDetails;
+    private TextView tvPaymentType; // Hiển thị loại thẻ (VISA/Cash)
+    private TextView tvPaymentDetails; // Hiển thị số thẻ/chi tiết COD
     private ImageView ivPaymentIcon, imgLocationIcon;
 
     // --- Summary Views ---
@@ -99,7 +96,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         mapViews();
         loadMockData();
         setupListeners();
-        registerLocationSelectionLauncher(); // Đăng ký ActivityResultLauncher(chon dia chi)
+        registerLocationSelectionLauncher();
 
         mapDeliveryViews();
         setupDeliveryListeners();
@@ -121,15 +118,17 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         recyclerOrderItems = findViewById(R.id.recycler_order_items);
         etNoteToRestaurant = findViewById(R.id.et_note_to_restaurant);
 
-        // --- ÁNH XẠ VOUCHER VIEWS ---
-        tvTapToChangeVoucher = findViewById(R.id.tv_tap_to_add_voucher); // ID Nút "Tap to add"
-        tvVoucherCode = findViewById(R.id.tv_voucher_code);           // ID Code: EG...
-        tvVoucherDiscount = findViewById(R.id.tv_voucher_discount);   // ID Discount: $15 Off
-// --- PAYMENT INFO (TỪ activity_confirm_payment.xml) ---
-        tvTapToChangePayment = findViewById(R.id.tv_tap_to_change_payment); // ID Nút "Tap to change"
-        tvPaymentType = findViewById(R.id.tv_card_type);         // ID Type: Credit Card
-        tvPaymentDetails = findViewById(R.id.tv_card_number);    // ID Details: *3282
-        ivPaymentIcon = findViewById(R.id.iv_card_icon);      // ID Icon: VISA/COD
+        // VOUCHER VIEWS
+        tvTapToChangeVoucher = findViewById(R.id.tv_tap_to_add_voucher);
+        tvVoucherCode = findViewById(R.id.tv_voucher_code);
+        tvVoucherDiscount = findViewById(R.id.tv_voucher_discount);
+
+        // PAYMENT INFO
+        tvTapToChangePayment = findViewById(R.id.tv_tap_to_change_payment);
+        tvPaymentType = findViewById(R.id.tv_card_type);
+        tvPaymentDetails = findViewById(R.id.tv_card_number);
+        ivPaymentIcon = findViewById(R.id.iv_card_icon);
+
         // Summary
         tvAllItems = findViewById(R.id.tv_all_items);
         tvDeliveryFee = findViewById(R.id.tv_delivery_fee);
@@ -142,27 +141,24 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         locationSelectionLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    // Kiểm tra xem có kết quả thành công được trả về không
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            // Lấy dữ liệu địa chỉ mới từ Intent
                             String newAddressDetail = data.getStringExtra("new_address_detail");
                             String newContact = data.getStringExtra("new_recipient_contact");
                             String newTitle = data.getStringExtra("new_location_title");
                             String phoneNumber = data.getStringExtra("new_phone_number");
 
-                            // Cập nhật giao diện trong ConfirmPaymentActivity
                             if (tvLocationTitle != null) tvLocationTitle.setText(newTitle);
                             if (tvAddressDetail != null) tvAddressDetail.setText(newAddressDetail);
                             if (tvRecipientContact != null) tvRecipientContact.setText(newContact);
                             if (tvRecipientPhone != null) tvRecipientPhone.setText(phoneNumber);
                             if ("Home".equals(newTitle)) {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker_home); // Giả định icon này tồn tại
                             } else if ("Work".equals(newTitle)) {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker_work); // Giả định icon này tồn tại
                             } else {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker);
+                                imgLocationIcon.setImageResource(R.drawable.ic_marker); // Giả định icon này tồn tại
                             }
                             Toast.makeText(this, "Địa chỉ mới đã được cập nhật!", Toast.LENGTH_LONG).show();
                         }
@@ -175,22 +171,21 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
 
-        // Bắt sự kiện click vào khu vực thay đổi người nhận
         if (tvTapToChange != null) {
             tvTapToChange.setOnClickListener(v ->
                     {
-                        Intent intent = new Intent(this, ChooseRecipientActivity.class);
+                        Intent intent = new Intent(this, ChooseRecipientActivity.class); // Giả định Activity này tồn tại
                         locationSelectionLauncher.launch(intent);
                     }
             );
         }
 
-        // --- BẮT SỰ KIỆN MỞ VOUCHER BOTTOM SHEET ---
+        // BẮT SỰ KIỆN MỞ VOUCHER BOTTOM SHEET
         if (tvTapToChangeVoucher != null) {
             tvTapToChangeVoucher.setOnClickListener(v -> showVoucherBottomSheet());
         }
 
-        // --- BẮT SỰ KIỆN MỞ PAYMENT BOTTOM SHEET ---
+        // BẮT SỰ KIỆN MỞ PAYMENT BOTTOM SHEET
         if (tvTapToChangePayment != null) {
             tvTapToChangePayment.setOnClickListener(v -> showPaymentBottomSheet());
         }
@@ -198,21 +193,22 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     // HÀM MỞ PAYMENT BOTTOM SHEET
     private void showPaymentBottomSheet() {
+        // 'this' là ConfirmPaymentActivity, đã implement PaymentSelectionListener
         ChoosePaymentBottomSheet bottomSheet = ChoosePaymentBottomSheet.newInstance(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
 
     // HÀM MỞ VOUCHER BOTTOM SHEET
     private void showVoucherBottomSheet() {
-        // Dùng newInstance(this) vì Activity này đã implement VoucherSelectionListener
         ChooseVoucherBottomSheet bottomSheet = ChooseVoucherBottomSheet.newInstance(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
 
-    // 3. TRIỂN KHAI HÀM CỦA INTERFACE VOUCHERSELECTIONLISTENER
+    // ==========================================================
+    // TRIỂN KHAI INTERFACE VOUCHERSELECTIONLISTENER
+    // ==========================================================
     @Override
     public void onVoucherSelected(String voucherCode, String discountAmount) {
-        // Cập nhật UI trong ConfirmPaymentActivity
         if (tvVoucherCode != null) {
             tvVoucherCode.setText("Code " + voucherCode);
         }
@@ -222,54 +218,85 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
         Toast.makeText(this, "Voucher " + voucherCode + " applied! (" + discountAmount + ")", Toast.LENGTH_SHORT).show();
 
-        // Thường thì bạn sẽ gọi một hàm để tính toán lại tổng tiền ở đây
-        // Ví dụ: updateSummary(productList, discountAmount);
+        // Cần gọi hàm tính toán lại tổng tiền thực tế
+        // updateSummary(productList);
     }
 
+    // ==========================================================
+    // TRIỂN KHAI INTERFACE PAYMENTSELECTIONLISTENER (MỚI)
+    // ==========================================================
+
+    // 🏆 HÀM MỚI KHI CHỌN CREDIT CARD/THẺ GHI NỢ
     @Override
-    public void onPaymentSelected(String paymentType, String details) {
-        // 1. Cập nhật Type (Credit Card / Cash on delivery)
+    public void onCardSelected(PaymentCard selectedCard) {
+        if (selectedCard == null) return;
+
+        // 1. Cập nhật Loại thẻ (VISA, MASTERCARD,...)
         if (tvPaymentType != null) {
-            // Cập nhật tvPaymentType để hiển thị tên thẻ (VISA/MASTERCARD) hoặc Cash on delivery
-            if (paymentType.equals("Credit Card")) {
-                // Lấy tên thẻ (VD: "VISA")
-                String[] parts = details.split(" ");
-                tvPaymentType.setText(parts[0]);
-            } else {
-                tvPaymentType.setText(paymentType); // Hiển thị "Cash on delivery"
-            }
+            tvPaymentType.setText(selectedCard.getCardType());
         }
 
-        // 2. Cập nhật Details (số thẻ hoặc chi tiết) và Icon
+        // 2. Cập nhật 4 số cuối (Details)
         if (tvPaymentDetails != null) {
-            if (paymentType.equals("Credit Card")) {
-                // Lấy 4 số cuối (VD: "*3282")
-                String[] parts = details.split(" ");
-                String lastDigits = parts[parts.length - 1];
-
-                // Layout gốc của bạn có Text là "VISA •3282", nên giữ format này
-                tvPaymentDetails.setText(lastDigits); // Hiển thị •3282
-
-                // PHẢI CÓ FILE NÀY!
-                ivPaymentIcon.setImageResource(R.drawable.ic_abount_yumyard);
-
-            } else { // Cash on delivery
-                tvPaymentDetails.setText(details); // Hiển thị "Cash on delivery"
-
-                // PHẢI CÓ FILE NÀY!
-                ivPaymentIcon.setImageResource(R.drawable.ic_prepared_order_active);
-            }
+            String fullNumber = selectedCard.getCardNumber();
+            String last4Digits = fullNumber != null && fullNumber.length() >= 4
+                    ? fullNumber.substring(fullNumber.length() - 4)
+                    : "••••";
+            // Hiển thị format "**** 1234"
+            tvPaymentDetails.setText("•••• " + last4Digits);
         }
-        Toast.makeText(this, "Payment method updated: " + details, Toast.LENGTH_SHORT).show();
+
+        // 3. Cập nhật Icon (dựa trên loại thẻ)
+        if (ivPaymentIcon != null) {
+            int iconResId = getCardIconResId(selectedCard.getCardType());
+            ivPaymentIcon.setImageResource(iconResId);
+        }
+
+        Toast.makeText(this, "Đã chọn thẻ " + selectedCard.getCardType() + " •••• " + selectedCard.getLast4Digits(), Toast.LENGTH_SHORT).show();
     }
+
+    // 🏆 HÀM MỚI KHI CHỌN CASH ON DELIVERY
+    @Override
+    public void onCashSelected() {
+        // 1. Cập nhật Type
+        if (tvPaymentType != null) {
+            tvPaymentType.setText("Cash");
+        }
+        // 2. Cập nhật Details
+        if (tvPaymentDetails != null) {
+            tvPaymentDetails.setText("Cash on delivery");
+        }
+        // 3. Cập nhật Icon (ic_prepared_order_active là icon tạm thời cho COD)
+        if (ivPaymentIcon != null) {
+            ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
+        }
+      }
+
+    /**
+     * Hàm hỗ trợ ánh xạ loại thẻ (String) sang Resource ID (Icon)
+     */
+    private int getCardIconResId(String cardType) {
+        if (cardType == null) return R.drawable.ic_credit_card; // Giả định icon mặc định
+        // Sử dụng ignoreCase để đảm bảo khớp
+        if ("VISA".equalsIgnoreCase(cardType)) {
+            return R.drawable.ic_visa; // Giả định icon này tồn tại
+        } else if ("MASTERCARD".equalsIgnoreCase(cardType)) {
+            return R.drawable.ic_mastercard; // Giả định icon này tồn tại
+        } else if ("JCB".equalsIgnoreCase(cardType)) {
+            return R.drawable.ic_jcb; // Giả định icon này tồn tại
+        }
+        return R.drawable.ic_credit_card; // Icon mặc định
+    }
+
+    // ==========================================================
+    // CÁC HÀM CƠ BẢN KHÁC (GIỮ NGUYÊN)
+    // ==========================================================
 
     private void loadMockData() {
-        // --- 1. Dữ liệu Người nhận ---
         tvLocationTitle.setText("Your Location (Office)");
         tvAddressDetail.setText("3891 Le Thanh Nghi, Hai Ba Trung, Ha Noi...");
         tvRecipientContact.setText("Nguyen Van A - 0987654321");
 
-        // --- 2. Dữ liệu Danh sách Sản phẩm ---
         productList = new ArrayList<>();
         productList.add(new OrderProduct("Pizza Margherita", "Large size, extra cheese", 2, 35.0));
         productList.add(new OrderProduct("Pizza Pepperoni", "Medium size, extra sauce", 1, 30.0));
@@ -281,7 +308,6 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
         etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
 
-        // --- 3. Dữ liệu Tóm tắt (Summary) ---
         updateSummary(productList);
     }
 
@@ -292,7 +318,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         }
 
         double discount = 15.00;
-        double deliveryFee = 5.00; // Giả định phí giao hàng là $5
+        double deliveryFee = 5.00;
         double finalTotal = subTotal - discount + deliveryFee;
 
         tvAllItems.setText("All items $" + String.format("%.2f", subTotal));
@@ -334,7 +360,6 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     }
 
     private void setupDeliveryListeners() {
-        // ... (Giữ nguyên logic Delivery) ...
         View.OnClickListener deliveryOptionClickListener = v -> {
             containerStandardDelivery.setActivated(false);
             containerScheduleOrder.setActivated(false);
@@ -411,21 +436,15 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private void resetTimeChips(TextView... chips) {
         for (TextView chip : chips) {
-            chip.setBackgroundResource(R.drawable.bg_time_chip_default);
+            chip.setBackgroundResource(R.drawable.bg_time_chip_default); // Giả định drawable này tồn tại
             chip.setTextColor(ContextCompat.getColor(this, android.R.color.black));
         }
     }
 
     private void handleTimeChipSelection(TextView selectedChip, TextView... chipGroup) {
         resetTimeChips(chipGroup);
-        selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected);
+        selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected); // Giả định drawable này tồn tại
         selectedChip.setTextColor(ContextCompat.getColor(this, android.R.color.white));
         Toast.makeText(this, "Selected time: " + selectedChip.getText(), Toast.LENGTH_SHORT).show();
     }
-
-    // XÓA CÁC HÀM XỬ LÝ VOUCHER DƯ THỪA TỪ BOTTOM SHEET RA KHỎI ACTIVITY
-    /*
-    private void setupVouchersData(View rootView) { ... }
-    private void updateVoucherItem(View item, String title, String description, int iconResId) { ... }
-    */
 }

@@ -2,114 +2,160 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"  android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/bg_selector_address_card"> <!-- Thêm background bo góc -->
+    android:background="@drawable/rounded_bottom_sheet_bg"
+    android:paddingBottom="16dp">
 
-    <TextView
-        android:id="@+id/tv_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:text="Choose payment method"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"/>
-
-    <!-- ======================================================== -->
-    <!--  LỰA CHỌN 1: THẺ TÍN DỤNG (Credit Card) -->
-    <!--  ID ĐÚNG: container_credit_card -->
-    <!-- ======================================================== -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/container_credit_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="?attr/selectableItemBackground"> <!-- Hiệu ứng khi nhấn -->
+        android:padding="16dp">
+
+        <View
+            android:id="@+id/handle_bar"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="@drawable/bottom_sheet_handle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Choose Payment method"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/handle_bar" />
 
         <ImageView
-            android:id="@+id/iv_credit_card_icon"
+            android:id="@+id/btn_close_bottom_sheet"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_credit_card"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:ignore="ContentDescription" />
-
-        <TextView
-            android:id="@+id/tv_credit_card_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Credit Card"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            app:layout_constraintStart_toEndOf="@id/iv_credit_card_icon"
-            app:layout_constraintTop_toTopOf="parent"/>
-
-        <!-- ======================================================== -->
-        <!--  ID ĐÚNG: tv_card_details -->
-        <!-- ======================================================== -->
-        <TextView
-            android:id="@+id/tv_card_details"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="VISA *3282"
-            android:textColor="#757575"
-            android:textSize="14sp"
-            app:layout_constraintStart_toEndOf="@id/iv_credit_card_icon"
-            app:layout_constraintTop_toBottomOf="@id/tv_credit_card_title"/>
+            android:src="@drawable/ic_close"
+            android:contentDescription="Close"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_title"
+            app:layout_constraintBottom_toBottomOf="@id/tv_title" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" />
+
+    <LinearLayout
+        android:id="@+id/container_credit_card_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_credit_card_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="8dp"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Debit/Credit Card"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <ImageView
+                android:id="@+id/iv_card_expand_collapse"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_drop_up"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_cards"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:nestedScrollingEnabled="false"
+            tools:itemCount="3"
+            tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_payment_card_select" />
+
+        <TextView
+            android:id="@+id/tv_add_new_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:drawableStart="@drawable/ic_add_circle"
+            android:drawablePadding="8dp"
+            android:text="Add new card"
+            android:textColor="#EB4D57"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"/>
+
+    </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#E0E0E0"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginTop="16dp" />
 
-    <!-- ======================================================== -->
-    <!--  LỰA CHỌN 2: TIỀN MẶT (Cash on Delivery) -->
-    <!--  ID ĐÚNG: container_cash -->
-    <!-- ======================================================== -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container_cash"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="?attr/selectableItemBackground"> <!-- Hiệu ứng khi nhấn -->
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:background="?attr/selectableItemBackground">
 
-        <ImageView
-            android:id="@+id/iv_cash_icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_arrow_back"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:ignore="ContentDescription"/>
-
-        <!-- ======================================================== -->
-        <!--  ID ĐÚNG: tv_cash_details -->
-        <!-- ======================================================== -->
         <TextView
-            android:id="@+id/tv_cash_details"
-            android:layout_width="wrap_content"
+            android:id="@+id/tv_cash_details_title"  android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:text="Cash on delivery"
             android:textColor="@android:color/black"
             android:textSize="16sp"
-            app:layout_constraintStart_toEndOf="@id/iv_cash_icon"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintEnd_toStartOf="@id/switch_cash_on_delivery" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Paying with cash when your orders arrive at your doorstep."
+            android:textColor="#757575"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/switch_cash_on_delivery"
+            app:layout_constraintTop_toBottomOf="@id/tv_cash_details_title"  />
+
+        <Switch
+            android:id="@+id/switch_cash_on_delivery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
