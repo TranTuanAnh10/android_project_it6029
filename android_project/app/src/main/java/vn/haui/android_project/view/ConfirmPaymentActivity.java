@@ -1,8 +1,11 @@
 package vn.haui.android_project.view;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -25,13 +29,28 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderProductAdapter;
-import vn.haui.android_project.entity.OrderProduct;
+import vn.haui.android_project.entity.Cart;
+import vn.haui.android_project.entity.CartItem;
+import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.entity.PaymentCard; // Cần import PaymentCard
+import vn.haui.android_project.entity.ProductItem;
+import vn.haui.android_project.entity.UserLocationEntity;
+import vn.haui.android_project.services.DeliveryCalculator;
+import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet.VoucherSelectionListener;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
@@ -41,7 +60,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         implements VoucherSelectionListener, PaymentSelectionListener { // Implement cả hai interface
 
     // --- Recipient Info Views ---
-    private TextView tvTapToChange;
+    private TextView tvTapToChange, tvStandardTime;
     private TextView tvLocationTitle;
     private TextView tvAddressDetail;
     private TextView tvRecipientContact, tvRecipientPhone;
@@ -69,7 +88,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private TextView tvTotal;
     private Button btnPlaceOrder;
 
-    private List<OrderProduct> productList;
+    private List<ItemOrderProduct> productList;
 
     // --- Delivery Options Views ---
     private ConstraintLayout containerStandardDelivery, containerScheduleOrder, containerPickUpOrder;
@@ -81,6 +100,14 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
 
     private ActivityResultLauncher<Intent> locationSelectionLauncher;
+
+    private FirebaseLocationManager firebaseLocationManager;
+    FirebaseUser authUser;
+    private String newAddressDetail, newContact, newTitle, phoneNumber, idLocation;
+    private double latitude, longitude;
+
+    double pickupLat = 21.0285;
+    double pickupLon = 105.8542;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +121,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         });
 
         mapViews();
-        loadMockData();
+        loadData();
         setupListeners();
         registerLocationSelectionLauncher();
 
@@ -127,7 +154,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvTapToChangePayment = findViewById(R.id.tv_tap_to_change_payment);
         tvPaymentType = findViewById(R.id.tv_card_type);
         tvPaymentDetails = findViewById(R.id.tv_card_number);
-        ivPaymentIcon = findViewById(R.id.iv_card_icon);
+        ivPaymentIcon = findViewById(R.id.iv_payment_icon);
 
         // Summary
         tvAllItems = findViewById(R.id.tv_all_items);
@@ -135,6 +162,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvDiscount = findViewById(R.id.tv_discount);
         tvTotal = findViewById(R.id.tv_total);
         btnPlaceOrder = findViewById(R.id.btn_place_order);
+        tvStandardTime = findViewById(R.id.tv_standard_time);
     }
 
     private void registerLocationSelectionLauncher() {
@@ -144,27 +172,48 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            String newAddressDetail = data.getStringExtra("new_address_detail");
-                            String newContact = data.getStringExtra("new_recipient_contact");
-                            String newTitle = data.getStringExtra("new_location_title");
-                            String phoneNumber = data.getStringExtra("new_phone_number");
-
-                            if (tvLocationTitle != null) tvLocationTitle.setText(newTitle);
-                            if (tvAddressDetail != null) tvAddressDetail.setText(newAddressDetail);
-                            if (tvRecipientContact != null) tvRecipientContact.setText(newContact);
-                            if (tvRecipientPhone != null) tvRecipientPhone.setText(phoneNumber);
-                            if ("Home".equals(newTitle)) {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker_home); // Giả định icon này tồn tại
-                            } else if ("Work".equals(newTitle)) {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker_work); // Giả định icon này tồn tại
-                            } else {
-                                imgLocationIcon.setImageResource(R.drawable.ic_marker); // Giả định icon này tồn tại
-                            }
-                            Toast.makeText(this, "Địa chỉ mới đã được cập nhật!", Toast.LENGTH_LONG).show();
+                            idLocation = data.getStringExtra("id_location");
+                            firebaseLocationManager.getLocationById(authUser.getUid(), idLocation, (isSuccess, defaultAddress) -> {
+                                if (isSuccess) {
+                                    if (defaultAddress != null) {
+                                        mappingLocation(defaultAddress);
+                                    }
+                                }
+                            });
                         }
                     }
                 }
         );
+    }
+
+    private void mappingLocation(UserLocationEntity defaultAddress) {
+        newAddressDetail = defaultAddress.getAddress();
+        newContact = defaultAddress.getPhoneNumber();
+        newTitle = defaultAddress.getLocationType();
+        phoneNumber = defaultAddress.getRecipientName();
+        idLocation = defaultAddress.getId();
+        latitude = defaultAddress.getLatitude();
+        longitude = defaultAddress.getLongitude();
+        if (tvLocationTitle != null) tvLocationTitle.setText(newTitle);
+        if (tvAddressDetail != null) tvAddressDetail.setText(newAddressDetail);
+        if (tvRecipientContact != null) tvRecipientContact.setText(newContact);
+        if (tvRecipientPhone != null) tvRecipientPhone.setText(phoneNumber);
+        if ("Home".equals(newTitle)) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
+        } else if ("Work".equals(newTitle)) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
+        } else {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker);
+        }
+        // tinh thoi gian giao hang
+        double estimatedTimeMinutes = DeliveryCalculator.calculateEstimatedTime(
+                pickupLat,
+                pickupLon,
+                latitude,
+                longitude
+        );
+        String timeDisplay = DeliveryCalculator.formatTime(estimatedTimeMinutes);
+        tvStandardTime.setText(timeDisplay);
     }
 
     private void setupListeners() {
@@ -193,20 +242,15 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     // HÀM MỞ PAYMENT BOTTOM SHEET
     private void showPaymentBottomSheet() {
-        // 'this' là ConfirmPaymentActivity, đã implement PaymentSelectionListener
         ChoosePaymentBottomSheet bottomSheet = ChoosePaymentBottomSheet.newInstance(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
 
-    // HÀM MỞ VOUCHER BOTTOM SHEET
     private void showVoucherBottomSheet() {
         ChooseVoucherBottomSheet bottomSheet = ChooseVoucherBottomSheet.newInstance(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
 
-    // ==========================================================
-    // TRIỂN KHAI INTERFACE VOUCHERSELECTIONLISTENER
-    // ==========================================================
     @Override
     public void onVoucherSelected(String voucherCode, String discountAmount) {
         if (tvVoucherCode != null) {
@@ -222,98 +266,117 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         // updateSummary(productList);
     }
 
-    // ==========================================================
-    // TRIỂN KHAI INTERFACE PAYMENTSELECTIONLISTENER (MỚI)
-    // ==========================================================
-
-    // 🏆 HÀM MỚI KHI CHỌN CREDIT CARD/THẺ GHI NỢ
     @Override
     public void onCardSelected(PaymentCard selectedCard) {
         if (selectedCard == null) return;
-
-        // 1. Cập nhật Loại thẻ (VISA, MASTERCARD,...)
         if (tvPaymentType != null) {
             tvPaymentType.setText(selectedCard.getCardType());
         }
-
-        // 2. Cập nhật 4 số cuối (Details)
         if (tvPaymentDetails != null) {
             String fullNumber = selectedCard.getCardNumber();
             String last4Digits = fullNumber != null && fullNumber.length() >= 4
                     ? fullNumber.substring(fullNumber.length() - 4)
                     : "••••";
-            // Hiển thị format "**** 1234"
             tvPaymentDetails.setText("•••• " + last4Digits);
         }
-
-        // 3. Cập nhật Icon (dựa trên loại thẻ)
         if (ivPaymentIcon != null) {
             int iconResId = getCardIconResId(selectedCard.getCardType());
             ivPaymentIcon.setImageResource(iconResId);
         }
-
-        Toast.makeText(this, "Đã chọn thẻ " + selectedCard.getCardType() + " •••• " + selectedCard.getLast4Digits(), Toast.LENGTH_SHORT).show();
     }
 
-    // 🏆 HÀM MỚI KHI CHỌN CASH ON DELIVERY
     @Override
     public void onCashSelected() {
-        // 1. Cập nhật Type
         if (tvPaymentType != null) {
             tvPaymentType.setText("Cash");
         }
-        // 2. Cập nhật Details
         if (tvPaymentDetails != null) {
             tvPaymentDetails.setText("Cash on delivery");
         }
-        // 3. Cập nhật Icon (ic_prepared_order_active là icon tạm thời cho COD)
         if (ivPaymentIcon != null) {
             ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
         }
-      }
+    }
 
-    /**
-     * Hàm hỗ trợ ánh xạ loại thẻ (String) sang Resource ID (Icon)
-     */
+
     private int getCardIconResId(String cardType) {
-        if (cardType == null) return R.drawable.ic_credit_card; // Giả định icon mặc định
-        // Sử dụng ignoreCase để đảm bảo khớp
+        if (cardType == null) return R.drawable.ic_credit_card;
         if ("VISA".equalsIgnoreCase(cardType)) {
-            return R.drawable.ic_visa; // Giả định icon này tồn tại
+            return R.drawable.ic_visa;
         } else if ("MASTERCARD".equalsIgnoreCase(cardType)) {
-            return R.drawable.ic_mastercard; // Giả định icon này tồn tại
+            return R.drawable.ic_mastercard;
         } else if ("JCB".equalsIgnoreCase(cardType)) {
-            return R.drawable.ic_jcb; // Giả định icon này tồn tại
+            return R.drawable.ic_jcb;
         }
-        return R.drawable.ic_credit_card; // Icon mặc định
+        return R.drawable.ic_credit_card;
     }
 
-    // ==========================================================
-    // CÁC HÀM CƠ BẢN KHÁC (GIỮ NGUYÊN)
-    // ==========================================================
 
-    private void loadMockData() {
-        tvLocationTitle.setText("Your Location (Office)");
-        tvAddressDetail.setText("3891 Le Thanh Nghi, Hai Ba Trung, Ha Noi...");
-        tvRecipientContact.setText("Nguyen Van A - 0987654321");
-
+    private void loadData() {
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (authUser == null) {
+            Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        firebaseLocationManager = new FirebaseLocationManager();
+        firebaseLocationManager.getDefaultLocation(authUser.getUid(), (isSuccess, defaultAddress) -> {
+            if (isSuccess && defaultAddress != null) {
+                mappingLocation(defaultAddress);
+            }
+        });
         productList = new ArrayList<>();
-        productList.add(new OrderProduct("Pizza Margherita", "Large size, extra cheese", 2, 35.0));
-        productList.add(new OrderProduct("Pizza Pepperoni", "Medium size, extra sauce", 1, 30.0));
-        productList.add(new OrderProduct("Sprite", "Can", 3, 5.0));
-
-        productAdapter = new OrderProductAdapter(productList);
+        productAdapter = new OrderProductAdapter(productList); // KHỞI TẠO NGAY
         recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
-        recyclerOrderItems.setAdapter(productAdapter);
+        recyclerOrderItems.setAdapter(productAdapter); // GÁN NGAY
+        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+                .getReference("carts")
+                .child(authUser.getUid());
 
+        cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                productList.clear();
+                Cart cart = snapshot.getValue(Cart.class);
+                if (cart != null && cart.items != null) {
+                    for (CartItem item : cart.items) {
+                        ProductItem productItem = item.item_details;
+                        if (productItem != null) { // Thêm kiểm tra null để an toàn hơn
+                            int quantity = 0;
+                            try {
+                                quantity = Integer.parseInt(item.quantityToString());
+                            } catch (NumberFormatException e) {
+                                Log.e(TAG, "Lỗi chuyển đổi số lượng: " + item.quantityToString(), e);
+                            }
+                            productList.add(new ItemOrderProduct(
+                                    productItem.getName(),
+                                    productItem.getDescription(),
+                                    quantity,
+                                    productItem.getPrice(),
+                                    productItem.getImage()
+                            ));
+                        }
+                    }
+                }
+                productAdapter.notifyDataSetChanged();
+                updateSummary(productList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Lỗi đọc RTDB: " + error.getMessage(), error.toException());
+                productList.clear();
+                productAdapter.notifyDataSetChanged();
+                updateSummary(productList); // Cập nhật tổng tiền về 0
+            }
+        });
         etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
-
-        updateSummary(productList);
     }
 
-    private void updateSummary(List<OrderProduct> products) {
+
+    private void updateSummary(List<ItemOrderProduct> products) {
         double subTotal = 0;
-        for (OrderProduct p : products) {
+        for (ItemOrderProduct p : products) {
             subTotal += p.getTotalPrice();
         }
 
@@ -321,10 +384,13 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         double deliveryFee = 5.00;
         double finalTotal = subTotal - discount + deliveryFee;
 
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String priceText = formatter.format(finalTotal) + "đ";
+
         tvAllItems.setText("All items $" + String.format("%.2f", subTotal));
         tvDeliveryFee.setText("Delivery fee $" + String.format("%.2f", deliveryFee));
         tvDiscount.setText("Discount -$" + String.format("%.2f", discount));
-        tvTotal.setText("Total $" + String.format("%.2f", finalTotal));
+        tvTotal.setText("Total: " + priceText);
     }
 
     private void placeOrder() {

@@ -1,6 +1,7 @@
 package vn.haui.android_project.entity;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class UserLocationEntity implements Serializable {
     private String id;
@@ -90,6 +91,33 @@ public class UserLocationEntity implements Serializable {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+
+    public static UserLocationEntity fromMap(Map<String, Object> map) {
+        UserLocationEntity entity = new UserLocationEntity();
+        if (map == null) return entity;
+        entity.setId((String) map.get("id"));
+        entity.setAddress((String) map.get("address"));
+        entity.setPhoneNumber((String) map.get("phoneNumber"));
+        entity.setLocationType((String) map.get("locationType"));
+        entity.setRecipientName((String) map.get("recipientName"));
+        entity.setCountry((String) map.get("country"));
+        entity.setZipCode((String) map.get("zipCode"));
+        // Xử lý Boolean
+        Boolean defaultLoc = (Boolean) map.get("defaultLocation");
+        entity.setDefaultLocation(defaultLoc != null ? defaultLoc : false);
+        // Xử lý Double/Long (Latitude/Longitude)
+        Object latObj = map.get("latitude");
+        if (latObj instanceof Number) {
+            entity.setLatitude(((Number) latObj).doubleValue());
+        }
+        Object lonObj = map.get("longitude");
+        if (lonObj instanceof Number) {
+            entity.setLongitude(((Number) lonObj).doubleValue());
+        }
+
+        return entity;
     }
 }
 

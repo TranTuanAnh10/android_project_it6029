@@ -30,23 +30,31 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
+        <!-- Tên sản phẩm (chỉ còn tên, không có 'x' nữa) -->
         <TextView
-            android:id="@+id/tv_product_name_qty"
+            android:id="@+id/tv_product_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pizza Margherita x2"
             android:textColor="@android:color/black"
             android:textSize="15sp"
             android:textStyle="bold" />
-
         <TextView
             android:id="@+id/tv_product_details"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Large size, extra Grated Parmesan"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp" />
+        <TextView
+            android:id="@+id/tv_product_name_qty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số lượng: 2"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
+
+        <!-- Chi tiết sản phẩm -->
+
 
     </LinearLayout>
 
@@ -54,8 +62,7 @@
         android:id="@+id/tv_product_price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="$70.00"
-        android:textColor="@android:color/black"
+        android:textColor="@color/color_text_home_page_red"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

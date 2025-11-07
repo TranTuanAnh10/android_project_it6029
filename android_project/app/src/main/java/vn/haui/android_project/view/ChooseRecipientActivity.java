@@ -152,16 +152,9 @@ public class ChooseRecipientActivity extends AppCompatActivity
     }
     @Override
     public void onSelectLocation(UserLocationEntity location) {
-        // 1. Tạo Intent để chứa kết quả
         Intent resultIntent = new Intent();
-        // 2. Đóng gói dữ liệu mới vào Intent
-        resultIntent.putExtra("new_location_title", location.getLocationType());
-        resultIntent.putExtra("new_address_detail", location.getAddress());
-        resultIntent.putExtra("new_recipient_contact", location.getRecipientName());
-        resultIntent.putExtra("new_phone_number", location.getPhoneNumber());
-        // 3. Thiết lập kết quả trả về là OK và đính kèm Intent
+        resultIntent.putExtra("id_location", location.getId());
         setResult(Activity.RESULT_OK, resultIntent);
-        // 4. Đóng Activity hiện tại
         finish();
     }
 }

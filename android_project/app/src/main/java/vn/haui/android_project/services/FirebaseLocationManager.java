@@ -317,4 +317,94 @@ public class FirebaseLocationManager {
             onComplete.accept(false, "Lỗi xóa địa điểm: " + e.getMessage());
         });
     }
+
+
+    public void getDefaultLocation(String uid, BiConsumer<Boolean, UserLocationEntity> onComplete) {
+        if (uid == null || uid.isEmpty()) {
+            onComplete.accept(false, null);
+            return;
+        }
+
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+
+        userDocRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        onComplete.accept(true, null);
+                        return;
+                    }
+
+                    // Ép kiểu dữ liệu
+                    List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) documentSnapshot.get("locations");
+
+                    if (rawLocations == null || rawLocations.isEmpty()) {
+                        onComplete.accept(true, null);
+                        return;
+                    }
+
+                    // Duyệt qua danh sách để tìm trường defaultLocation = true
+                    for (Map<String, Object> locationMap : rawLocations) {
+                        Boolean isDefault = (Boolean) locationMap.get("defaultLocation");
+
+                        if (isDefault != null && isDefault) {
+                            // Map Map<String, Object> sang UserLocationEntity
+                            UserLocationEntity entity = UserLocationEntity.fromMap(locationMap);
+                            onComplete.accept(true, entity);
+                            return;
+                        }
+                    }
+
+                    // Nếu duyệt xong mà không tìm thấy
+                    onComplete.accept(true, null);
+                })
+                .addOnFailureListener(e -> {
+                    onComplete.accept(false, null);
+                    // Log.e("UserLocationService", "Lỗi lấy địa chỉ mặc định: " + e.getMessage());
+                });
+    }
+
+
+    public void getLocationById(String uid, String locationId, BiConsumer<Boolean, UserLocationEntity> onComplete) {
+        if (uid == null || uid.isEmpty() || locationId == null || locationId.isEmpty()) {
+            onComplete.accept(false, null);
+            return;
+        }
+
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_LOCATIONS.getValue()).document(uid);
+
+        userDocRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        onComplete.accept(true, null); // Thành công, nhưng không có tài liệu người dùng
+                        return;
+                    }
+
+                    // Ép kiểu dữ liệu
+                    List<Map<String, Object>> rawLocations = (List<Map<String, Object>>) documentSnapshot.get("locations");
+
+                    if (rawLocations == null || rawLocations.isEmpty()) {
+                        onComplete.accept(true, null); // Thành công, nhưng danh sách rỗng
+                        return;
+                    }
+
+                    // Duyệt qua danh sách để tìm địa chỉ khớp với locationId
+                    for (Map<String, Object> locationMap : rawLocations) {
+                        String currentId = (String) locationMap.get("id");
+
+                        if (currentId != null && currentId.equals(locationId)) {
+                            // Map Map<String, Object> sang UserLocationEntity
+                            UserLocationEntity entity = UserLocationEntity.fromMap(locationMap);
+                            onComplete.accept(true, entity); // Thành công và trả về đối tượng
+                            return;
+                        }
+                    }
+
+                    // Nếu duyệt xong mà không tìm thấy ID
+                    onComplete.accept(true, null);
+                })
+                .addOnFailureListener(e -> {
+                    onComplete.accept(false, null); // Thất bại khi truy cập Firestore
+                    // Log.e("UserLocationService", "Lỗi lấy địa chỉ theo ID: " + e.getMessage());
+                });
+    }
 }

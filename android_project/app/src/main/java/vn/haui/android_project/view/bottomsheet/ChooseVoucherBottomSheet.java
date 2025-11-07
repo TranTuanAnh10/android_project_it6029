@@ -163,7 +163,7 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
         if (item != null) {
             TextView tvTitle = item.findViewById(R.id.tv_voucher_title);
             TextView tvDesc = item.findViewById(R.id.tv_voucher_description);
-            ImageView ivIcon = item.findViewById(R.id.iv_voucher_icon);
+            ImageView ivIcon = item.findViewById(R.id.iv_payment_icon);
 
             if (tvTitle != null) tvTitle.setText(title);
             if (tvDesc != null) tvDesc.setText(description);

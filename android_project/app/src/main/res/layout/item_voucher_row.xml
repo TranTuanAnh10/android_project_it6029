@@ -12,7 +12,7 @@
     android:focusable="true">
 
     <ImageView
-        android:id="@+id/iv_voucher_icon"
+        android:id="@+id/iv_payment_icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:src="@drawable/ic_delivering_order"
@@ -30,8 +30,8 @@
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/iv_voucher_icon"
-        app:layout_constraintTop_toTopOf="@+id/iv_voucher_icon"
+        app:layout_constraintStart_toEndOf="@+id/iv_payment_icon"
+        app:layout_constraintTop_toTopOf="@+id/iv_payment_icon"
         tools:text="First Bite Free" />
 
     <TextView
@@ -45,7 +45,7 @@
         android:maxLines="2"
         android:ellipsize="end"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/iv_voucher_icon"
+        app:layout_constraintStart_toEndOf="@+id/iv_payment_icon"
         app:layout_constraintTop_toBottomOf="@+id/tv_voucher_title"
         tools:text="Enjoy your first meal on us! Use code FIRSTBITE to get a delicious dish delivered to you..." />
 

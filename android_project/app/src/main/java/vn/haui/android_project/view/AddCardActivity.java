@@ -28,7 +28,7 @@ public class AddCardActivity extends AppCompatActivity {
     // Mock Card Preview Views (Từ layout item_card_preview_mock.xml)
     private TextView tvMockCardNumber, tvMockCardHolder, tvMockExpiryDate;
     private ImageView ivCardTypeLogo;
-
+    private View cardBackgroundView;
     private FirebasePaymentManager paymentManager;
 
     @Override
@@ -57,12 +57,11 @@ public class AddCardActivity extends AppCompatActivity {
         tvMockCardHolder = findViewById(R.id.tv_mock_card_holder);
         tvMockExpiryDate = findViewById(R.id.tv_mock_expiry_date);
         ivCardTypeLogo = findViewById(R.id.iv_card_type_logo);
+        cardBackgroundView = findViewById(R.id.bg_card_mock);
     }
 
     private void setupListener() {
-        btnBack.setOnClickListener(v -> {
-            finish();
-        });
+        btnBack.setOnClickListener(v -> finish());
         btnAddCard.setOnClickListener(v -> saveCardToFirebase());
     }
 
@@ -132,10 +131,16 @@ public class AddCardActivity extends AppCompatActivity {
         // Cần đảm bảo các drawable ic_visa_logo và ic_mastercard_logo tồn tại
         if (number.startsWith("4")) {
             ivCardTypeLogo.setImageResource(R.drawable.ic_visa_logo);
+            cardBackgroundView.setBackgroundResource(R.drawable.bg_visa_gradient);
         } else if (number.startsWith("5")) {
             ivCardTypeLogo.setImageResource(R.drawable.ic_mastercard_logo);
+            cardBackgroundView.setBackgroundResource(R.drawable.bg_mastercard_gradient);
         }  else if (number.startsWith("3")) {
             ivCardTypeLogo.setImageResource(R.drawable.ic_jbc_logo);
+            cardBackgroundView.setBackgroundResource(R.drawable.bg_jcb_gradient);
+        }else {
+            ivCardTypeLogo.setImageResource(R.drawable.logo);
+            cardBackgroundView.setBackgroundColor(getResources().getColor(R.color.md_theme_scrim_highContrast));
         }
     }
 

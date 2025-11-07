@@ -1,16 +1,25 @@
 package vn.haui.android_project.entity;
 
-public class OrderProduct {
+public class ItemOrderProduct {
     private String name;
     private String details;
     private int quantity;
     private double unitPrice; // Giá cho 1 đơn vị
-
-    public OrderProduct(String name, String details, int quantity, double unitPrice) {
+    private String image;
+    public ItemOrderProduct(String name, String details, int quantity, double unitPrice, String image) {
         this.name = name;
         this.details = details;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.image = image;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     // Getters
