@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -54,6 +55,8 @@ public class OrdersBasketFragment extends Fragment {
     private String mParam2;
 
     private FirebaseAuth mAuth;
+
+    private Button btnOrder;
 
     public OrdersBasketFragment() {
         // Required empty public constructor
@@ -101,7 +104,14 @@ public class OrdersBasketFragment extends Fragment {
         this.view = view;
 
         rvBasketStores = view.findViewById(R.id.rvBasketOrders);
-
+        btnOrder = view.findViewById(R.id.btn_order_cart);
+        btnOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), "Order", Toast.LENGTH_SHORT).show();
+                // VIẾT CODE CỦA BẠN VÀO ĐÂY
+            }
+        });
         loadCart();
 
         return view;

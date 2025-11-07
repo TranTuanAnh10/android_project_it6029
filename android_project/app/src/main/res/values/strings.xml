@@ -47,4 +47,8 @@
     <string name="top_rate">Đánh giá cao</string>
     <string name="best_selling">Bán chạy</string>
 
+    <string name="greeting_message">Chào  </string>
+    <string name="order_prompt">Bạn đã sẵn sàng đặt hàng chưa?</string>
+    <string name="order_btn">Đặt hàng</string>
+
 </resources>

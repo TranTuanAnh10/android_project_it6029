@@ -8,6 +8,7 @@
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/greeting_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -17,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Are you ready to place your order?"
+        android:text="@string/order_prompt"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:textStyle="bold" />

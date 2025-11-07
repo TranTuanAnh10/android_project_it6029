@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,6 +47,7 @@ import vn.haui.android_project.entity.Cart;
 import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.CategoryItem;
 import vn.haui.android_project.entity.ProductItem;
+import vn.haui.android_project.services.FirebaseUserManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +59,7 @@ import java.util.stream.Collectors;
 public class HomeFragment extends Fragment {
     // Khai báo biến ở đây để có thể truy cập trong onResume
     private TextInputEditText edtSearch;
+    TextView tv_hello;
     LinearLayout topPickLayout, bestSellerLayout;
     FrameLayout loadingPanel;
 
@@ -68,6 +72,7 @@ public class HomeFragment extends Fragment {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+    FirebaseUser authUser;
 
     @Nullable
     @Override
@@ -77,6 +82,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         this.view = view;
         mapping();
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
         db = FirebaseFirestore.getInstance();
         loadAllHomeData();
         mAuth = FirebaseAuth.getInstance();
@@ -86,9 +92,18 @@ public class HomeFragment extends Fragment {
         topPickLayout = view.findViewById(R.id.layoutTopPicks);
         bestSellerLayout = view.findViewById(R.id.layoutBestSelling);
         loadingPanel = view.findViewById(R.id.loadingOverlay);
+        tv_hello = view.findViewById(R.id.greeting_message);
     }
 
     private void loadAllHomeData() {
+        if (authUser == null) return;
+        FirebaseUserManager userManager = new FirebaseUserManager();
+        userManager.getUserByUid(authUser.getUid(), userData -> {
+            String name = (String) userData.getOrDefault("name", authUser.getDisplayName());
+            tv_hello.setText("Xin chào " + (name != null ? name : "bạn") + " \uD83D\uDC4B");
+        }, error -> {
+            tv_hello.setText("Xin chào bạn \uD83D\uDC4B");
+        });
         showLoading(true);
         db.collection(COLLECTION_CATEGORYS)
                 .get()
