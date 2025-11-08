@@ -6,7 +6,9 @@ public class ItemOrderProduct {
     private int quantity;
     private double unitPrice; // Giá cho 1 đơn vị
     private String image;
-    public ItemOrderProduct(String name, String details, int quantity, double unitPrice, String image) {
+    private String idItem;
+    public ItemOrderProduct( String idItem,String name, String details, int quantity, double unitPrice, String image) {
+        this.idItem=idItem;
         this.name = name;
         this.details = details;
         this.quantity = quantity;

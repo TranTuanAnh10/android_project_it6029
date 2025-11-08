@@ -8,11 +8,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -82,10 +82,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private ImageView ivPaymentIcon, imgLocationIcon;
 
     // --- Summary Views ---
-    private TextView tvAllItems;
-    private TextView tvDeliveryFee;
-    private TextView tvDiscount;
-    private TextView tvTotal;
+    private TextView tvAllItemsValue;
+    private TextView tvDeliveryFeeValue;
+    private TextView tvDiscountValue;
+    private TextView tvTotalValue;
     private Button btnPlaceOrder;
 
     private List<ItemOrderProduct> productList;
@@ -94,7 +94,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private ConstraintLayout containerStandardDelivery, containerScheduleOrder, containerPickUpOrder;
     private LinearLayout scheduleTimeSelectionContainer, pickupTimeSelectionContainer;
     private ImageView ivScheduleDropdown, ivPickupDropdown;
-    private RadioButton rbStandardDelivery, rbScheduleOrder, rbPickUpOrder;
+    private CheckBox rbStandardDelivery, rbScheduleOrder, rbPickUpOrder;
     private TextView tvSchedule15min, tvSchedule30min, tvSchedule45min, tvSchedule1hour;
     private TextView tvPickup1000, tvPickup1030, tvPickup1100, tvPickup1130;
 
@@ -108,6 +108,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     double pickupLat = 21.0285;
     double pickupLon = 105.8542;
+    private String codeVoucher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,10 +158,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         ivPaymentIcon = findViewById(R.id.iv_payment_icon);
 
         // Summary
-        tvAllItems = findViewById(R.id.tv_all_items);
-        tvDeliveryFee = findViewById(R.id.tv_delivery_fee);
-        tvDiscount = findViewById(R.id.tv_discount);
-        tvTotal = findViewById(R.id.tv_total);
+        tvAllItemsValue = findViewById(R.id.tv_all_items_value);
+        tvDeliveryFeeValue = findViewById(R.id.tv_delivery_fee_value);
+        tvDiscountValue = findViewById(R.id.tv_discount_value);
+        tvTotalValue = findViewById(R.id.tv_total_value);
         btnPlaceOrder = findViewById(R.id.btn_place_order);
         tvStandardTime = findViewById(R.id.tv_standard_time);
     }
@@ -254,16 +255,16 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     @Override
     public void onVoucherSelected(String voucherCode, String discountAmount) {
         if (tvVoucherCode != null) {
-            tvVoucherCode.setText("Code " + voucherCode);
+            tvVoucherCode.setText(voucherCode);
         }
         if (tvVoucherDiscount != null) {
             tvVoucherDiscount.setText(discountAmount);
         }
 
         Toast.makeText(this, "Voucher " + voucherCode + " applied! (" + discountAmount + ")", Toast.LENGTH_SHORT).show();
-
+        codeVoucher = voucherCode;
         // Cần gọi hàm tính toán lại tổng tiền thực tế
-        // updateSummary(productList);
+        updateSummary(productList);
     }
 
     @Override
@@ -288,10 +289,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     @Override
     public void onCashSelected() {
         if (tvPaymentType != null) {
-            tvPaymentType.setText("Cash");
+            tvPaymentType.setText(R.string.cash);
         }
         if (tvPaymentDetails != null) {
-            tvPaymentDetails.setText("Cash on delivery");
+            tvPaymentDetails.setText(R.string.cash_on_delivery);
         }
         if (ivPaymentIcon != null) {
             ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
@@ -349,6 +350,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                                 Log.e(TAG, "Lỗi chuyển đổi số lượng: " + item.quantityToString(), e);
                             }
                             productList.add(new ItemOrderProduct(
+                                    productItem.getId(),
                                     productItem.getName(),
                                     productItem.getDescription(),
                                     quantity,
@@ -370,32 +372,46 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 updateSummary(productList); // Cập nhật tổng tiền về 0
             }
         });
-        etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
+//        etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
     }
 
 
     private void updateSummary(List<ItemOrderProduct> products) {
         double subTotal = 0;
+        double discount = 0;
         for (ItemOrderProduct p : products) {
             subTotal += p.getTotalPrice();
         }
-
-        double discount = 15.00;
+        //tinh ma giam gia
+        if ("FIRSTBITE".equals(codeVoucher)) {
+            discount = 10000;
+        } else if ("WEEKEND20".equals(codeVoucher)) {
+            discount = 20000;
+        } else if ("LOYALTYL".equals(codeVoucher)) {
+            discount = subTotal * 0.15;
+        } else if ("FAMILYBON".equals(codeVoucher)) {
+            discount = 5000;
+        } else if ("NEWMEMBER".equals(codeVoucher)) {
+            discount = 50000;
+        }
         double deliveryFee = 5.00;
         double finalTotal = subTotal - discount + deliveryFee;
 
         DecimalFormat formatter = new DecimalFormat("#,###");
         String priceText = formatter.format(finalTotal) + "đ";
+        String allItemsText = formatter.format(subTotal) + "đ";
+        String deliveryFeeText = formatter.format(deliveryFee) + "đ";
+        String discountText = "-" + formatter.format(discount) + "đ";
 
-        tvAllItems.setText("All items $" + String.format("%.2f", subTotal));
-        tvDeliveryFee.setText("Delivery fee $" + String.format("%.2f", deliveryFee));
-        tvDiscount.setText("Discount -$" + String.format("%.2f", discount));
-        tvTotal.setText("Total: " + priceText);
+        tvAllItemsValue.setText(allItemsText);
+        tvDeliveryFeeValue.setText(deliveryFeeText);
+        tvDiscountValue.setText(discountText);
+        tvTotalValue.setText(priceText);
     }
 
     private void placeOrder() {
         String note = etNoteToRestaurant.getText().toString();
-        Toast.makeText(this, "Đã đặt hàng thành công! Ghi chú: " + note, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Đã đặt hàng thành công!", Toast.LENGTH_LONG).show();
     }
 
 

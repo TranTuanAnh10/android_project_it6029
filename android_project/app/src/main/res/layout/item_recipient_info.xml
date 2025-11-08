@@ -10,7 +10,7 @@
         android:id="@+id/tv_recipient_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Recipient info"
+        android:text="@string/recipient_info"
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@+id/tv_tap_to_change"
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="4dp"
-        android:text="Tap to change"
+        android:text="@string/tap_to_change"
         android:textColor="@android:color/holo_red_light"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,7 +64,6 @@
                 android:id="@+id/tv_location_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your location"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -75,7 +74,6 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:text="3891 Ranchview Dr. Richardson, California..."
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp" />
 
@@ -90,7 +88,6 @@
                     android:id="@+id/tv_recipient_contact"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bruno Andersons"
                     android:textColor="@android:color/black"
                     android:textSize="14sp" />
 
@@ -105,7 +102,6 @@
                     android:id="@+id/tv_recipient_phone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0123456789"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="14sp" />
 

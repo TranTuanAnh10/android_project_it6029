@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Choose Payment method"
+            android:text="@string/choose_payment_method"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -38,7 +38,6 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_close"
-            android:contentDescription="Close"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tv_title"
             app:layout_constraintBottom_toBottomOf="@id/tv_title" />
@@ -68,7 +67,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Debit/Credit Card"
+                android:text="@string/debit_credit_card"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -103,7 +102,7 @@
             android:layout_marginTop="16dp"
             android:drawableStart="@drawable/ic_add_circle"
             android:drawablePadding="8dp"
-            android:text="Add new card"
+            android:text="@string/add_new_card"
             android:textColor="#EB4D57"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -129,7 +128,7 @@
         <TextView
             android:id="@+id/tv_cash_details_title"  android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Cash on delivery"
+            android:text="@string/cash_on_delivery"
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -140,7 +139,7 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Paying with cash when your orders arrive at your doorstep."
+            android:text="@string/cash_when_your_orders"
             android:textColor="#757575"
             android:textSize="12sp"
             android:layout_marginTop="4dp"

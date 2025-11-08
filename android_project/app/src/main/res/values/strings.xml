@@ -26,7 +26,7 @@
     <string name="deliveringDesc">Đang giao hàng</string>
     <string name="finishDesc">Đã giao hàng thành công</string>
     <string name="cancelOrder">Cancel Order</string>
-    <string name="confirmOrder">Confirm Order</string>
+    <string name="confirmOrder">Xác nhận đơn hàng</string>
     <string name="home">Home</string>
     <string name="work">Work</string>
     <string name="other">Other</string>
@@ -50,5 +50,30 @@
     <string name="greeting_message">Chào  </string>
     <string name="order_prompt">Bạn đã sẵn sàng đặt hàng chưa?</string>
     <string name="order_btn">Đặt hàng</string>
-
+    <string name="total">Tổng</string>
+    <string name="all_items">Tổng tiền món</string>
+    <string name="delivery_fee">Phí giao hàng</string>
+    <string name="discount">Giảm giá</string>
+    <string name="note">Ghi chú</string>
+    <string name="use_code">Nhập mã</string>
+    <string name="enter_your_code">Nhập mã khuyến mãi</string>
+    <string name="use_voucher">Sử dụng mã</string>
+    <string name="tap_to_add">Thêm mã</string>
+    <string name="tap_to_change">Thay đổi</string>
+    <string name="choose_your_code">Thêm mã</string>
+    <string name="payment_method">Phương thức thanh toán</string>
+    <string name="choose_payment_method">Chọn phương thức thanh toán</string>
+    <string name="standard_delivery">Giao hàng tiêu chuẩn</string>
+    <string name="schedule_order">Đặt lịch giao hàng</string>
+    <string name="pick_up_order">Thời gian nhận hàng</string>
+    <string name="select_your_pick_up_time">Chọn thời gian nhận của bạn</string>
+    <string name="cash_when_your_orders">Thanh toán bằng tiền mặt khi đơn hàng của bạn được giao đến tận nhà.</string>
+    <string name="cash_on_delivery">Thanh toán khi nhận hàng</string>
+    <string name="debit_credit_card">Thẻ ghi nợ/thẻ tín dụng</string>
+    <string name="add_new_card">Thêm thẻ mới</string>
+    <string name="choose_voucher">Chọn mã khuyến mãi</string>
+    <string name="cash">Tiền mặt</string>
+    <string name="confirm_payment">Xác nhận thanh toán</string>
+    <string name="recipient_info">Thông tin người nhận</string>
+    <string name="order_info">Thông tin đặt hàng</string>
 </resources>

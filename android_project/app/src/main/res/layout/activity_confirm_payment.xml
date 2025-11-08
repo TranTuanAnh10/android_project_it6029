@@ -33,7 +33,7 @@
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Confirm Payment"
+            android:text="@string/confirm_payment"
             android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -61,31 +61,92 @@
 
         <!-- PHẦN TÓM TẮT TIỀN TỆ (ĐÃ CHỈNH SỬA) -->
         <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_all_items"
+            <!-- Dòng 1: All items -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="All items $130"
-                android:textSize="16sp" />
+                android:layout_marginBottom="4dp">
 
-            <TextView
-                android:id="@+id/tv_delivery_fee"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Delivery fee $0"
-                android:textSize="16sp" />
+                <TextView
+                    android:id="@+id/tv_all_items"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/all_items"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
-            <TextView
-                android:id="@+id/tv_discount"
+                <TextView
+                    android:id="@+id/tv_all_items_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Dòng 2: Delivery fee -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Discount -$15"
-                android:textColor="#FF0000"
-                android:textSize="16sp" />
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_delivery_fee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/delivery_fee"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_delivery_fee_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Dòng 3: Discount -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_discount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/discount"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_discount_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF0000"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -94,17 +155,35 @@
                 android:layout_marginBottom="8dp"
                 android:background="#E0E0E0" />
 
-            <!-- TỔNG TIỀN -->
-            <TextView
-                android:id="@+id/tv_total"
+            <!-- Dòng 4: Total -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Total $115"
-                android:textColor="@android:color/black"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
-            <!-- Đã thêm margin bottom để tạo khoảng cách với nút -->
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tv_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <TextView
+                    android:id="@+id/tv_total_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 
@@ -113,9 +192,11 @@
             android:id="@+id/btn_place_order"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="Place your Order"
+            android:text="@string/confirmOrder"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:backgroundTint="@color/md_theme_onPrimary"
+            android:textColor="@color/md_theme_onSecondary"
             app:cornerRadius="8dp" />
 
     </LinearLayout>
@@ -149,7 +230,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Order Info"
+                android:text="@string/order_info"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp" />
 
@@ -164,7 +245,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Note to restaurant"
+                android:text="@string/note"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp" />
 
@@ -173,7 +254,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="No black pepper, please"
                 android:maxLines="3"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"

@@ -79,25 +79,25 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
         // Voucher 1: First Bite Free
         View voucherItem1 = view.findViewById(R.id.item_voucher_1);
         if (voucherItem1 != null) {
-            voucherItem1.setOnClickListener(v -> handleVoucherSelection("FIRSTBITE", "$10 Off"));
+            voucherItem1.setOnClickListener(v -> handleVoucherSelection("FIRSTBITE", "10,000đ"));
         }
 
         // Voucher 2: Weekend Feast Discount
         View voucherItem2 = view.findViewById(R.id.item_voucher_2);
         if (voucherItem2 != null) {
-            voucherItem2.setOnClickListener(v -> handleVoucherSelection("WEEKEND20", "$20 Off"));
+            voucherItem2.setOnClickListener(v -> handleVoucherSelection("WEEKEND20", "20,000đ"));
         }
 
         // Voucher 3: Loyalty Lunch Rewards
         View voucherItem3 = view.findViewById(R.id.item_voucher_3);
         if (voucherItem3 != null) {
-            voucherItem3.setOnClickListener(v -> handleVoucherSelection("LOYALTYL", "15% Off"));
+            voucherItem3.setOnClickListener(v -> handleVoucherSelection("LOYALTYL", "15%"));
         }
 
         // Voucher 4: Family Meal Bonanza
         View voucherItem4 = view.findViewById(R.id.item_voucher_4);
         if (voucherItem4 != null) {
-            voucherItem4.setOnClickListener(v -> handleVoucherSelection("FAMILYBON", "$5 Off"));
+            voucherItem4.setOnClickListener(v -> handleVoucherSelection("FAMILYBON", "5,000đ"));
         }
 
         // Xử lý nút Apply (Áp dụng Code thủ công)
@@ -140,20 +140,20 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
 
         // Cấu trúc dữ liệu mẫu cho 4 voucher
         updateVoucherItem(item1, "First Bite Free (FIRSTBITE)",
-                "Giảm $10 cho đơn hàng đầu tiên của bạn. Áp dụng cho đơn tối thiểu $50.",
-                R.drawable.ic_abount_yumyard);
+                "Giảm 10,000đ cho đơn hàng đầu tiên của bạn. Áp dụng cho đơn tối thiểu 50,000đ.",
+                R.drawable.img_firstbite);
 
         updateVoucherItem(item2, "Weekend Feast (WEEKEND20)",
-                "Giảm 20% tối đa $20 vào các ngày cuối tuần (Thứ 7, CN).",
-                R.drawable.ic_abount_yumyard);
+                "Giảm 20% tối đa 20,000đ vào các ngày cuối tuần (Thứ 7, CN).",
+                R.drawable.img_weekend20);
 
         updateVoucherItem(item3, "Loyalty Lunch (LOYALTYL)",
                 "Giảm 15% cho đơn hàng ăn trưa. Chỉ áp dụng 11h-14h hàng ngày.",
-                R.drawable.ic_abount_yumyard);
+                R.drawable.img_loyaltyl);
 
         updateVoucherItem(item4, "Family Meal (FAMILYBON)",
-                "Giảm $5 cho mọi đơn hàng có combo Family Meal.",
-                R.drawable.ic_abount_yumyard);
+                "Giảm 5,000đ cho mọi đơn hàng có combo Family Meal.",
+                R.drawable.img_familybon);
     }
 
     /**
