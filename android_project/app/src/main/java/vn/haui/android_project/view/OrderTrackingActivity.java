@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 
 public class OrderTrackingActivity extends AppCompatActivity {
@@ -97,10 +98,10 @@ public class OrderTrackingActivity extends AppCompatActivity {
         // 3️⃣ Khởi tạo Firebase
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
-        orderRef = firebaseDatabase.getReference("orders").child("CA321457");
+        orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child("20251109214153-269");
 
         // 4️⃣ Ghi dữ liệu mẫu
-        writeSampleOrder();
+//        writeSampleOrder();
 
         // 5️⃣ Đọc realtime dữ liệu
         listenOrderRealtime();
@@ -288,9 +289,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String status = snapshot.child("status").getValue(String.class);
                 String driver = snapshot.child("driver").getValue(String.class);
                 String license = snapshot.child("licensePlate").getValue(String.class);
-                String fee = snapshot.child("deliveryFee").getValue(String.class);
-                String discount = snapshot.child("discount").getValue(String.class);
-                String total = snapshot.child("total").getValue(String.class);
+                String fee = String.valueOf(snapshot.child("deliveryFee").getValue(Double.class));
+                String discount = String.valueOf(snapshot.child("discount").getValue(Double.class));
+                String total = String.valueOf(snapshot.child("total").getValue(Double.class));
 
                 // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total);

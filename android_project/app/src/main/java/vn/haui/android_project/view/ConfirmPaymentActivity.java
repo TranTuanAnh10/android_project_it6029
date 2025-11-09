@@ -29,6 +29,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,23 +39,30 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderProductAdapter;
 import vn.haui.android_project.entity.Cart;
 import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.ItemOrderProduct;
-import vn.haui.android_project.entity.PaymentCard; // Cần import PaymentCard
+import vn.haui.android_project.entity.PaymentCard;
 import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.UserLocationEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
+import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet.VoucherSelectionListener;
-import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
-import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener; // Dùng interface mới
 
 public class ConfirmPaymentActivity extends AppCompatActivity
         implements VoucherSelectionListener, PaymentSelectionListener { // Implement cả hai interface
@@ -109,6 +117,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     double pickupLat = 21.0285;
     double pickupLon = 105.8542;
     private String codeVoucher;
+    private DatabaseReference orderRef;
+    private FirebaseDatabase firebaseDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,8 +130,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
         mapViews();
+        // 3️⃣ Khởi tạo Firebase
+        FirebaseApp.initializeApp(this);
+        firebaseDatabase = FirebaseDatabase.getInstance();
         loadData();
         setupListeners();
         registerLocationSelectionLauncher();
@@ -166,6 +178,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvStandardTime = findViewById(R.id.tv_standard_time);
     }
 
+    UserLocationEntity addressUser = new UserLocationEntity();
+
     private void registerLocationSelectionLauncher() {
         locationSelectionLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -177,6 +191,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                             firebaseLocationManager.getLocationById(authUser.getUid(), idLocation, (isSuccess, defaultAddress) -> {
                                 if (isSuccess) {
                                     if (defaultAddress != null) {
+                                        addressUser = defaultAddress;
                                         mappingLocation(defaultAddress);
                                     }
                                 }
@@ -186,7 +201,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 }
         );
     }
-
+    String timeDisplay;
     private void mappingLocation(UserLocationEntity defaultAddress) {
         newAddressDetail = defaultAddress.getAddress();
         newContact = defaultAddress.getPhoneNumber();
@@ -213,7 +228,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 latitude,
                 longitude
         );
-        String timeDisplay = DeliveryCalculator.formatTime(estimatedTimeMinutes);
+        timeDisplay = DeliveryCalculator.formatTime(estimatedTimeMinutes);
         tvStandardTime.setText(timeDisplay);
     }
 
@@ -266,7 +281,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         // Cần gọi hàm tính toán lại tổng tiền thực tế
         updateSummary(productList);
     }
-
+    PaymentCard paymentCard;
     @Override
     public void onCardSelected(PaymentCard selectedCard) {
         if (selectedCard == null) return;
@@ -274,6 +289,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             tvPaymentType.setText(selectedCard.getCardType());
         }
         if (tvPaymentDetails != null) {
+            paymentCard=selectedCard;
             String fullNumber = selectedCard.getCardNumber();
             String last4Digits = fullNumber != null && fullNumber.length() >= 4
                     ? fullNumber.substring(fullNumber.length() - 4)
@@ -283,6 +299,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         if (ivPaymentIcon != null) {
             int iconResId = getCardIconResId(selectedCard.getCardType());
             ivPaymentIcon.setImageResource(iconResId);
+
         }
     }
 
@@ -297,6 +314,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         if (ivPaymentIcon != null) {
             ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
         }
+        paymentCard= new PaymentCard();
+        paymentCard.setCardType("cash");
     }
 
 
@@ -323,6 +342,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         firebaseLocationManager = new FirebaseLocationManager();
         firebaseLocationManager.getDefaultLocation(authUser.getUid(), (isSuccess, defaultAddress) -> {
             if (isSuccess && defaultAddress != null) {
+                addressUser = defaultAddress;
                 mappingLocation(defaultAddress);
             }
         });
@@ -375,10 +395,12 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 //        etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
     }
 
+    double subTotal = 0;
+    double discount = 0;
+    double deliveryFee = 5.00;
+    double finalTotal = 0;
 
     private void updateSummary(List<ItemOrderProduct> products) {
-        double subTotal = 0;
-        double discount = 0;
         for (ItemOrderProduct p : products) {
             subTotal += p.getTotalPrice();
         }
@@ -394,8 +416,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         } else if ("NEWMEMBER".equals(codeVoucher)) {
             discount = 50000;
         }
-        double deliveryFee = 5.00;
-        double finalTotal = subTotal - discount + deliveryFee;
+        finalTotal = subTotal - discount + deliveryFee;
 
         DecimalFormat formatter = new DecimalFormat("#,###");
         String priceText = formatter.format(finalTotal) + "đ";
@@ -410,7 +431,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     }
 
     private void placeOrder() {
-        String note = etNoteToRestaurant.getText().toString();
+        writeSampleOrder();
         Toast.makeText(this, "Đã đặt hàng thành công!", Toast.LENGTH_LONG).show();
     }
 
@@ -440,7 +461,12 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvPickup1100 = findViewById(R.id.tv_pickup_1100);
         tvPickup1130 = findViewById(R.id.tv_pickup_1130);
     }
-
+    public static final String DELIVERY_TYPE_STANDARD = "StandardDelivery";
+    public static final String DELIVERY_TYPE_SCHEDULE = "ScheduleOrder";
+    public static final String DELIVERY_TYPE_PICKUP = "PickUpOrder";
+    private String currentDeliveryType = DELIVERY_TYPE_STANDARD;
+    private TextView[] scheduleChips;
+    private TextView[] pickupChips;
     private void setupDeliveryListeners() {
         View.OnClickListener deliveryOptionClickListener = v -> {
             containerStandardDelivery.setActivated(false);
@@ -461,16 +487,19 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             if (v.getId() == R.id.container_standard_delivery) {
                 containerStandardDelivery.setActivated(true);
                 rbStandardDelivery.setChecked(true);
+                currentDeliveryType = DELIVERY_TYPE_STANDARD;
             } else if (v.getId() == R.id.container_schedule_order) {
                 containerScheduleOrder.setActivated(true);
                 rbScheduleOrder.setChecked(true);
                 scheduleTimeSelectionContainer.setVisibility(View.VISIBLE);
+                currentDeliveryType = DELIVERY_TYPE_SCHEDULE;
                 if (ivScheduleDropdown != null)
                     ivScheduleDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
             } else if (v.getId() == R.id.container_pick_up_order) {
                 containerPickUpOrder.setActivated(true);
                 rbPickUpOrder.setChecked(true);
                 pickupTimeSelectionContainer.setVisibility(View.VISIBLE);
+                currentDeliveryType = DELIVERY_TYPE_PICKUP;
                 if (ivPickupDropdown != null)
                     ivPickupDropdown.setImageResource(R.drawable.ic_arrow_drop_up);
             }
@@ -492,14 +521,14 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         if (tvSchedule30min != null) scheduleChipList.add(tvSchedule30min);
         if (tvSchedule45min != null) scheduleChipList.add(tvSchedule45min);
         if (tvSchedule1hour != null) scheduleChipList.add(tvSchedule1hour);
-        TextView[] scheduleChips = scheduleChipList.toArray(new TextView[0]);
+        scheduleChips = scheduleChipList.toArray(new TextView[0]);
 
         List<TextView> pickupChipList = new ArrayList<>();
         if (tvPickup1000 != null) pickupChipList.add(tvPickup1000);
         if (tvPickup1030 != null) pickupChipList.add(tvPickup1030);
         if (tvPickup1100 != null) pickupChipList.add(tvPickup1100);
         if (tvPickup1130 != null) pickupChipList.add(tvPickup1130);
-        TextView[] pickupChips = pickupChipList.toArray(new TextView[0]);
+        pickupChips = pickupChipList.toArray(new TextView[0]);
 
         if (scheduleChips.length > 0) {
             for (TextView chip : scheduleChips) {
@@ -523,10 +552,83 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         }
     }
 
+    private String currentScheduleTime = null;
+    private String currentPickupTime = null;
     private void handleTimeChipSelection(TextView selectedChip, TextView... chipGroup) {
         resetTimeChips(chipGroup);
         selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected); // Giả định drawable này tồn tại
         selectedChip.setTextColor(ContextCompat.getColor(this, android.R.color.white));
-        Toast.makeText(this, "Selected time: " + selectedChip.getText(), Toast.LENGTH_SHORT).show();
+        String selectedTime = selectedChip.getText().toString();
+
+        // 3. Phân biệt nhóm chip và cập nhật biến trạng thái chính xác
+        if (chipGroup == scheduleChips) {
+            currentScheduleTime = selectedTime;
+        } else if (chipGroup == pickupChips) {
+            currentPickupTime = selectedTime;
+        }
+    }
+    public Map<String, String> getDeliveryDataForDatabase() {
+        Map<String, String> deliveryData = new HashMap<>();
+
+        deliveryData.put("deliveryType", currentDeliveryType);
+
+        if (DELIVERY_TYPE_SCHEDULE.equals(currentDeliveryType)) {
+            deliveryData.put("scheduledTime", currentScheduleTime != null ? currentScheduleTime : "");
+        } else if (DELIVERY_TYPE_PICKUP.equals(currentDeliveryType)) {
+            deliveryData.put("pickupTime", currentPickupTime != null ? currentPickupTime : "");
+        }
+
+        return deliveryData;
+    }
+
+    private static final String DATE_FORMAT = "yyyyMMddHHmmss"; // Định dạng ngày tháng năm giờ phút giây
+    private static final Random RANDOM = new Random();
+
+    /// save du lieu order
+    private void writeSampleOrder() {
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        String timestamp = sdf.format(new Date());
+        int randomNumber = RANDOM.nextInt(1000); // 0 to 999
+        String randomSuffix = String.format("%03d", randomNumber); // Đảm bảo luôn có 3 chữ số (vd: 5 -> 005)
+        String orderId = timestamp + "-" + randomSuffix;
+
+        //sinh ma order
+        orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
+        Map<String, Object> orderData = new HashMap<>();
+        orderData.put("orderId", orderId);
+        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
+        orderData.put("subTotal", subTotal);
+        orderData.put("deliveryFee", deliveryFee);
+        orderData.put("discount", discount);
+        orderData.put("total", finalTotal);
+        orderData.put("note", etNoteToRestaurant.getText().toString());
+        orderData.put("productList", productList);
+        orderData.put("addressUser", addressUser);
+        orderData.put("codeVoucher", codeVoucher);
+        orderData.put("paymentCard", paymentCard);
+        orderData.put("timeDisplay", timeDisplay);
+        orderData.put("delivery", getDeliveryDataForDatabase());
+        // --- Vị trí shipper ---
+        Map<String, Object> shipperLocation = new HashMap<>();
+        shipperLocation.put("lat", pickupLat);
+        shipperLocation.put("lng", pickupLon);
+
+        // --- Vị trí cửa hàng ---
+        Map<String, Object> storeLocation = new HashMap<>();
+        storeLocation.put("lat", pickupLat);
+        storeLocation.put("lng", pickupLon);
+
+        // --- Vị trí người nhận ---
+        Map<String, Object> receiverLocation = new HashMap<>();
+        receiverLocation.put("lat", addressUser.getLatitude());
+        receiverLocation.put("lng", addressUser.getLongitude());
+
+        orderData.put("shipper", shipperLocation);
+        orderData.put("store", storeLocation);
+        orderData.put("receiver", receiverLocation);
+
+        orderRef.setValue(orderData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
     }
 }

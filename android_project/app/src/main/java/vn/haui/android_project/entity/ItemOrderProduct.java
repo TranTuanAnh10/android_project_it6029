@@ -16,6 +16,14 @@ public class ItemOrderProduct {
         this.image = image;
     }
 
+    public String getIdItem() {
+        return idItem;
+    }
+
+    public void setIdItem(String idItem) {
+        this.idItem = idItem;
+    }
+
     public String getImage() {
         return image;
     }
