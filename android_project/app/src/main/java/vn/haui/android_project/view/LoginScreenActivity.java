@@ -1,8 +1,10 @@
 package vn.haui.android_project.view;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -14,13 +16,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.DeviceToken;
+import vn.haui.android_project.entity.UserEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.enums.UserRole;
 import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.services.FirebaseUserManager;
 
@@ -100,7 +113,6 @@ public class LoginScreenActivity extends AppCompatActivity {
                 });
     }
 
-    // ✅ Hàm đăng nhập Google
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -140,33 +152,66 @@ public class LoginScreenActivity extends AppCompatActivity {
     private void gotoMain(@NonNull FirebaseUser user) {
         FirebaseUserManager userManager = new FirebaseUserManager();
         userManager.getUserByUid(user.getUid(), userData -> {
-            // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
             String phone = (String) userData.getOrDefault("phoneNumber", "");
             if (phone.isBlank()) {
-                // chua co std thi day den nhap std
                 Intent intent = new Intent(LoginScreenActivity.this, PhoneScreenActivity.class);
                 startActivity(intent);
                 finish();
             } else {
-                // check xem co dia chi chua => chua co set up dia chi ship mac dinh
                 firebaseLocationManager.checkUserHasLocations(user.getUid(), (hasLocations, message) -> {
                     if (!hasLocations) {
                         Intent intent = new Intent(LoginScreenActivity.this, LocationScreenActivity.class);
                         startActivity(intent);
                     }
                 });
-                // da co std thi day den main
-                Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
-                intent.putExtra("USER_ID", user.getUid());
-                intent.putExtra("USER_EMAIL", user.getEmail());
-                intent.putExtra("USER_NAME", user.getDisplayName());
-                if (user.getPhotoUrl() != null)
-                    intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
-                startActivity(intent);
-                finish();
+
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                DocumentReference userRef = db.collection(DatabaseTable.USERS.getValue()).document(user.getUid());
+                userRef.get().addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()){
+                        loadMainActivity(user);
+                        return;
+                    }
+                    UserEntity userFirebase = snapshot.toObject(UserEntity.class);
+                    if (userFirebase == null) {
+                        loadMainActivity(user);
+                        return;
+                    }
+                    Toast.makeText(this, userFirebase.getRole(), Toast.LENGTH_SHORT).show();
+                    if (userFirebase.getRole() == UserRole.SHIPPER.getValue()){
+
+                        Intent intent = new Intent(LoginScreenActivity.this, ShipperActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                    else if (userFirebase.getRole() == UserRole.ADMIN.getValue()){
+//                        Intent intent = new Intent(LoginScreenActivity.this, AdminActivity.class);
+//                        startActivity(intent);
+//                        finish();
+                        Toast.makeText(this, "Comming soon", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        loadMainActivity(user);
+                    }
+
+
+                }).addOnFailureListener(e -> Log.e("FCM", "Chưa có user", e));
+
+
             }
         }, error -> {
             Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void loadMainActivity(FirebaseUser user){
+        Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
+        intent.putExtra("USER_ID", user.getUid());
+        intent.putExtra("USER_EMAIL", user.getEmail());
+        intent.putExtra("USER_NAME", user.getDisplayName());
+        if (user.getPhotoUrl() != null)
+            intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+        startActivity(intent);
+        finish();
     }
 }

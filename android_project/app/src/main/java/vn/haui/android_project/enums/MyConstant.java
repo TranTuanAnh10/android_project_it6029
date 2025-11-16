@@ -11,4 +11,10 @@ public class MyConstant {
     public static final String CARD_MASTERCARD="Mastercard";
     public static final String CARD_JCB="Jcb";
     public static final String Card_OTHER="Other";
+
+    //role
+    public static final String USER="user";
+    public static final String SHIPPER="shipper";
+    public static final String ADMIN="admin";
+    public static final String Employee = "employee";
 }

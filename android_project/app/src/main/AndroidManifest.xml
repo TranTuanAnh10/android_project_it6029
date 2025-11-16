@@ -19,6 +19,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".view.ShipperActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.EditCardActivity"
             android:exported="false" />
         <activity
