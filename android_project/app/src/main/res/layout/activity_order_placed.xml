@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_order_placed"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:paddingBottom="24dp">
+
+    <!-- Header Section -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/order_placed"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Order Status and ID -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/orderInfoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title">
+
+        <TextView
+            android:id="@+id/tvStatusChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/md_theme_onPrimary"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp"
+            android:text="@string/your_order_is_being_processed"
+            android:textColor="#388E3C"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_order_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#9E9E9E"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Main Content: Icon/Image -->
+    <ImageView
+        android:id="@+id/iv_payment_icon"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="80dp"
+        android:src="@drawable/ic_payment_card_successful"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/orderInfoContainer" />
+
+    <!-- Payment Status Text -->
+    <TextView
+        android:id="@+id/tv_payment_successful"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/payment_successful"
+        android:textColor="#D32F2F"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/iv_payment_icon" />
+
+    <TextView
+        android:id="@+id/tvDetailMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="48dp"
+        android:gravity="center"
+        android:text="@string/payment_successful_desc"
+        android:textColor="#757575"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_payment_successful" />
+    <Button
+        android:id="@+id/btn_return_home"
+        android:layout_width="167dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/return_home"
+        android:textColor="#D32F2F"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_track_order"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_track_order"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="@color/md_theme_onPrimary"
+        android:textColor="@color/md_theme_onSecondary"
+        android:text="@string/track_your_order"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_return_home" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

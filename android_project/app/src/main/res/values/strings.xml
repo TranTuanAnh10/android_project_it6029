@@ -76,4 +76,10 @@
     <string name="confirm_payment">Xác nhận thanh toán</string>
     <string name="recipient_info">Thông tin người nhận</string>
     <string name="order_info">Thông tin đặt hàng</string>
+    <string name="order_placed">Đã đặt hàng</string>
+    <string name="track_your_order">Theo dõi đơn hàng</string>
+    <string name="return_home">Trang chủ</string>
+    <string name="payment_successful">Thanh toán thành công</string>
+    <string name="payment_successful_desc">Chúng tôi đang xử lý đơn hàng của bạn và sẽ sớm giao hàng cho bạn.</string>
+    <string name="your_order_is_being_processed">Đơn hàng của bạn đang được xử lý</string>
 </resources>

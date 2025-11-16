@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -72,7 +73,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private SpringAnimation alphaSpringSummary, alphaSpringDetail;
     private SpringAnimation scaleXSpringMap, scaleYSpringMap, alphaSpringMap;
     private SpringAnimation translateSummaryY, translateDetailY;
-
+    private  String orderId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,11 +95,15 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
         // Khởi tạo SpringAnimation
         initSprings();
+        Intent intent = getIntent();
 
+        if (intent != null) {
+            orderId = intent.getStringExtra("ORDER_ID");
+        }
         // 3️⃣ Khởi tạo Firebase
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
-        orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child("20251109214153-269");
+        orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
 
         // 4️⃣ Ghi dữ liệu mẫu
 //        writeSampleOrder();

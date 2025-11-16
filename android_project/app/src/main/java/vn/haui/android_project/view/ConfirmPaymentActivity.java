@@ -432,7 +432,6 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private void placeOrder() {
         writeSampleOrder();
-        Toast.makeText(this, "Đã đặt hàng thành công!", Toast.LENGTH_LONG).show();
     }
 
 
@@ -630,5 +629,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef.setValue(orderData)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
                 .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
+
+        Intent intent = new Intent(ConfirmPaymentActivity.this, OrderPlacedActivity.class);
+        intent.putExtra("ORDER_ID", orderId);
+        startActivity(intent);
+        finish();
     }
 }
