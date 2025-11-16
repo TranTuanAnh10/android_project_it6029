@@ -25,6 +25,9 @@
             android:name=".view.AdminScreenActivity"
             android:exported="false" />
         <activity
+            android:name=".view.ShipperActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.EditCardActivity"
             android:exported="false" />
         <activity

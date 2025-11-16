@@ -1,8 +1,10 @@
 package vn.haui.android_project.view;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -15,13 +17,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.*;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.DeviceToken;
+import vn.haui.android_project.entity.UserEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.enums.UserRole;
 import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.services.FirebaseUserManager;
 
@@ -82,18 +95,21 @@ public class LoginScreenActivity extends AppCompatActivity {
     }
 
     private void signIn(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
-            if (task.isSuccessful()) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                if (user != null) {
-                    FirebaseUserManager userManager = new FirebaseUserManager();
-                    userManager.saveOrUpdateUser(user);
-                    gotoMain(user);
-                }
-            } else {
-                Toast.makeText(LoginScreenActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            FirebaseUserManager userManager = new FirebaseUserManager();
+                            userManager.saveOrUpdateUser(user);
+                            gotoMain(user);
+                        }
+                    } else {
+                        Toast.makeText(LoginScreenActivity.this,
+                                "Đăng nhập thất bại: " + task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     // ✅ Hàm đăng nhập Google
@@ -118,32 +134,30 @@ public class LoginScreenActivity extends AppCompatActivity {
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
-            if (task.isSuccessful()) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                if (user != null) {
-                    FirebaseUserManager userManager = new FirebaseUserManager();
-                    userManager.saveOrUpdateUser(user);
-                    gotoMain(user);
-                }
-            } else {
-                Toast.makeText(this, "Xác thực thất bại.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            FirebaseUserManager userManager = new FirebaseUserManager();
+                            userManager.saveOrUpdateUser(user);
+                            gotoMain(user);
+                        }
+                    } else {
+                        Toast.makeText(this, "Xác thực thất bại.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void gotoMain(@NonNull FirebaseUser user) {
         FirebaseUserManager userManager = new FirebaseUserManager();
         userManager.getUserByUid(user.getUid(), userData -> {
-            // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
             String phone = (String) userData.getOrDefault("phoneNumber", "");
             if (phone.isBlank()) {
-                // chua co std thi day den nhap std
                 Intent intent = new Intent(LoginScreenActivity.this, PhoneScreenActivity.class);
                 startActivity(intent);
                 finish();
             } else {
-                // check xem co dia chi chua => chua co set up dia chi ship mac dinh
                 firebaseLocationManager.checkUserHasLocations(user.getUid(), (hasLocations, message) -> {
                     if (!hasLocations) {
                         Intent intent = new Intent(LoginScreenActivity.this, LocationScreenActivity.class);
@@ -170,7 +184,12 @@ public class LoginScreenActivity extends AppCompatActivity {
                         intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
                     startActivity(intent);
                     finish();
-                } else {
+                }else if (("shipper").equals(role)){
+                    Intent intent = new Intent(LoginScreenActivity.this, ShipperActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+                else {
                     Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
                     intent.putExtra("USER_ID", user.getUid());
                     intent.putExtra("USER_EMAIL", user.getEmail());
@@ -185,4 +204,5 @@ public class LoginScreenActivity extends AppCompatActivity {
             Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
         });
     }
+
 }

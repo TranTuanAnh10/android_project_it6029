@@ -20,11 +20,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.UserEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.enums.UserRole;
 import vn.haui.android_project.services.FirebaseUserManager;
 
 public class SplashScreenActivity extends AppCompatActivity {
@@ -83,29 +91,60 @@ public class SplashScreenActivity extends AppCompatActivity {
 
 
     private void gotoMain(@NonNull FirebaseUser user) {
-        FirebaseUserManager userManager = new FirebaseUserManager();
-        userManager.getUserByUid(user.getUid(), userData -> {
-            // Lấy dữ liệu từ Firestore hoặc từ Auth nếu Firestore không có
-            String phone = (String) userData.getOrDefault("phoneNumber", "");
-            if (phone.isBlank()){
-                // chua co std thi day den nhap std
-                Intent intent = new Intent(SplashScreenActivity.this, PhoneScreenActivity.class);
-                intent.putExtra("CURRENT_USER", user);
-                startActivity(intent);
-                finish();
-            }else {
-                // da co std thi day den main
-                Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
-                intent.putExtra("USER_ID", user.getUid());
-                intent.putExtra("USER_EMAIL", user.getEmail());
-                intent.putExtra("USER_NAME", user.getDisplayName());
-                if (user.getPhotoUrl() != null)
-                    intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
-                startActivity(intent);
-                finish();
-            }
-        }, error -> {
-            Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
-        });
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection(DatabaseTable.USERS.getValue()).document(user.getUid());
+        userRef.get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) {
+                        Intent intent = new Intent(SplashScreenActivity.this, PhoneScreenActivity.class);
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
+
+                    UserEntity userFirebase = snapshot.toObject(UserEntity.class);
+
+                    if (userFirebase == null) {
+                        loadMainActivity(user);
+                        return;
+                    }
+
+                    String phone = userFirebase.getPhoneNumber();
+                    if (phone == null || phone.isBlank()) {
+                        Intent intent = new Intent(SplashScreenActivity.this, PhoneScreenActivity.class);
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
+
+                    String role = userFirebase.getRole();
+
+                    if (role != null && role.equals(UserRole.SHIPPER.getValue())) {
+                        Intent intent = new Intent(SplashScreenActivity.this, ShipperActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else if (role != null && role.equals(UserRole.ADMIN.getValue())) {
+                        Toast.makeText(SplashScreenActivity.this, "Comming soon", Toast.LENGTH_SHORT).show();
+                        loadMainActivity(user);
+                    } else {
+                        loadMainActivity(user);
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    Toast.makeText(SplashScreenActivity.this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
+                     Intent intent = new Intent(SplashScreenActivity.this, LoginScreenActivity.class);
+                     startActivity(intent);
+                     finish();
+                });
+    }
+    private void loadMainActivity(FirebaseUser user){
+        Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+        intent.putExtra("USER_ID", user.getUid());
+        intent.putExtra("USER_EMAIL", user.getEmail());
+        intent.putExtra("USER_NAME", user.getDisplayName());
+        if (user.getPhotoUrl() != null)
+            intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+        startActivity(intent);
+        finish();
     }
 }
