@@ -13,6 +13,7 @@ import android.util.Log;
 import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -37,6 +38,35 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             showNotification(remoteMessage.getNotification().getTitle(),
                     remoteMessage.getNotification().getBody());
         }
+        if (remoteMessage.getData().size() > 0) {
+            Map<String, String> data = remoteMessage.getData();
+            Log.d(TAG, "Message data payload: " + data);
+
+            // Lấy thông tin đơn hàng từ data payload
+            String orderId = data.get("orderId");
+            String pickupAddress = data.get("pickupAddress");
+            String deliveryAddress = data.get("deliveryAddress");
+
+            // Kiểm tra xem có phải là thông báo "đơn hàng mới" không
+            // (Bạn có thể tự quy định 'type' khi gửi từ Admin)
+            if (data.get("type") != null && data.get("type").equals("NEW_ORDER")) {
+                // Gửi một broadcast cục bộ
+                // Chỉ những Activity đang chạy và đăng ký lắng nghe mới nhận được
+                sendNewOrderBroadcast(orderId, pickupAddress, deliveryAddress);
+            }
+
+            // Nếu bạn muốn hiện thông báo trên thanh status (khi app ở background)
+            // thì thêm code tạo Notification tại đây.
+        }
+    }
+    private void sendNewOrderBroadcast(String orderId, String pickup, String delivery) {
+        Intent intent = new Intent("com.yourpackage.NEW_ORDER"); // Đặt tên action của bạn
+        intent.putExtra("orderId", orderId);
+        intent.putExtra("pickupAddress", pickup);
+        intent.putExtra("deliveryAddress", delivery);
+
+        // Dùng LocalBroadcastManager để chỉ gửi trong nội bộ app
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     @Override

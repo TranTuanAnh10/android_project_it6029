@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import vn.haui.android_project.OnTaskCompleted;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.Cart;
 import vn.haui.android_project.entity.CartItem;
@@ -113,8 +115,18 @@ public class OrdersBasketFragment extends Fragment {
                 if (context == null) {
                     return;
                 }
-                Intent intent = new Intent(context, ConfirmPaymentActivity.class);
-                startActivity(intent);
+                syncLocalCartToFirebase(new OnTaskCompleted() {
+                    @Override
+                    public void onSuccess() {
+                        Intent intent = new Intent(context, ConfirmPaymentActivity.class);
+                        startActivity(intent);
+                    }
+                    @Override
+                    public void onError(String errorMessage) {
+                        //Toast.makeText(getContext(), "Lỗi lưu giỏ hàng: " + errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
         });
         loadCart();
@@ -235,10 +247,19 @@ public class OrdersBasketFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        syncLocalCartToFirebase();
+        syncLocalCartToFirebase(new OnTaskCompleted() {
+            @Override
+            public void onSuccess() {
+                //Toast.makeText(getContext(), "Đã lưu giỏ hàng", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onError(String errorMessage) {
+                //Toast.makeText(getContext(), "Lỗi lưu giỏ hàng: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void syncLocalCartToFirebase() {
+    private void syncLocalCartToFirebase(OnTaskCompleted callback) {
         if (mAuth == null || mAuth.getCurrentUser() == null) {
             return;
         }
@@ -255,8 +276,9 @@ public class OrdersBasketFragment extends Fragment {
 
         cartRef.setValue(cartToSave)
                 .addOnSuccessListener(aVoid ->
-                        Log.d(TAG, "Sync giỏ hàng 'Basket' lên Firebase thành công!"))
+                        callback.onSuccess())
                 .addOnFailureListener(e ->
-                        Log.e(TAG, "Lỗi khi sync giỏ hàng 'Basket'!", e));
+                        callback.onError(e.getMessage()));
     }
 }
+

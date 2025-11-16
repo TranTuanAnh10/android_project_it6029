@@ -49,7 +49,7 @@ public class PhoneScreenActivity extends AppCompatActivity {
         mapping();
         mAuth = FirebaseAuth.getInstance();
         Intent intent = getIntent();
-        currentUser = intent.getParcelableExtra("CURRENT_USER");
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
         btnContinue.setOnClickListener(v -> {
             phone = etPhone.getText().toString().trim();
             if (!phone.startsWith("+")) {
