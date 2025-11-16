@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -48,10 +49,8 @@ public class LoginScreenActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         // ✅ Cấu hình Google Sign-In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Lấy từ google-services.json
-                .requestEmail()
-                .build();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(getString(R.string.default_web_client_id)) // Lấy từ google-services.json
+                .requestEmail().build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
@@ -83,21 +82,18 @@ public class LoginScreenActivity extends AppCompatActivity {
     }
 
     private void signIn(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            FirebaseUserManager userManager = new FirebaseUserManager();
-                            userManager.saveOrUpdateUser(user);
-                            gotoMain(user);
-                        }
-                    } else {
-                        Toast.makeText(LoginScreenActivity.this,
-                                "Đăng nhập thất bại: " + task.getException().getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user != null) {
+                    FirebaseUserManager userManager = new FirebaseUserManager();
+                    userManager.saveOrUpdateUser(user);
+                    gotoMain(user);
+                }
+            } else {
+                Toast.makeText(LoginScreenActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // ✅ Hàm đăng nhập Google
@@ -122,19 +118,18 @@ public class LoginScreenActivity extends AppCompatActivity {
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            FirebaseUserManager userManager = new FirebaseUserManager();
-                            userManager.saveOrUpdateUser(user);
-                            gotoMain(user);
-                        }
-                    } else {
-                        Toast.makeText(this, "Xác thực thất bại.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user != null) {
+                    FirebaseUserManager userManager = new FirebaseUserManager();
+                    userManager.saveOrUpdateUser(user);
+                    gotoMain(user);
+                }
+            } else {
+                Toast.makeText(this, "Xác thực thất bại.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void gotoMain(@NonNull FirebaseUser user) {
@@ -155,15 +150,36 @@ public class LoginScreenActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+                String role = (String) userData.getOrDefault("role", "");
                 // da co std thi day den main
-                Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
-                intent.putExtra("USER_ID", user.getUid());
-                intent.putExtra("USER_EMAIL", user.getEmail());
-                intent.putExtra("USER_NAME", user.getDisplayName());
-                if (user.getPhotoUrl() != null)
-                    intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
-                startActivity(intent);
-                finish();
+                if (("admin").equals(role)) {
+                    Intent intent = new Intent(LoginScreenActivity.this, AdminScreenActivity.class);
+                    intent.putExtra("USER_ID", user.getUid());
+                    intent.putExtra("USER_EMAIL", user.getEmail());
+                    intent.putExtra("USER_NAME", user.getDisplayName());
+                    if (user.getPhotoUrl() != null)
+                        intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+                    startActivity(intent);
+                    finish();
+                } else if (("employee").equals(role)) {
+                    Intent intent = new Intent(LoginScreenActivity.this, EmployeeScreenActivity.class);
+                    intent.putExtra("USER_ID", user.getUid());
+                    intent.putExtra("USER_EMAIL", user.getEmail());
+                    intent.putExtra("USER_NAME", user.getDisplayName());
+                    if (user.getPhotoUrl() != null)
+                        intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Intent intent = new Intent(LoginScreenActivity.this, MainActivity.class);
+                    intent.putExtra("USER_ID", user.getUid());
+                    intent.putExtra("USER_EMAIL", user.getEmail());
+                    intent.putExtra("USER_NAME", user.getDisplayName());
+                    if (user.getPhotoUrl() != null)
+                        intent.putExtra("USER_PHOTO", user.getPhotoUrl().toString());
+                    startActivity(intent);
+                    finish();
+                }
             }
         }, error -> {
             Toast.makeText(this, "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
