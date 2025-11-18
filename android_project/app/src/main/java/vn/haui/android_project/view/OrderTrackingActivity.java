@@ -7,7 +7,6 @@ import static android.view.View.VISIBLE;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -23,20 +22,27 @@ import androidx.core.content.ContextCompat;
 import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.adapter.OrderItemsAdapter;
+import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 
@@ -54,8 +60,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
     // View con trong layoutDetail
     private TextView tvEstimateArrival, tvOrderId, tvStatusTag, tvStatusDescTag;
-    private TextView tvDriverName, tvLicensePlate, tvDeliveryFeeValue, tvDiscountValue, tvTotalValue;
-    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish;
+    private TextView tvDriverName, tvLicensePlate, tvDeliveryFeeValue, tvDiscountValue, tvTotalValue, itemDefaulCount, itemDefaul;
+    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, itemDefaulImg;
     ;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
 
@@ -73,7 +79,12 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private SpringAnimation alphaSpringSummary, alphaSpringDetail;
     private SpringAnimation scaleXSpringMap, scaleYSpringMap, alphaSpringMap;
     private SpringAnimation translateSummaryY, translateDetailY;
-    private  String orderId;
+    private String orderId;
+
+    private RecyclerView rvOrderItems;
+    private OrderItemsAdapter orderItemsAdapter;
+    private List<ItemOrderProduct> productList = new ArrayList<>();
+    DecimalFormat formatter = new DecimalFormat("#,###");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,9 +94,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
         layoutSummary = findViewById(R.id.layoutSummary);
         layoutDetail = findViewById(R.id.layoutDetail);
         mapContainer = findViewById(R.id.mapContainer);
-
+        rvOrderItems = findViewById(R.id.rv_order_items);
         mappingViewMap();
-
         mappingLayoutSummary();
 
         int screenHeight = getResources().getDisplayMetrics().heightPixels;
@@ -110,7 +120,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
         // 5️⃣ Đọc realtime dữ liệu
         listenOrderRealtime();
-
+        rvOrderItems.setLayoutManager(new LinearLayoutManager(this));
 
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
@@ -164,6 +174,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
         tvStatusTag = layoutDetail.findViewById(R.id.tv_status_desc_tag);
         tvStatusDescTag = layoutDetail.findViewById(R.id.tv_status_tag);
 
+
+
         // ✅ Gắn view con bên trong layoutDetail
         tvDriverName = layoutDetail.findViewById(R.id.tv_driver_name);
         tvLicensePlate = layoutDetail.findViewById(R.id.tv_license_plate);
@@ -201,7 +213,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
         stepPickingUpSummaryLine = layoutSummary.findViewById(R.id.step_pickingUp_summary_line);
         stepDeliveringSummaryLine = layoutSummary.findViewById(R.id.step_delivering_summary_line);
         stepFinishSummaryLine = layoutSummary.findViewById(R.id.step_finish_summary_line);
-
+        itemDefaulImg = layoutSummary.findViewById(R.id.item_defaul_img);
+        itemDefaulCount = layoutSummary.findViewById(R.id.item_defaul_count);
+        itemDefaul = layoutSummary.findViewById(R.id.item_defaul);
     }
 
     private void initSprings() {
@@ -225,62 +239,6 @@ public class OrderTrackingActivity extends AppCompatActivity {
         return anim;
     }
 
-    private void displayOrderDetails() {
-        // ✅ Cập nhật thông tin tổng quan
-        if (tvEstimateArrival != null) tvEstimateArrival.setText("Estimate arrival: 10:10");
-        if (tvOrderId != null) tvOrderId.setText("Order ID: CA321457");
-        if (tvStatusTag != null) tvStatusTag.setText("Driver is picking up your Order.");
-
-        // ✅ Cập nhật thông tin tài xế
-        if (tvDriverName != null) tvDriverName.setText("Adam West");
-        if (tvLicensePlate != null) tvLicensePlate.setText("34 LD 5225");
-
-        // ✅ Cập nhật thông tin tài chính
-        if (tvDeliveryFeeValue != null) tvDeliveryFeeValue.setText("$0");
-        if (tvDiscountValue != null) tvDiscountValue.setText("-$15");
-        if (tvTotalValue != null) tvTotalValue.setText("$115");
-    }
-
-    /**
-     * Ghi dữ liệu mẫu (3 vị trí: shipper, cửa hàng, người nhận)
-     */
-    private void writeSampleOrder() {
-        Map<String, Object> orderData = new HashMap<>();
-        orderData.put("orderId", "CA321457");
-        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
-        orderData.put("driver", "Adam West");
-        orderData.put("licensePlate", "34 LD 5225");
-        orderData.put("deliveryFee", "$0");
-        orderData.put("discount", "-$15");
-        orderData.put("total", "$115");
-
-        // --- Vị trí shipper ---
-        Map<String, Object> shipperLocation = new HashMap<>();
-        shipperLocation.put("lat", 21.0285);
-        shipperLocation.put("lng", 105.8542);
-
-        // --- Vị trí cửa hàng ---
-        Map<String, Object> storeLocation = new HashMap<>();
-        storeLocation.put("lat", 21.031);
-        storeLocation.put("lng", 105.852);
-
-        // --- Vị trí người nhận ---
-        Map<String, Object> receiverLocation = new HashMap<>();
-        receiverLocation.put("lat", 21.035);
-        receiverLocation.put("lng", 105.85);
-
-        orderData.put("shipper", shipperLocation);
-        orderData.put("store", storeLocation);
-        orderData.put("receiver", receiverLocation);
-
-        orderRef.setValue(orderData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
-    }
-
-
-
-
     /**
      * Lắng nghe realtime thay đổi đơn hàng (Firebase)
      */
@@ -293,13 +251,56 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String orderId = snapshot.child("orderId").getValue(String.class);
                 String status = snapshot.child("status").getValue(String.class);
                 String driver = snapshot.child("driver").getValue(String.class);
+                String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
+                tvEstimateArrival.setText(estimateArrival);
                 String license = snapshot.child("licensePlate").getValue(String.class);
                 String fee = String.valueOf(snapshot.child("deliveryFee").getValue(Double.class));
                 String discount = String.valueOf(snapshot.child("discount").getValue(Double.class));
                 String total = String.valueOf(snapshot.child("total").getValue(Double.class));
+                DataSnapshot productListSnapshot = snapshot.child("productList");
+                GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {
+                };
+                if (productListSnapshot.exists()) {
+                    List<ItemOrderProduct> fetchedList = productListSnapshot.getValue(t);
+                    if (fetchedList != null) {
+                        productList.clear();
+                        productList.addAll(fetchedList);
 
+                    }
+                }
+                if (!productList.isEmpty()) {
+                    ItemOrderProduct itemOrderProduct = productList.get(0);
+                    Integer quantity = itemOrderProduct.getQuantity();
+                    String quantityText = quantity != null ? "x" + String.valueOf(quantity) : "x1";
+                    tvTotalValueSummary.setText(formatter.format(itemOrderProduct.getTotalPrice()) + "đ");
+                    itemDefaulCount.setText(quantityText);
+                    itemDefaul.setText(itemOrderProduct.getName());
+                    String imageName = itemOrderProduct.getImage();
+                    int imageResourceId = 0;
+
+                    if (imageName != null && !imageName.isEmpty()) {
+                        String resourceName = imageName.replace(".png", "")
+                                .replace(".jpg", "")
+                                .trim()
+                                .toLowerCase(Locale.getDefault());
+                        imageResourceId = OrderTrackingActivity.this.getResources().getIdentifier(
+                                resourceName,
+                                "drawable",
+                                OrderTrackingActivity.this.getPackageName()
+                        );
+                    }
+                    int finalResourceId = (imageResourceId > 0) ? imageResourceId : R.drawable.image_breakfast;
+                    Glide.with(OrderTrackingActivity.this)
+                            .load(finalResourceId)
+                            .placeholder(R.drawable.image_breakfast)
+                            .error(R.drawable.image_breakfast)
+                            .into(itemDefaulImg);
+                }
+
+                orderItemsAdapter = new OrderItemsAdapter(productList);
+                rvOrderItems.setAdapter(orderItemsAdapter);
                 // ✅ Cập nhật UI đơn hàng
-                updateOrderUI(orderId, status, driver, license, fee, discount, total);
+                updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
 
                 // ✅ Lấy vị trí shipper realtime
                 DataSnapshot shipperSnap = snapshot.child("shipper");
@@ -317,6 +318,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                         });
                     }
                 }
+
             }
 
             @Override
@@ -327,24 +329,23 @@ public class OrderTrackingActivity extends AppCompatActivity {
     }
 
 
-
     private void updateOrderUI(String orderId, String status, String driver,
-                               String license, String fee, String discount, String total) {
+                               String license, String fee, String discount, String total, String estimate) {
         runOnUiThread(() -> {
-            tvOrderId.setText("Order ID: " + orderId);
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            tvOrderId.setText(orderId);
             tvStatusTag.setText(status);
             tvDriverName.setText(driver);
             tvLicensePlate.setText(license);
-            tvDeliveryFeeValue.setText(fee);
-            tvDiscountValue.setText(discount);
-            tvTotalValue.setText(total);
+            tvDeliveryFeeValue.setText(formatter.format(Double.parseDouble(fee)) + "đ");
+            tvDiscountValue.setText(!discount.equals("") ? formatter.format(Double.parseDouble(discount)) + "đ" : "");
+            tvTotalValue.setText(formatter.format(Double.parseDouble(total)) + "đ");
 
 
             tvOrderIdSummary.setText(orderId);
-            tvEstimateArrivalSummary.setText("Estimate arrival: 10:10");
+            tvEstimateArrivalSummary.setText(estimate);
             tvDriverNameSummary.setText(driver);
             tvLicensePlateSummary.setText(license);
-            tvTotalValueSummary.setText(total);
             mappingStep(status);
         });
     }

@@ -75,7 +75,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="23dp"
-                android:text="Estimate arrival:"
+                android:text="@string/estimate"
                 android:textColor="#0075B8"
                 android:textSize="14sp" />
 
@@ -84,7 +84,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="10:10"
                 android:textColor="#343434"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -245,8 +244,6 @@
                 tools:ignore="ContentDescription" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Divider -->
         <View
             android:id="@+id/divider_2"
             android:layout_width="match_parent"
@@ -254,190 +251,32 @@
             android:layout_marginTop="16dp"
             android:background="#E0E0E0"
             app:layout_constraintTop_toBottomOf="@+id/layout_driver_details" />
-
-        <!-- ==================================== -->
-        <!-- 5. ORDER INFO / ITEM LIST -->
-        <!-- ==================================== -->
         <TextView
             android:id="@+id/tv_order_info_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Order info"
+            android:text="@string/order_info"
             android:textColor="#333333"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/divider_2" />
-
-        <!-- Restaurant Name & Arrow -->
-        <LinearLayout
-            android:id="@+id/layout_restaurant_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:gravity="center_vertical"
-            app:layout_constraintTop_toBottomOf="@+id/tv_order_info_title">
-
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/pizzeria"
-                android:layout_marginEnd="8dp"
-                tools:ignore="ContentDescription" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <!-- Restaurant Name -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pizzeria da Giuseppe"
-                    android:textColor="#333333"
-                    android:textSize="16sp" />
-
-                <!-- Item Count -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2 items"
-                    android:textColor="#999999"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_switch"
-                tools:ignore="ContentDescription" />
-        </LinearLayout>
-
-        <!-- Item 1: Pizza Margherita -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_item_1"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_order_items"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            app:layout_constraintTop_toBottomOf="@+id/layout_restaurant_header">
-
-            <ImageView
-                android:id="@+id/img_item_1"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_pizza_margherita"
-                android:background="@drawable/bg_otp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:id="@+id/tv_item_1_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="Pizza Margherita"
-                android:textColor="#333333"
-                android:textSize="16sp"
-                app:layout_constraintStart_toEndOf="@+id/img_item_1"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/tv_item_1_price" />
-
-            <TextView
-                android:id="@+id/tv_item_1_details"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="Large size, extra Grated Parmesan x2"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                app:layout_constraintStart_toEndOf="@+id/img_item_1"
-                app:layout_constraintTop_toBottomOf="@+id/tv_item_1_name"
-                app:layout_constraintEnd_toStartOf="@+id/tv_item_1_price" />
-
-            <TextView
-                android:id="@+id/tv_item_1_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="$70"
-                android:textColor="#C34753"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Item 2: Pizza Pepperoni -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_item_2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintTop_toBottomOf="@+id/layout_item_1">
-
-            <ImageView
-                android:id="@+id/img_item_2"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_banh_mi_cha_ca"
-                android:background="@drawable/bg_otp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:id="@+id/tv_item_2_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="Pizza Pepperoni"
-                android:textColor="#333333"
-                android:textSize="16sp"
-                app:layout_constraintStart_toEndOf="@+id/img_item_2"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/tv_item_2_price" />
-
-            <TextView
-                android:id="@+id/tv_item_2_details"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="Large size, no extras x2"
-                android:textColor="#666666"
-                android:textSize="14sp"
-                app:layout_constraintStart_toEndOf="@+id/img_item_2"
-                app:layout_constraintTop_toBottomOf="@+id/tv_item_2_name"
-                app:layout_constraintEnd_toStartOf="@+id/tv_item_2_price" />
-
-            <TextView
-                android:id="@+id/tv_item_2_price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="$60"
-                android:textColor="#C34753"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:nestedScrollingEnabled="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_order_info_title"
+            tools:itemCount="3"
+            tools:layout_height="200dp"
+            tools:listitem="@layout/item_order_detail" />
 
         <!-- Note to restaurant -->
         <TextView
@@ -446,12 +285,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
-            android:text="Note to restaurant"
+            android:text="@string/note"
             android:textColor="#333333"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/layout_item_2" />
+            app:layout_constraintTop_toBottomOf="@+id/rv_order_items" />
 
         <TextView
             android:id="@+id/tv_note_content"
@@ -462,7 +301,6 @@
             android:layout_marginEnd="16dp"
             android:background="@drawable/rounded_edittext_bg"
             android:padding="12dp"
-            android:text="No black pepper, please"
             android:textColor="#333333"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -489,7 +327,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Delivery fee"
+            android:text="@string/delivery_fee"
             android:textColor="#6D5758"
             android:textSize="16sp"
             android:textStyle="normal"
@@ -500,7 +338,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="$0"
             android:textColor="#C34753"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -513,7 +350,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="Discount"
+            android:text="@string/discount"
             android:textColor="#6D5758"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -523,7 +360,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="- $15"
             android:textStyle="normal"
             android:textColor="#C34753"
             android:textSize="16sp"
@@ -537,7 +373,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Total"
+            android:text="@string/total"
             android:textColor="#6D5758"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -548,7 +384,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="$115"
             android:textColor="#C34753"
             android:textSize="20sp"
             android:textStyle="bold"

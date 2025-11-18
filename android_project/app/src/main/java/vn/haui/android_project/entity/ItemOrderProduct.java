@@ -4,7 +4,7 @@ public class ItemOrderProduct {
     private String name;
     private String details;
     private int quantity;
-    private double unitPrice; // Giá cho 1 đơn vị
+    private double unitPrice;
     private String image;
     private String idItem;
     public ItemOrderProduct( String idItem,String name, String details, int quantity, double unitPrice, String image) {
@@ -16,6 +16,8 @@ public class ItemOrderProduct {
         this.image = image;
     }
 
+    public ItemOrderProduct() {
+    }
     public String getIdItem() {
         return idItem;
     }

@@ -277,7 +277,7 @@
 
     <!-- Order Info -->
     <TextView
-        android:text="Order info"
+        android:text="@string/order_info"
         android:textStyle="bold"
         android:textSize="15sp"
         android:layout_width="wrap_content"
@@ -291,7 +291,7 @@
         android:layout_height="wrap_content">
 
         <ImageView
-            android:src="@drawable/img_banh_mi_cha_ca"
+            android:id="@+id/item_defaul_img"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:scaleType="centerCrop"
@@ -304,14 +304,14 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:text="Pizzeria da Giuseppe"
+                android:id="@+id/item_defaul"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:text="2 items"
+                android:id="@+id/item_defaul_count"
                 android:textSize="13sp"
                 android:textColor="#777777"
                 android:layout_width="wrap_content"

@@ -119,7 +119,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private String codeVoucher;
     private DatabaseReference orderRef;
     private FirebaseDatabase firebaseDatabase;
-
+    FirebaseUser currentUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -397,7 +397,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     double subTotal = 0;
     double discount = 0;
-    double deliveryFee = 5.00;
+    double deliveryFee = 50000;
     double finalTotal = 0;
 
     private void updateSummary(List<ItemOrderProduct> products) {
@@ -595,6 +595,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", orderId);
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        orderData.put("uid", currentUser.getUid());
         orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
         orderData.put("subTotal", subTotal);
         orderData.put("deliveryFee", deliveryFee);

@@ -82,4 +82,5 @@
     <string name="payment_successful">Thanh toán thành công</string>
     <string name="payment_successful_desc">Chúng tôi đang xử lý đơn hàng của bạn và sẽ sớm giao hàng cho bạn.</string>
     <string name="your_order_is_being_processed">Đơn hàng của bạn đang được xử lý</string>
+    <string name="estimate">Thời gian ước tính</string>
 </resources>
