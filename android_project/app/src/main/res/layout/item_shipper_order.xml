@@ -89,6 +89,26 @@
             app:layout_constraintStart_toEndOf="@id/label_address"
             app:layout_constraintTop_toTopOf="@id/label_address"
             tools:text="HH2A Đơn Nguyên A, ngõ 562 Nguyễn Văn Cừ, Long Biên" />
+        <TextView
+            android:id="@+id/label_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ngày giao"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_address" />
+
+        <TextView
+            android:id="@+id/text_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@android:color/black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/label_date"
+            app:layout_constraintTop_toTopOf="@id/label_date"
+            tools:text="19/11/2025" />
 
 
 
