@@ -3,12 +3,15 @@ package vn.haui.android_project.view;
 import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import androidx.fragment.app.Fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -30,15 +33,24 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.entity.CartItem;
+import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.Order;
+import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+import vn.haui.android_project.services.OrderCallback;
+import vn.haui.android_project.services.OrderService;
 
 public class OrderTrackingActivity extends AppCompatActivity {
 
@@ -48,7 +60,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private DatabaseReference orderRef;
 
     private BottomSheetBehavior<View> bottomSheetBehavior;
-    private LinearLayout layoutSummary, layoutDetail;
+    private LinearLayout layoutSummary, layoutDetail, layoutItem;
     private View mapContainer;
     private WebView webViewMap;
 
@@ -74,6 +86,14 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private SpringAnimation scaleXSpringMap, scaleYSpringMap, alphaSpringMap;
     private SpringAnimation translateSummaryY, translateDetailY;
     private  String orderId;
+
+    // ========================================================
+    private Order order;
+
+    private OrderService orderService = OrderService.getInstance();
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +103,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
         layoutSummary = findViewById(R.id.layoutSummary);
         layoutDetail = findViewById(R.id.layoutDetail);
         mapContainer = findViewById(R.id.mapContainer);
+        layoutItem  = findViewById(R.id.layout_order);
 
         mappingViewMap();
 
@@ -99,7 +120,10 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
         if (intent != null) {
             orderId = intent.getStringExtra("ORDER_ID");
+            Log.d("TAG", "onCreate: " + orderId);
+            // Lấy orderId từ Intent")
         }
+        fetchItem(orderId);
         // 3️⃣ Khởi tạo Firebase
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -240,6 +264,59 @@ public class OrderTrackingActivity extends AppCompatActivity {
         if (tvDiscountValue != null) tvDiscountValue.setText("-$15");
         if (tvTotalValue != null) tvTotalValue.setText("$115");
     }
+    private void fetchItem(String orderId) {
+
+        LinearLayout parent = layoutItem;
+        parent.removeAllViews();
+
+        orderService.getOrderByOrderId(orderId, new OrderCallback() {
+
+            @Override
+            public void onOrderLoaded(Order order) {
+
+                Log.d("ORDER", order.getOrderId());
+
+                Context context = parent.getContext();
+                LayoutInflater inflater = LayoutInflater.from(context);
+
+                for (ItemOrderProduct cartItem : order.getProductList()) {
+
+                    View itemView = inflater.inflate(R.layout.item_order_product, parent, false);
+
+                    TextView productName = itemView.findViewById(R.id.tv_product_name);
+                    TextView productDetails = itemView.findViewById(R.id.tv_product_details);
+                    TextView productPrice = itemView.findViewById(R.id.tv_product_price);
+                    TextView productQty = itemView.findViewById(R.id.tv_product_name_qty);
+                    ImageView productImage = itemView.findViewById(R.id.img_product_thumb);
+
+                    productName.setText(cartItem.getName());
+                    productDetails.setText(cartItem.getDetails());
+                    productPrice.setText(String.valueOf(cartItem.getUnitPrice()));
+                    productQty.setText(String.valueOf(cartItem.getQuantity()));
+
+                    String itemName = cartItem.getImage();
+                    int index = itemName.lastIndexOf('.');
+                    if (index != -1) {
+                        itemName = itemName.substring(0, index);
+                    }
+                    int drawableId = context.getResources().getIdentifier(
+                            itemName,
+                            "drawable",
+                            context.getPackageName()
+                    );
+                    productImage.setImageResource(drawableId);
+
+                    parent.addView(itemView);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("ERROR", e.getMessage());
+            }
+        });
+    }
+
 
     /**
      * Ghi dữ liệu mẫu (3 vị trí: shipper, cửa hàng, người nhận)

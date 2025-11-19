@@ -1,5 +1,6 @@
 package vn.haui.android_project.view;
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,13 +37,31 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
+        StringBuilder item = new StringBuilder("");
+        order.getProductList().stream().limit(2).forEach(itemOrderProduct -> {
+            item.append(itemOrderProduct.getName());
+            item.append("\n");
+        });
+        if (order.getProductList().size() > 2)
+            item.append("...");
         String sp = (order.getProductList().size()-1 > 0) ? " (+" + String.valueOf(order.getProductList().size()-1)+" khác)": "" ;
         holder.tvStoreName.setText(order.getProductList().get(0).getName()+sp);
-        holder.tvItems.setText(order.getProductList().toString());
+        holder.tvItems.setText(item.toString());
         holder.tvEstimate.setText(order.getTimeDisplay());
         holder.tvStatus.setText(order.getStatus());
-        holder.tvPrice.setText(String.valueOf(order.getTotal()));
-        holder.imgStore.setImageResource(R.drawable.banh_mi_op_la);
+        holder.tvPrice.setText(order.getTotal()+"đ");
+        String itemName = order.getProductList().get(0).getImage();
+        int index = itemName.lastIndexOf('.');
+        if (index != -1) {
+            itemName = itemName.substring(0, index);
+        }
+        Context context = holder.itemView.getContext();
+        int drawableId = context.getResources().getIdentifier(
+                itemName,
+                "drawable",
+                context.getPackageName()
+        );
+        holder.imgStore.setImageResource(drawableId);
         holder.itemView.setOnClickListener(v -> {
             // Xử lý khi item được nhấn
             Intent intentOrderTrackAc = new Intent(holder.itemView.getContext(), OrderTrackingActivity.class);
