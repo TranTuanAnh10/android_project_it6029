@@ -74,22 +74,22 @@ public class OrdersActiveFragment extends Fragment {
 
         // 🧩 Dữ liệu mẫu
         List<Order> orders = new ArrayList<>();
-        orders.add(new Order(
-                "The Daily Grind Hub",
-                "1 item",
-                "Estimate arrival: 10:25",
-                "Order placed",
-                "$20",
-                R.drawable.image_pizza
-        ));
-        orders.add(new Order(
-                "CFK",
-                "1 item",
-                "Estimate arrival: 10:25",
-                "Order placed",
-                "$20",
-                R.drawable.img_pizza_ga_nuong_bbq
-        ));
+//        orders.add(new Order(
+//                "The Daily Grind Hub",
+//                "1 item",
+//                "Estimate arrival: 10:25",
+//                "Order placed",
+//                "$20",
+//                R.drawable.image_pizza
+//        ));
+//        orders.add(new Order(
+//                "CFK",
+//                "1 item",
+//                "Estimate arrival: 10:25",
+//                "Order placed",
+//                "$20",
+//                R.drawable.img_pizza_ga_nuong_bbq
+//        ));
 
         // Gắn adapter
         OrderAdapter adapter = new OrderAdapter(orders);

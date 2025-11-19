@@ -74,21 +74,21 @@ public class OrdersHistoryFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         List<Order> orderList = List.of(
-                new Order(
-                        "The Daily Grind Hub",
-                        "1 item",
-                        "Estimate arrival: 10:25",
-                        "Order placed",
-                        "$20",
-                        R.drawable.image_pizza
-                ),new Order(
-                        "Bugger Kings",
-                        "1 item",
-                        "Estimate arrival: 10:25",
-                        "Order placed",
-                        "$10",
-                        R.drawable.banh_mi_op_la
-                )
+//                new Order(
+//                        "The Daily Grind Hub",
+//                        "1 item",
+//                        "Estimate arrival: 10:25",
+//                        "Order placed",
+//                        "$20",
+//                        R.drawable.image_pizza
+//                ),new Order(
+//                        "Bugger Kings",
+//                        "1 item",
+//                        "Estimate arrival: 10:25",
+//                        "Order placed",
+//                        "$10",
+//                        R.drawable.banh_mi_op_la
+//                )
         );
         // Gắn adapter
         OrderAdapter adapter = new OrderAdapter(orderList);

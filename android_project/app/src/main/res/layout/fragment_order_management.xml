@@ -1,14 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.OrderManagementFragment">
+    android:background="#F5F5F5"
+    android:fitsSystemWindows="true"> <!-- Dòng này giúp nội dung tụt xuống dưới camera -->
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- Thanh Tab -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_orders"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tabMode="scrollable"
+        app:tabSelectedTextColor="@color/design_default_color_primary"
+        app:tabIndicatorColor="@color/design_default_color_primary"
+        app:tabTextColor="@android:color/darker_gray" />
+    <!-- tabMode="scrollable" để hiển thị đủ 4 tab không bị chật -->
 
-</FrameLayout>
+    <!-- Danh sách đơn hàng -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_orders"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout_orders"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Loading -->
+    <ProgressBar
+        android:id="@+id/progress_bar_orders"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Thông báo trống -->
+    <TextView
+        android:id="@+id/tv_no_orders"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Không có đơn hàng nào"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
