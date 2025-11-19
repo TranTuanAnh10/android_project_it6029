@@ -1,5 +1,6 @@
 package vn.haui.android_project.view;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.Order;
 
@@ -34,12 +36,21 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
-        holder.tvStoreName.setText(order.getStoreName());
-        holder.tvItems.setText(order.getItems());
-        holder.tvEstimate.setText(order.getEstimate());
+        String sp = (order.getProductList().size()-1 > 0) ? " (+" + String.valueOf(order.getProductList().size()-1)+" khác)": "" ;
+        holder.tvStoreName.setText(order.getProductList().get(0).getName()+sp);
+        holder.tvItems.setText(order.getProductList().toString());
+        holder.tvEstimate.setText(order.getTimeDisplay());
         holder.tvStatus.setText(order.getStatus());
-        holder.tvPrice.setText(order.getPrice());
-        holder.imgStore.setImageResource(order.getImageRes());
+        holder.tvPrice.setText(String.valueOf(order.getTotal()));
+        holder.imgStore.setImageResource(R.drawable.banh_mi_op_la);
+        holder.itemView.setOnClickListener(v -> {
+            // Xử lý khi item được nhấn
+            Intent intentOrderTrackAc = new Intent(holder.itemView.getContext(), OrderTrackingActivity.class);
+            intentOrderTrackAc.putExtra("ORDER_ID", order.getOrderId());
+
+            holder.itemView.getContext().startActivity(intentOrderTrackAc);
+            //", "Hello from Activity A!");
+        });
     }
 
     @Override

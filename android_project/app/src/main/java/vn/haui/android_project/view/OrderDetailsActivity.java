@@ -10,11 +10,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.databinding.OrderDetailScreenBinding;
+import vn.haui.android_project.entity.Order;
+import vn.haui.android_project.services.OrderService;
 
 public class OrderDetailsActivity extends AppCompatActivity {
 
     private OrderDetailScreenBinding binding;
     private static final String TAG = "OrderDetailsActivity";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
