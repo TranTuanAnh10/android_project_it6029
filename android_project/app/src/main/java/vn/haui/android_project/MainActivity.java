@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseUserManager userManager = new FirebaseUserManager();
         userManager.getUserByUid(currentUser.getUid(), userData -> {
-            String role = (String) userData.getOrDefault("role", "customer");
+            String role = (String) userData.getOrDefault("role", "user");
             switch (role.toLowerCase()) {
                 case "admin":
                     startActivity(new Intent(MainActivity.this, AdminScreenActivity.class));
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, EmployeeScreenActivity.class));
                     finish();
                     break;
-                case "customer":
+                case "user":
                 default:
                     // SỬA Ở ĐÂY: Truyền currentUser vào
                     setupCustomerUI(currentUser);
