@@ -613,8 +613,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("delivery", getDeliveryDataForDatabase());
         // --- Vị trí shipper ---
         Map<String, Object> shipperLocation = new HashMap<>();
-        shipperLocation.put("lat", pickupLat);
-        shipperLocation.put("lng", pickupLon);
+        shipperLocation.put("lat", 0);
+        shipperLocation.put("lng", 0);
 
         // --- Vị trí cửa hàng ---
         Map<String, Object> storeLocation = new HashMap<>();

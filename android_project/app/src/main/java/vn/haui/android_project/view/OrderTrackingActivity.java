@@ -301,23 +301,24 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 rvOrderItems.setAdapter(orderItemsAdapter);
                 // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
-
+                DataSnapshot storSnap = snapshot.child("store");
+                Double storeLat = storSnap.child("lat").getValue(Double.class);
+                Double storeLon = storSnap.child("lng").getValue(Double.class);
+                DataSnapshot receiverSnap = snapshot.child("receiver");
+                Double receiverLat = receiverSnap.child("lat").getValue(Double.class);
+                Double receiverLon = receiverSnap.child("lng").getValue(Double.class);
                 // ✅ Lấy vị trí shipper realtime
                 DataSnapshot shipperSnap = snapshot.child("shipper");
-                if (shipperSnap.exists()) {
-                    Double lat = shipperSnap.child("lat").getValue(Double.class);
-                    Double lng = shipperSnap.child("lng").getValue(Double.class);
-
-                    if (lat != null && lng != null) {
-                        // --- Gửi JS sang WebView ---
-                        runOnUiThread(() -> {
-                            String js = String.format(Locale.US,
-                                    "updateLocation(%f, %f, '%s')",
-                                    lat, lng, status != null ? status : "");
-                            webViewMap.evaluateJavascript(js, null);
-                        });
-                    }
-                }
+                Double currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
+                Double currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
+                // --- Gửi JS sang WebView ---
+                String jsCall = String.format(Locale.US,
+                        "initOrUpdateMap(%f, %f, %f, %f, %f, %f, '%s')",
+                        currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
+                        storeLat, storeLon,                   // 3, 4: Vị trí cửa hàng (Tĩnh)
+                        receiverLat, receiverLon,             // 5, 6: Vị trí người nhận (Tĩnh)
+                        status);                       // 7: Trạng thái
+                webViewMap.evaluateJavascript(jsCall, null);
 
             }
 
