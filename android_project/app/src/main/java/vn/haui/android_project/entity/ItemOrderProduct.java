@@ -4,7 +4,7 @@ public class ItemOrderProduct {
     private String name;
     private String details;
     private int quantity;
-    private double unitPrice; // Giá cho 1 đơn vị
+    private double unitPrice;
     private String image;
     private String idItem;
     private double totalPrice;

@@ -8,7 +8,17 @@ public class ProductItem {
     private double Price;
     private double rate;
 
+    private String status; // "Còn hàng" hoặc "Hết hàng"
+
     private String id;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public ProductItem() {
 

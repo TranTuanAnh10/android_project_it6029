@@ -2,13 +2,15 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Location Selector Map</title>
+    <title>Realtime Delivery Map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <style>
+        /* CSS cho Map */
         html, body, #map {
             height: 100%;
             width: 100%;
@@ -19,63 +21,247 @@
             position: absolute;
             top: 0; left: 0;
             right: 0; bottom: 0;
-            z-index: 1; /* Đảm bảo map ở dưới pin */
         }
-        /* --- Pin cố định ở giữa màn hình --- */
-        .map-pin {
+
+        /* CSS cho Loading Spinner đã được di chuyển sang góc trên bên phải */
+        #loader {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            /* Căn chính giữa trục X, và dịch lên 100% chiều cao để đầu pin nằm ở tâm */
-            transform: translate(-50%, -100%);
-            z-index: 1000; /* Đảm bảo pin luôn ở trên map */
-            pointer-events: none; /* Không chặn tương tác với map */
+            top: 20px; /* Vị trí cách mép trên 20px */
+            right: 20px; /* Vị trí cách mép phải 20px */
+            z-index: 1000; /* Đảm bảo nằm trên map */
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #FF3B30; /* Màu đỏ nổi bật */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 2px;
         }
-        .map-pin img {
-            /* Bạn nên sử dụng hình ảnh Pin màu đỏ của riêng mình */
-            width: 35px;
-            height: 35px;
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Đã loại bỏ translate trong keyframes vì loader không còn ở giữa màn hình */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 <div id="map"></div>
-
-<div class="map-pin">
-    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Location Pin">
-</div>
+<div id="loader" class="hidden"></div>
 
 <script>
-    // --- 1. Khởi tạo map ---
-    var map = L.map('map', {
-        zoomControl: false,
-        attributionControl: false
-    }).setView([32.986, -96.756], 15); // Tọa độ mẫu: Richardson, TX (gần như ảnh)
+    // --- Khởi tạo các biến toàn cục ---
+    var map = null;
+    var shipperMarker = null;
+    var storeMarker = null;
+    var receiverMarker = null;
+    var routeLine = null;
+    var locations = { store: null, receiver: null };
+    var currentStatus = "prepared";
 
-    // --- 2. Nền map ---
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-        attribution: '&copy; CartoDB & OpenStreetMap'
-    }).addTo(map);
+    // --- Hàm hiển thị/ẩn Loading Spinner ---
+    function showLoader() {
+        document.getElementById('loader').classList.remove('hidden');
+    }
 
-    // --- 3. Hàm gửi toạ độ trung tâm về Android ---
-    function sendCenterToAndroid() {
-        const center = map.getCenter();
-        const lat = center.lat;
-        const lng = center.lng;
+    function hideLoader() {
+        document.getElementById('loader').classList.add('hidden');
+    }
 
-        // Gửi toạ độ về giao diện Java (Android)
-        // Hàm onLocationChanged sẽ được định nghĩa trong mã Java
-        if (window.Android && window.Android.onLocationChanged) {
-            window.Android.onLocationChanged(lat, lng);
+    // --- Custom icons (GIỮ NGUYÊN) ---
+    var shipIcon = L.icon({
+        iconUrl: 'icons/Pin_ship.png',
+        iconSize: [32, 36],
+        iconAnchor: [16, 36],
+    });
+
+    var storeIcon = L.icon({
+        iconUrl: 'icons/Pin_shop.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+    });
+
+    var userIcon = L.icon({
+        iconUrl: 'icons/Pin_user.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+    });
+
+    // --- Hàm vẽ tuyến đường ---
+    function drawRoute(lat1, lon1, lat2, lon2) {
+        if (!map) return;
+
+        // Kiểm tra khoảng cách tối thiểu trước khi gọi API
+        if (Math.abs(lat1 - lat2) < 0.00001 && Math.abs(lon1 - lon2) < 0.00001) {
+            console.log("Cảnh báo: Điểm bắt đầu và kết thúc quá gần, không vẽ tuyến đường.");
+            if (routeLine) map.removeLayer(routeLine);
+            map.flyTo([lat2, lon2], map.getZoom() > 16 ? map.getZoom() : 16, { duration: 0.5 });
+            return;
+        }
+
+        var url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
+
+        // 1. Hiển thị loader trước khi gọi API
+        showLoader();
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                // 2. Ẩn loader khi thành công
+                hideLoader();
+
+                if (data.routes && data.routes.length > 0) {
+                    var coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+                    // Đảm bảo nối đến điểm đích
+                    const last = coords[coords.length - 1];
+                    if (last[0] !== lat2 || last[1] !== lon2) {
+                        coords.push([lat2, lon2]);
+                    }
+
+                    // Xoá đường cũ
+                    if (routeLine) map.removeLayer(routeLine);
+
+                    // Vẽ mới màu đỏ
+                    routeLine = L.polyline(coords, { color: '#FF3B30', weight: 5 }).addTo(map);
+
+                    // Fit toàn tuyến
+                    map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                }
+            })
+            .catch(err => {
+                // 3. Ẩn loader khi thất bại
+                hideLoader();
+                console.error("Lỗi khi lấy tuyến đường:", err);
+            });
+    }
+
+    /**
+     * HÀM CHÍNH: KHỞI TẠO MAP/MARKER LẦN ĐẦU HOẶC CẬP NHẬT VỊ TRÍ SHIPPER
+     */
+    function initOrUpdateMap(shipperLat, shipperLon, storeLat, storeLon, receiverLat, receiverLon, status) {
+        const storePos = [storeLat, storeLon];
+        const receiverPos = [receiverLat, receiverLon];
+        currentStatus = status;
+
+        // Xác định xem có dữ liệu shipper hợp lệ hay không.
+        const hasShipperData = (shipperLat !== 0 || shipperLon !== 0) && isFinite(shipperLat) && isFinite(shipperLon);
+
+        // --- BƯỚC 1: KHỞI TẠO MAP VÀ MARKER TĨNH (CHỈ CHẠY LẦN ĐẦU) ---
+        if (!map) {
+            // Lưu tọa độ tĩnh
+            locations.store = storePos;
+            locations.receiver = receiverPos;
+
+            // Vị trí trung tâm ban đầu: nếu có shipper thì trung tâm là shipper, ngược lại là cửa hàng
+            const initialCenter = hasShipperData ? [shipperLat, shipperLon] : storePos;
+
+            // 1. Khởi tạo map
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView(initialCenter, 15);
+
+            // 2. Nền map
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; CartoDB & OpenStreetMap'
+            }).addTo(map);
+
+            // 3. Tạo Marker tĩnh (Store và Receiver)
+            storeMarker = L.marker(locations.store, { icon: storeIcon, title: "Cửa hàng" }).addTo(map);
+            receiverMarker = L.marker(locations.receiver, { icon: userIcon, title: "Người nhận" }).addTo(map);
+
+            // 4. Tạo Marker Shipper (Ẩn đi nếu chưa có data)
+            shipperMarker = L.marker([0, 0], {
+                icon: shipIcon,
+                title: "Shipper",
+                opacity: hasShipperData ? 1 : 0
+            }).addTo(map);
+        }
+
+        // --- BƯỚC 2: CẬP NHẬT VỊ TRÍ VÀ TUYẾN ĐƯỜNG (CHẠY MỌI LÚC) ---
+
+        if (hasShipperData) {
+            // --- KỊCH BẢN A: CÓ DATA SHIPPER ---
+            const shipperPos = [shipperLat, shipperLon];
+
+            // 1. Cập nhật vị trí và hiển thị Shipper
+            shipperMarker.setLatLng(shipperPos);
+            shipperMarker.setOpacity(1); // Đảm bảo Shipper hiển thị
+
+            // 2. Cập nhật tuyến đường dựa trên trạng thái (Shipper -> Target)
+            switch (status) {
+                case "prepared":
+                case "pickingUp":
+                    // 🚚 Từ shipper đến cửa hàng
+                    const isAtStore = Math.abs(shipperLat - locations.store[0]) < 0.00001 &&
+                                     Math.abs(shipperLon - locations.store[1]) < 0.00001;
+
+                    if (!isAtStore) {
+                        drawRoute(shipperLat, shipperLon, locations.store[0], locations.store[1]);
+                    } else {
+                        // Shipper đã đến cửa hàng
+                        if (routeLine) map.removeLayer(routeLine);
+                        hideLoader(); // Đảm bảo ẩn loader nếu không gọi API
+                        map.flyTo(locations.store, map.getZoom() > 16 ? map.getZoom() : 16, { duration: 0.5 });
+                    }
+                    break;
+
+                case "delivering":
+                    // 🚚 Từ shipper đến người nhận
+                    const isAtReceiver = Math.abs(shipperLat - locations.receiver[0]) < 0.00001 &&
+                                         Math.abs(shipperLon - locations.receiver[1]) < 0.00001;
+
+                    if (!isAtReceiver) {
+                        drawRoute(shipperLat, shipperLon, locations.receiver[0], locations.receiver[1]);
+                    } else {
+                        // Shipper đã đến người nhận
+                        if (routeLine) map.removeLayer(routeLine);
+                        hideLoader(); // Đảm bảo ẩn loader nếu không gọi API
+                        map.flyTo(locations.receiver, 16, { duration: 0.5 });
+                    }
+                    break;
+
+                case "finish":
+                    if (routeLine) map.removeLayer(routeLine);
+                    hideLoader(); // Đảm bảo ẩn loader khi kết thúc
+                    map.flyTo(locations.receiver, 16, { duration: 0.8 });
+                    shipperMarker.setOpacity(0); // Ẩn Shipper khi giao xong
+                    return;
+            }
+
+            // 3. Zoom mượt đến shipper (nếu không phải finish)
+            if (status !== "finish") {
+                 map.flyTo(shipperPos, map.getZoom() > 15 ? map.getZoom() : 15, { duration: 0.5 });
+            }
+
+        } else {
+            // --- KỊCH BẢN B: KHÔNG CÓ DATA SHIPPER (0, 0) ---
+
+            // 1. Ẩn Shipper Marker
+            if (shipperMarker) {
+                shipperMarker.setOpacity(0);
+            }
+
+            // 2. Vẽ tuyến đường cố định Cửa hàng -> Người nhận
+            if (status !== "finish") {
+                drawRoute(locations.store[0], locations.store[1], locations.receiver[0], locations.receiver[1]);
+            } else {
+                 // Nếu finish mà không có data shipper (trường hợp hiếm) thì chỉ zoom vào người nhận
+                 if (routeLine) map.removeLayer(routeLine);
+                 hideLoader(); // Đảm bảo ẩn loader khi kết thúc
+                 map.flyTo(locations.receiver, 16, { duration: 0.8 });
+            }
         }
     }
 
-    // Lắng nghe sự kiện khi map ngừng di chuyển (sau khi người dùng kéo)
-    map.on('moveend', sendCenterToAndroid);
-
-    // Gửi tọa độ ban đầu sau khi map tải xong
-    map.on('load', sendCenterToAndroid);
-
+    window.initOrUpdateMap = initOrUpdateMap;
 </script>
 </body>
 </html>

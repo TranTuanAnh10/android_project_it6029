@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.UserManagementFragment">
+    android:orientation="vertical"
+    android:background="#F5F5F5"
+    tools:context=".view.">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- Thanh tìm kiếm người dùng -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_view_users"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@drawable/search_view_bg"
+        app:iconifiedByDefault="false"
+        app:queryHint="Tìm kiếm theo tên hoặc email..." />
+
+    <!-- Thanh ngăn cách (tùy chọn) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <!-- Danh sách người dùng -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_users"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:padding="8dp"
+        tools:listitem="@layout/item_user" />
 
-</FrameLayout>
+</LinearLayout>

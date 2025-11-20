@@ -75,7 +75,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="23dp"
-                android:text="Estimate arrival:"
+                android:text="@string/estimate"
                 android:textColor="#0075B8"
                 android:textSize="14sp" />
 
@@ -84,7 +84,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:text="10:10"
                 android:textColor="#343434"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -245,8 +244,6 @@
                 tools:ignore="ContentDescription" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Divider -->
         <View
             android:id="@+id/divider_2"
             android:layout_width="match_parent"
@@ -254,36 +251,34 @@
             android:layout_marginTop="16dp"
             android:background="#E0E0E0"
             app:layout_constraintTop_toBottomOf="@+id/layout_driver_details" />
-
-        <!-- ==================================== -->
-        <!-- 5. ORDER INFO / ITEM LIST -->
-        <!-- ==================================== -->
         <TextView
             android:id="@+id/tv_order_info_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Order info"
+            android:text="@string/order_info"
             android:textColor="#333333"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/divider_2" />
 
-        <!-- Restaurant Name & Arrow -->
-        <LinearLayout
-            android:id="@+id/layout_order"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_order_items"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@+id/tv_order_info_title">
+            android:nestedScrollingEnabled="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_order_info_title"
+            tools:itemCount="3"
+            tools:layout_height="200dp"
+            tools:listitem="@layout/item_order_detail" />
 
-        </LinearLayout>
         <!-- Note to restaurant -->
         <TextView
             android:id="@+id/tv_note_title"
@@ -291,12 +286,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
-            android:text="Note to restaurant"
+            android:text="@string/note"
             android:textColor="#333333"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/layout_order" />
+            app:layout_constraintTop_toBottomOf="@+id/rv_order_items" />
 
         <TextView
             android:id="@+id/tv_note_content"
@@ -307,7 +302,6 @@
             android:layout_marginEnd="16dp"
             android:background="@drawable/rounded_edittext_bg"
             android:padding="12dp"
-            android:text="No black pepper, please"
             android:textColor="#333333"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -334,7 +328,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Delivery fee"
+            android:text="@string/delivery_fee"
             android:textColor="#6D5758"
             android:textSize="16sp"
             android:textStyle="normal"
@@ -345,7 +339,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="$0"
             android:textColor="#C34753"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -358,7 +351,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="Discount"
+            android:text="@string/discount"
             android:textColor="#6D5758"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -368,7 +361,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="- $15"
             android:textStyle="normal"
             android:textColor="#C34753"
             android:textSize="16sp"
@@ -382,7 +374,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Total"
+            android:text="@string/total"
             android:textColor="#6D5758"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -393,7 +385,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:text="$115"
             android:textColor="#C34753"
             android:textSize="20sp"
             android:textStyle="bold"
