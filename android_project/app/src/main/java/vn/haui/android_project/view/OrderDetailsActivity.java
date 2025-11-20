@@ -42,6 +42,7 @@ import vn.haui.android_project.databinding.OrderDetailScreenBinding;
 import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+import vn.haui.android_project.entity.Order;
 
 public class OrderDetailsActivity extends AppCompatActivity {
 
@@ -59,6 +60,8 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private TextView tvStatusTag, tvStatusDescTag;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
     private Button btnCancelOrder;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

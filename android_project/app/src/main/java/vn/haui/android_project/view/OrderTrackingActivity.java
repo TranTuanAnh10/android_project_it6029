@@ -3,11 +3,14 @@ package vn.haui.android_project.view;
 import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import androidx.fragment.app.Fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -35,16 +38,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import vn.haui.android_project.R;
+
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+
 
 public class OrderTrackingActivity extends AppCompatActivity {
 
@@ -54,7 +62,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private DatabaseReference orderRef;
 
     private BottomSheetBehavior<View> bottomSheetBehavior;
-    private LinearLayout layoutSummary, layoutDetail;
+    private LinearLayout layoutSummary, layoutDetail, layoutItem;
     private View mapContainer;
     private WebView webViewMap;
 
@@ -79,6 +87,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private SpringAnimation alphaSpringSummary, alphaSpringDetail;
     private SpringAnimation scaleXSpringMap, scaleYSpringMap, alphaSpringMap;
     private SpringAnimation translateSummaryY, translateDetailY;
+
     private String orderId;
 
     private RecyclerView rvOrderItems;
@@ -94,6 +103,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
         layoutSummary = findViewById(R.id.layoutSummary);
         layoutDetail = findViewById(R.id.layoutDetail);
         mapContainer = findViewById(R.id.mapContainer);
+
         rvOrderItems = findViewById(R.id.rv_order_items);
         mappingViewMap();
         mappingLayoutSummary();
@@ -109,6 +119,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
         if (intent != null) {
             orderId = intent.getStringExtra("ORDER_ID");
+            Log.d("TAG", "onCreate: " + orderId);
+            // Lấy orderId từ Intent")
         }
         // 3️⃣ Khởi tạo Firebase
         FirebaseApp.initializeApp(this);
@@ -238,6 +250,65 @@ public class OrderTrackingActivity extends AppCompatActivity {
         anim.setSpring(spring);
         return anim;
     }
+
+    private void displayOrderDetails() {
+        // ✅ Cập nhật thông tin tổng quan
+        if (tvEstimateArrival != null) tvEstimateArrival.setText("Estimate arrival: 10:10");
+        if (tvOrderId != null) tvOrderId.setText("Order ID: CA321457");
+        if (tvStatusTag != null) tvStatusTag.setText("Driver is picking up your Order.");
+
+        // ✅ Cập nhật thông tin tài xế
+        if (tvDriverName != null) tvDriverName.setText("Adam West");
+        if (tvLicensePlate != null) tvLicensePlate.setText("34 LD 5225");
+
+        // ✅ Cập nhật thông tin tài chính
+        if (tvDeliveryFeeValue != null) tvDeliveryFeeValue.setText("$0");
+        if (tvDiscountValue != null) tvDiscountValue.setText("-$15");
+        if (tvTotalValue != null) tvTotalValue.setText("$115");
+    }
+
+
+
+    /**
+     * Ghi dữ liệu mẫu (3 vị trí: shipper, cửa hàng, người nhận)
+     */
+    private void writeSampleOrder() {
+        Map<String, Object> orderData = new HashMap<>();
+        orderData.put("orderId", "CA321457");
+        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
+        orderData.put("driver", "Adam West");
+        orderData.put("licensePlate", "34 LD 5225");
+        orderData.put("deliveryFee", "$0");
+        orderData.put("discount", "-$15");
+        orderData.put("total", "$115");
+
+        // --- Vị trí shipper ---
+        Map<String, Object> shipperLocation = new HashMap<>();
+        shipperLocation.put("lat", 21.0285);
+        shipperLocation.put("lng", 105.8542);
+
+        // --- Vị trí cửa hàng ---
+        Map<String, Object> storeLocation = new HashMap<>();
+        storeLocation.put("lat", 21.031);
+        storeLocation.put("lng", 105.852);
+
+        // --- Vị trí người nhận ---
+        Map<String, Object> receiverLocation = new HashMap<>();
+        receiverLocation.put("lat", 21.035);
+        receiverLocation.put("lng", 105.85);
+
+        orderData.put("shipper", shipperLocation);
+        orderData.put("store", storeLocation);
+        orderData.put("receiver", receiverLocation);
+
+        orderRef.setValue(orderData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
+    }
+
+
+
+
 
     /**
      * Lắng nghe realtime thay đổi đơn hàng (Firebase)
