@@ -50,6 +50,7 @@ import vn.haui.android_project.R;
 
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 
@@ -77,9 +78,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
     // =============================
 
     // View con trong layoutDetail
-    private TextView tvEstimateArrivalSummary, tvOrderIdSummary, tvStatusTagSummary, tvStatusDescTagSummary;
+    private TextView tvEstimateArrivalSummary, tvOrderIdSummary, tvStatusTagSummary, tvStatusDescTagSummary, tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private TextView tvDriverNameSummary, tvLicensePlateSummary, tvTotalValueSummary;
-    private ImageView stepPreparedSummary, stepPickingUpSummary, stepDeliveringSummary, stepFinishSummary;
+    private ImageView stepPreparedSummary, stepPickingUpSummary, stepDeliveringSummary, stepFinishSummary, imgLocationIcon;
     private View stepPickingUpSummaryLine, stepDeliveringSummaryLine, stepFinishSummaryLine;
     // =============================
 
@@ -207,6 +208,11 @@ public class OrderTrackingActivity extends AppCompatActivity {
         btnCancelOrder = layoutDetail.findViewById(R.id.btn_cancel_order);
         btnConfirmOrder = layoutDetail.findViewById(R.id.btn_confirm_order);
 
+        tvLocationTitle = layoutDetail.findViewById(R.id.tv_location_title);
+        tvAddressDetail = layoutDetail.findViewById(R.id.tv_address_detail);
+        tvRecipientContact = layoutDetail.findViewById(R.id.tv_recipient_contact);
+        tvRecipientPhone = layoutDetail.findViewById(R.id.tv_recipient_phone);
+        imgLocationIcon = layoutDetail.findViewById(R.id.img_location_icon);
 
         //
         tvEstimateArrivalSummary = layoutSummary.findViewById(R.id.tv_estimate_time_summary);
@@ -251,64 +257,6 @@ public class OrderTrackingActivity extends AppCompatActivity {
         return anim;
     }
 
-    private void displayOrderDetails() {
-        // ✅ Cập nhật thông tin tổng quan
-        if (tvEstimateArrival != null) tvEstimateArrival.setText("Estimate arrival: 10:10");
-        if (tvOrderId != null) tvOrderId.setText("Order ID: CA321457");
-        if (tvStatusTag != null) tvStatusTag.setText("Driver is picking up your Order.");
-
-        // ✅ Cập nhật thông tin tài xế
-        if (tvDriverName != null) tvDriverName.setText("Adam West");
-        if (tvLicensePlate != null) tvLicensePlate.setText("34 LD 5225");
-
-        // ✅ Cập nhật thông tin tài chính
-        if (tvDeliveryFeeValue != null) tvDeliveryFeeValue.setText("$0");
-        if (tvDiscountValue != null) tvDiscountValue.setText("-$15");
-        if (tvTotalValue != null) tvTotalValue.setText("$115");
-    }
-
-
-
-    /**
-     * Ghi dữ liệu mẫu (3 vị trí: shipper, cửa hàng, người nhận)
-     */
-    private void writeSampleOrder() {
-        Map<String, Object> orderData = new HashMap<>();
-        orderData.put("orderId", "CA321457");
-        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
-        orderData.put("driver", "Adam West");
-        orderData.put("licensePlate", "34 LD 5225");
-        orderData.put("deliveryFee", "$0");
-        orderData.put("discount", "-$15");
-        orderData.put("total", "$115");
-
-        // --- Vị trí shipper ---
-        Map<String, Object> shipperLocation = new HashMap<>();
-        shipperLocation.put("lat", 21.0285);
-        shipperLocation.put("lng", 105.8542);
-
-        // --- Vị trí cửa hàng ---
-        Map<String, Object> storeLocation = new HashMap<>();
-        storeLocation.put("lat", 21.031);
-        storeLocation.put("lng", 105.852);
-
-        // --- Vị trí người nhận ---
-        Map<String, Object> receiverLocation = new HashMap<>();
-        receiverLocation.put("lat", 21.035);
-        receiverLocation.put("lng", 105.85);
-
-        orderData.put("shipper", shipperLocation);
-        orderData.put("store", storeLocation);
-        orderData.put("receiver", receiverLocation);
-
-        orderRef.setValue(orderData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
-    }
-
-
-
-
 
     /**
      * Lắng nghe realtime thay đổi đơn hàng (Firebase)
@@ -328,6 +276,11 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String fee = String.valueOf(snapshot.child("deliveryFee").getValue(Double.class));
                 String discount = String.valueOf(snapshot.child("discount").getValue(Double.class));
                 String total = String.valueOf(snapshot.child("total").getValue(Double.class));
+                DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
+                if (addressUserSnapshot.exists()) {
+                    UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
+                    mappingLocation(fetchedUserLocation);
+                }
                 DataSnapshot productListSnapshot = snapshot.child("productList");
                 GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {
                 };
@@ -483,5 +436,20 @@ public class OrderTrackingActivity extends AppCompatActivity {
 // Load map.html trong assets
         webViewMap.loadUrl("file:///android_asset/map.html");
 
+    }
+
+
+    private void mappingLocation(UserLocationEntity defaultAddress) {
+        if (tvLocationTitle != null) tvLocationTitle.setText(defaultAddress.getLocationType());
+        if (tvAddressDetail != null) tvAddressDetail.setText(defaultAddress.getAddress());
+        if (tvRecipientContact != null) tvRecipientContact.setText(defaultAddress.getPhoneNumber());
+        if (tvRecipientPhone != null) tvRecipientPhone.setText(defaultAddress.getRecipientName());
+        if ("Home".equals(defaultAddress.getLocationType())) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
+        } else if ("Work".equals(defaultAddress.getLocationType())) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
+        } else {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker);
+        }
     }
 }

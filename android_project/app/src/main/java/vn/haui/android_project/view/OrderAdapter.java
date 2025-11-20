@@ -17,6 +17,7 @@ import java.util.List;
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.Order;
+import vn.haui.android_project.enums.MyConstant;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
 
@@ -63,11 +64,22 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         );
         holder.imgStore.setImageResource(drawableId);
         holder.itemView.setOnClickListener(v -> {
+            if (MyConstant.DELIVERING.equals(order.getStatus())) {
+                    Intent intent1 = new Intent(holder.itemView.getContext(), OrderTrackingActivity.class);
+                    intent1.putExtra("ORDER_ID", order.getOrderId());
+                    intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    holder.itemView.getContext().startActivity(intent1);;
+            }else {
+                Intent intent1 = new Intent(holder.itemView.getContext(), OrderDetailsActivity.class);
+                intent1.putExtra("ORDER_ID", order.getOrderId());
+                intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                holder.itemView.getContext().startActivity(intent1);;
+            }
             // Xử lý khi item được nhấn
-            Intent intentOrderTrackAc = new Intent(holder.itemView.getContext(), OrderTrackingActivity.class);
-            intentOrderTrackAc.putExtra("ORDER_ID", order.getOrderId());
-
-            holder.itemView.getContext().startActivity(intentOrderTrackAc);
+//            Intent intentOrderTrackAc = new Intent(holder.itemView.getContext(), OrderTrackingActivity.class);
+//            intentOrderTrackAc.putExtra("ORDER_ID", order.getOrderId());
+//
+//            holder.itemView.getContext().startActivity(intentOrderTrackAc);
             //", "Hello from Activity A!");
         });
     }

@@ -1,8 +1,6 @@
 package vn.haui.android_project.view;
 
-import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -18,11 +16,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -34,15 +32,14 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.databinding.OrderDetailScreenBinding;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
-import vn.haui.android_project.entity.Order;
 
 public class OrderDetailsActivity extends AppCompatActivity {
 
@@ -56,11 +53,12 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private List<ItemOrderProduct> productList = new ArrayList<>();
     private OrderItemsAdapter orderItemsAdapter;
     private RecyclerView rvOrderItems;
-    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish;
-    private TextView tvStatusTag, tvStatusDescTag;
+    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, imgLocationIcon;
+    private TextView tvStatusTag, tvStatusDescTag, tvDriverInfoTitle, tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
     private Button btnCancelOrder;
-
+    private ConstraintLayout layoutDriverDetails;
+    private View divider1;
 
 
     @Override
@@ -100,10 +98,19 @@ public class OrderDetailsActivity extends AppCompatActivity {
         stepPickingUpLine = findViewById(R.id.step_pickingUp_line);
         stepDeliveringLine = findViewById(R.id.step_delivering_line);
         stepFinishLine = findViewById(R.id.step_finish_line);
+        tvDriverInfoTitle = findViewById(R.id.tv_driver_info_title);
+        layoutDriverDetails = findViewById(R.id.layout_driver_details);
+        divider1 = findViewById(R.id.divider_1);
 
-
+        tvLocationTitle = findViewById(R.id.tv_location_title);
+        tvAddressDetail = findViewById(R.id.tv_address_detail);
+        tvRecipientContact = findViewById(R.id.tv_recipient_contact);
+        tvRecipientPhone = findViewById(R.id.tv_recipient_phone);
+        imgLocationIcon = findViewById(R.id.img_location_icon);
     }
+
     private boolean isTrackingActivityLaunched = false;
+
     private void listenOrderRealtime() {
         orderRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -125,6 +132,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     }
                 } else {
                     isTrackingActivityLaunched = false;
+                    tvDriverInfoTitle.setVisibility(GONE);
+                    layoutDriverDetails.setVisibility(GONE);
+                    divider1.setVisibility(GONE);
                 }
                 String driver = snapshot.child("driver").getValue(String.class);
                 String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
@@ -143,6 +153,11 @@ public class OrderDetailsActivity extends AppCompatActivity {
                         productList.addAll(fetchedList);
 
                     }
+                }
+                DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
+                if (addressUserSnapshot.exists()) {
+                    UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
+                    mappingLocation(fetchedUserLocation);
                 }
                 orderItemsAdapter.notifyDataSetChanged();
                 // ✅ Cập nhật UI đơn hàng
@@ -242,15 +257,18 @@ public class OrderDetailsActivity extends AppCompatActivity {
         });
     }
 
-    private void updateTimelineStatus(boolean isOrderReady) {
-        if (isOrderReady) {
-            // Thay đổi icon thành một icon khác, ví dụ: một dấu tick màu xanh
-//            binding.itemTimelinePrepared.timelinePreparedIcon.setImageResource(R.drawable.ic_prepared_order);
+    private void mappingLocation(UserLocationEntity defaultAddress) {
+        if (tvLocationTitle != null) tvLocationTitle.setText(defaultAddress.getLocationType());
+        if (tvAddressDetail != null) tvAddressDetail.setText(defaultAddress.getAddress());
+        if (tvRecipientContact != null) tvRecipientContact.setText(defaultAddress.getPhoneNumber());
+        if (tvRecipientPhone != null) tvRecipientPhone.setText(defaultAddress.getRecipientName());
+        if ("Home".equals(defaultAddress.getLocationType())) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
+        } else if ("Work".equals(defaultAddress.getLocationType())) {
+            imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
         } else {
-            // Giữ nguyên hoặc đặt một icon mặc định
-//            binding.itemTimelinePrepared.timelinePreparedIcon.setImageResource(R.drawable.ic_prepared_order_active);
+            imgLocationIcon.setImageResource(R.drawable.ic_marker);
         }
-//         binding.timelinePreparedLayout.timelinePreparedLine.setBackgroundColor(getColor(R.color.some_color));
     }
 
     private void showConfirmationDialog(String message) {
