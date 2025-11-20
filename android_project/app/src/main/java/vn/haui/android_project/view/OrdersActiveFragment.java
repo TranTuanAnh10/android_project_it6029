@@ -99,12 +99,9 @@ public class OrdersActiveFragment extends Fragment {
 
         orderRef.get().addOnSuccessListener(snapshot -> {
 
-
-
             for (DataSnapshot child : snapshot.getChildren()) {
                 Order order = child.getValue(Order.class);
-
-                if (order != null && !Objects.equals(order.getStatus(), MyConstant.FINISH)) {
+                if (order != null && !Objects.equals(order.getStatus(), MyConstant.FINISH) && userId.equals(order.getUid())) {
                     orders.add(order);
                 }
             }
@@ -129,28 +126,10 @@ public class OrdersActiveFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView.setVisibility(GONE);
         progressBar.setVisibility(VISIBLE);
+        // Lấy dữ liệu
         loadActiveOrders(this.orders);
-        // 🧩 Dữ liệu mẫu
-//        List<Order> orders = new ArrayList<>();
-//        orders.add(new Order(
-//                "The Daily Grind Hub",
-//                "1 item",
-//                "Estimate arrival: 10:25",
-//                "Order placed",
-//                "$20",
-//                R.drawable.image_pizza
-//        ));
-//        orders.add(new Order(
-//                "CFK",
-//                "1 item",
-//                "Estimate arrival: 10:25",
-//                "Order placed",
-//                "$20",
-//                R.drawable.img_pizza_ga_nuong_bbq
-//        ));
-        Log.d("NUMBERS_ORDER", "Numbers of orders: " + new Gson().toJson(orders.size()));
-        // Gắn adapter
 
+        Log.d("NUMBERS_ORDER", "Numbers of orders: " + new Gson().toJson(orders.size()));
         return view;
     }
 }

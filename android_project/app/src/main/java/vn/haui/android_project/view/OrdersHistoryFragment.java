@@ -95,7 +95,7 @@ public class OrdersHistoryFragment extends Fragment {
             for (DataSnapshot child : snapshot.getChildren()) {
                 Order order = child.getValue(Order.class);
 
-                if (order != null && Objects.equals(order.getStatus(), MyConstant.FINISH)) {
+                if (order != null && Objects.equals(order.getStatus(), MyConstant.FINISH)&& userId.equals(order.getUid())) {
                     orders.add(order);
                 }
             }
@@ -134,27 +134,6 @@ public class OrdersHistoryFragment extends Fragment {
         loadActiveOrders(this.orders);
         recyclerView.setVisibility(GONE);
         progressBar.setVisibility(VISIBLE);
-
-//        List<Order> orderList = List.of(
-//                new Order(
-//                        "The Daily Grind Hub",
-//                        "1 item",
-//                        "Estimate arrival: 10:25",
-//                        "Order placed",
-//                        "$20",
-//                        R.drawable.image_pizza
-//                ),new Order(
-//                        "Bugger Kings",
-//                        "1 item",
-//                        "Estimate arrival: 10:25",
-//                        "Order placed",
-//                        "$10",
-//                        R.drawable.banh_mi_op_la
-//                )
-//        );
-        // Gắn adapter
-//        OrderAdapter adapter = new OrderAdapter(orderList);
-//        recyclerView.setAdapter(adapter);
 
         return view;
 

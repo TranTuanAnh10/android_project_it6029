@@ -1,5 +1,7 @@
 package vn.haui.android_project.entity;
 
+import com.google.firebase.database.PropertyName;
+
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +29,8 @@ public class Order {
 
     private PaymentCard paymentCard;
 
+    private String uid;
+
     public PaymentCard getPaymentCard() {
         return paymentCard;
     }
@@ -35,7 +39,7 @@ public class Order {
         this.paymentCard = paymentCard;
     }
 
-    public Order() {} // Firebase bắt buộc
+    public Order() {}
 
     // GETTER + SETTER
 
@@ -150,4 +154,13 @@ public class Order {
     public void setStore(Map<String, Object> store) {
         this.store = store;
     }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
 }
