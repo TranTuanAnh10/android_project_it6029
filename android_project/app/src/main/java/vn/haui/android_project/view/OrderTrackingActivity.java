@@ -372,25 +372,18 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 rvOrderItems.setAdapter(orderItemsAdapter);
                 // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
-                DataSnapshot storSnap = snapshot.child("store");
-                Double storeLat = storSnap.child("lat").getValue(Double.class);
-                Double storeLon = storSnap.child("lng").getValue(Double.class);
                 DataSnapshot receiverSnap = snapshot.child("receiver");
                 Double receiverLat = receiverSnap.child("lat").getValue(Double.class);
                 Double receiverLon = receiverSnap.child("lng").getValue(Double.class);
-                // ✅ Lấy vị trí shipper realtime
                 DataSnapshot shipperSnap = snapshot.child("shipper");
                 Double currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
                 Double currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
-                // --- Gửi JS sang WebView ---
                 String jsCall = String.format(Locale.US,
-                        "initOrUpdateMap(%f, %f, %f, %f, %f, %f, '%s')",
+                        "initOrUpdateMap(%f, %f, %f, %f, '%s')",
                         currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
-                        storeLat, storeLon,                   // 3, 4: Vị trí cửa hàng (Tĩnh)
-                        receiverLat, receiverLon,             // 5, 6: Vị trí người nhận (Tĩnh)
-                        status);                       // 7: Trạng thái
+                        receiverLat, receiverLon,             // 3, 4: Vị trí người nhận (Tĩnh)
+                        status);                              // 5: Trạng thái
                 webViewMap.evaluateJavascript(jsCall, null);
-
             }
 
             @Override
@@ -421,62 +414,66 @@ public class OrderTrackingActivity extends AppCompatActivity {
             mappingStep(status);
         });
     }
-
-
     private void mappingStep(String status) {
         if (status.equals(MyConstant.PREPARED)) {
-
-
-            stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
-            tvStatusTag.setText(ContextCompat.getString(this, R.string.prepared));
-            tvStatusDescTag.setText(ContextCompat.getString(this, R.string.preparedDesc));
-
-            stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
-            tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.prepared));
-            tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.preparedDesc));
-
-
+            mappingStepPrepared();
         } else if (status.equals(MyConstant.PICKINGUP)) {
-            btnCancelOrder.setVisibility(GONE);
-
-            stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
-            stepPickingUpLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTag.setText(ContextCompat.getString(this, R.string.pickingUp));
-            tvStatusDescTag.setText(ContextCompat.getString(this, R.string.pickingUpDesc));
-
-            stepPickingUpSummary.setImageResource(R.drawable.ic_picking_up_order_active);
-            stepPickingUpSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.pickingUp));
-            tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.pickingUpDesc));
+            mappingStepPrepared();
+            mappingStepPickingUp();
         } else if (status.equals(MyConstant.DELIVERING)) {
-            btnCancelOrder.setVisibility(GONE);
-
-            stepDelivering.setImageResource(R.drawable.ic_delivering_order_active);
-            stepDeliveringLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTag.setText(ContextCompat.getString(this, R.string.delivering));
-            tvStatusDescTag.setText(ContextCompat.getString(this, R.string.deliveringDesc));
-
-
-            stepDeliveringSummary.setImageResource(R.drawable.ic_delivering_order_active);
-            stepDeliveringSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.delivering));
-            tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.deliveringDesc));
+            mappingStepPrepared();
+            mappingStepPickingUp();
+            mappingStepDelivering();
         } else if (status.equals(MyConstant.FINISH)) {
-            btnCancelOrder.setVisibility(GONE);
-            btnConfirmOrder.setVisibility(VISIBLE);
-
-            stepFinish.setImageResource(R.drawable.ic_finish_order_active);
-            stepFinishLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTag.setText(ContextCompat.getString(this, R.string.finish));
-            tvStatusDescTag.setText(ContextCompat.getString(this, R.string.finishDesc));
-
-            stepFinishSummary.setImageResource(R.drawable.ic_finish_order_active);
-            stepFinishSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
-            tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.finish));
-            tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.finishDesc));
+            mappingStepPrepared();
+            mappingStepPickingUp();
+            mappingStepDelivering();
+            mappingStepFinish();
         }
     }
+    private void mappingStepPrepared() {
+        stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
+        tvStatusTag.setText(ContextCompat.getString(this, R.string.prepared));
+        tvStatusDescTag.setText(ContextCompat.getString(this, R.string.preparedDesc));
+        stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
+        tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.prepared));
+        tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.preparedDesc));
+    }
+    private void mappingStepPickingUp() {
+        btnCancelOrder.setVisibility(GONE);
+        stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
+        stepPickingUpLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTag.setText(ContextCompat.getString(this, R.string.pickingUp));
+        tvStatusDescTag.setText(ContextCompat.getString(this, R.string.pickingUpDesc));
+        stepPickingUpSummary.setImageResource(R.drawable.ic_picking_up_order_active);
+        stepPickingUpSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.pickingUp));
+        tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.pickingUpDesc));
+    }
 
+    private void mappingStepDelivering() {
+        btnCancelOrder.setVisibility(GONE);
+        stepDelivering.setImageResource(R.drawable.ic_delivering_order_active);
+        stepDeliveringLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTag.setText(ContextCompat.getString(this, R.string.delivering));
+        tvStatusDescTag.setText(ContextCompat.getString(this, R.string.deliveringDesc));
+        stepDeliveringSummary.setImageResource(R.drawable.ic_delivering_order_active);
+        stepDeliveringSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.delivering));
+        tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.deliveringDesc));
+    }
+    private void mappingStepFinish() {
+        btnCancelOrder.setVisibility(GONE);
+        btnConfirmOrder.setVisibility(VISIBLE);
+        stepFinish.setImageResource(R.drawable.ic_finish_order_active);
+        stepFinishLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTag.setText(ContextCompat.getString(this, R.string.finish));
+        tvStatusDescTag.setText(ContextCompat.getString(this, R.string.finishDesc));
+        stepFinishSummary.setImageResource(R.drawable.ic_finish_order_active);
+        stepFinishSummaryLine.setBackgroundColor(Color.parseColor("#EB4D57"));
+        tvStatusTagSummary.setText(ContextCompat.getString(this, R.string.finish));
+        tvStatusDescTagSummary.setText(ContextCompat.getString(this, R.string.finishDesc));
+    }
     private void mappingViewMap() {
         webViewMap = findViewById(R.id.webViewMap);
         webViewMap.getSettings().setJavaScriptEnabled(true);

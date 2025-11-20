@@ -1,23 +1,31 @@
 package vn.haui.android_project.view;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast; // Thêm Toast để xử lý thông báo lỗi (nếu cần)
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.enums.MyConstant;
 
 public class OrderPlacedActivity extends AppCompatActivity {
 
@@ -25,7 +33,10 @@ public class OrderPlacedActivity extends AppCompatActivity {
     private TextView tvOrderId;
     private Button btnReturnHome, btnTrackOrder;
     FirebaseAuth mAuth;
-    private  String orderId;
+    private String orderId, status;
+    private DatabaseReference orderRef;
+    private FirebaseDatabase firebaseDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +56,10 @@ public class OrderPlacedActivity extends AppCompatActivity {
         }
         // Khởi tạo FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
-
+        FirebaseApp.initializeApp(this);
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
+        listenOrderRealtime();
 //        btnReturnHome.setOnClickListener(v -> {
 //            FirebaseUser user = mAuth.getCurrentUser();
 //            Intent intent = new Intent(OrderPlacedActivity.this, MainActivity.class);
@@ -59,12 +73,40 @@ public class OrderPlacedActivity extends AppCompatActivity {
 //        });
         if (btnTrackOrder != null) {
             btnTrackOrder.setOnClickListener(v -> {
-                Intent intent1 = new Intent(OrderPlacedActivity.this, OrderTrackingActivity.class);
-                intent1.putExtra("ORDER_ID", orderId);
-                startActivity(intent1);
-                finish();
+                if (MyConstant.PREPARED.equals(status) || MyConstant.PICKINGUP.equals(status)) {
+                    Intent intent1 = new Intent(OrderPlacedActivity.this, OrderDetailsActivity.class);
+                    intent1.putExtra("ORDER_ID", orderId);
+                    startActivity(intent1);
+                    finish();
+                } else if (MyConstant.DELIVERING.equals(status)) {
+                    Intent intent1 = new Intent(OrderPlacedActivity.this, OrderTrackingActivity.class);
+                    intent1.putExtra("ORDER_ID", orderId);
+                    startActivity(intent1);
+                    finish();
+                }
+//                else if (MyConstant.FINISH.equals(status)){
+//                    Intent intent1 = new Intent(OrderPlacedActivity.this, MainActivity.class);
+//                    startActivity(intent1);
+//                    finish();
+//                }
             });
         }
+    }
+
+    private void listenOrderRealtime() {
+        orderRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+                orderId = snapshot.child("orderId").getValue(String.class);
+                status = snapshot.child("status").getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Firebase read failed: " + error.getMessage());
+            }
+        });
     }
 
     private void mapViews() {
