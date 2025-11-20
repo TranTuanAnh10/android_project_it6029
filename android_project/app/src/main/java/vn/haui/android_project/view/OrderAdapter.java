@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import vn.haui.android_project.MainActivity;
@@ -50,7 +51,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.tvItems.setText(item.toString());
         holder.tvEstimate.setText(order.getTimeDisplay());
         holder.tvStatus.setText(order.getStatus());
-        holder.tvPrice.setText(order.getTotal()+"đ");
+        holder.tvPrice.setText(formatter.format(order.getTotal()) + "đ");
         String itemName = order.getProductList().get(0).getImage();
         int index = itemName.lastIndexOf('.');
         if (index != -1) {
@@ -88,7 +89,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     public int getItemCount() {
         return orderList.size();
     }
-
+    DecimalFormat formatter = new DecimalFormat("#,###");
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
         ImageView imgStore;
         TextView tvStoreName, tvItems, tvEstimate, tvStatus, tvPrice;

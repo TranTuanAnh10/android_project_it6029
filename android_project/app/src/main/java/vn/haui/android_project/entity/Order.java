@@ -18,7 +18,7 @@ public class Order {
     private int deliveryFee;
     private int discount;
     private int subTotal;
-    private int total;
+    private Double total;
 
     private UserLocationEntity addressUser;
     private Map<String, String> delivery;
@@ -99,11 +99,11 @@ public class Order {
         this.subTotal = subTotal;
     }
 
-    public int getTotal() {
+    public Double getTotal() {
         return total;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(Double total) {
         this.total = total;
     }
 
