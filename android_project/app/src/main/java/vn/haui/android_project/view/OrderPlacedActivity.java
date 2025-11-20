@@ -59,7 +59,7 @@ public class OrderPlacedActivity extends AppCompatActivity {
 //        });
         if (btnTrackOrder != null) {
             btnTrackOrder.setOnClickListener(v -> {
-                Intent intent1 = new Intent(OrderPlacedActivity.this, OrderTrackingActivity.class);
+                Intent intent1 = new Intent(OrderPlacedActivity.this, OrderDetailsActivity.class);
                 intent1.putExtra("ORDER_ID", orderId);
                 startActivity(intent1);
                 finish();

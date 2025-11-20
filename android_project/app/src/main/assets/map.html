@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Realtime Delivery Map</title>
+    <title>Realtime Delivery Map (Shipper - Người nhận)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Leaflet -->
@@ -23,12 +23,12 @@
             right: 0; bottom: 0;
         }
 
-        /* CSS cho Loading Spinner đã được di chuyển sang góc trên bên phải */
+        /* CSS cho Loading Spinner (Góc trên bên phải) */
         #loader {
             position: absolute;
-            top: 20px; /* Vị trí cách mép trên 20px */
-            right: 20px; /* Vị trí cách mép phải 20px */
-            z-index: 1000; /* Đảm bảo nằm trên map */
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
             border: 6px solid #f3f3f3;
             border-top: 6px solid #FF3B30; /* Màu đỏ nổi bật */
             border-radius: 50%;
@@ -44,7 +44,6 @@
             display: none !important;
         }
 
-        /* Đã loại bỏ translate trong keyframes vì loader không còn ở giữa màn hình */
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -59,10 +58,9 @@
     // --- Khởi tạo các biến toàn cục ---
     var map = null;
     var shipperMarker = null;
-    var storeMarker = null;
     var receiverMarker = null;
     var routeLine = null;
-    var locations = { store: null, receiver: null };
+    var locations = { receiver: null }; // Chỉ cần lưu Người nhận
     var currentStatus = "prepared";
 
     // --- Hàm hiển thị/ẩn Loading Spinner ---
@@ -74,17 +72,11 @@
         document.getElementById('loader').classList.add('hidden');
     }
 
-    // --- Custom icons (GIỮ NGUYÊN) ---
+    // --- Custom icons: GIỮ NGUYÊN TÀI NGUYÊN CŨ CỦA BẠN ---
     var shipIcon = L.icon({
         iconUrl: 'icons/Pin_ship.png',
         iconSize: [32, 36],
         iconAnchor: [16, 36],
-    });
-
-    var storeIcon = L.icon({
-        iconUrl: 'icons/Pin_shop.png',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
     });
 
     var userIcon = L.icon({
@@ -97,7 +89,7 @@
     function drawRoute(lat1, lon1, lat2, lon2) {
         if (!map) return;
 
-        // Kiểm tra khoảng cách tối thiểu trước khi gọi API
+        // Kiểm tra khoảng cách tối thiểu để tránh lỗi gọi API (hai điểm trùng nhau)
         if (Math.abs(lat1 - lat2) < 0.00001 && Math.abs(lon1 - lon2) < 0.00001) {
             console.log("Cảnh báo: Điểm bắt đầu và kết thúc quá gần, không vẽ tuyến đường.");
             if (routeLine) map.removeLayer(routeLine);
@@ -107,13 +99,11 @@
 
         var url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
 
-        // 1. Hiển thị loader trước khi gọi API
         showLoader();
 
         fetch(url)
             .then(res => res.json())
             .then(data => {
-                // 2. Ẩn loader khi thành công
                 hideLoader();
 
                 if (data.routes && data.routes.length > 0) {
@@ -133,20 +123,29 @@
 
                     // Fit toàn tuyến
                     map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+                } else {
+                    console.error("Không tìm thấy tuyến đường hợp lệ.");
+                    if (routeLine) map.removeLayer(routeLine);
                 }
             })
             .catch(err => {
-                // 3. Ẩn loader khi thất bại
                 hideLoader();
                 console.error("Lỗi khi lấy tuyến đường:", err);
+                if (routeLine) map.removeLayer(routeLine);
             });
     }
 
     /**
      * HÀM CHÍNH: KHỞI TẠO MAP/MARKER LẦN ĐẦU HOẶC CẬP NHẬT VỊ TRÍ SHIPPER
+     * Đã loại bỏ storeLat và storeLon. Chỉ nhận 5 tham số.
+     * @param {number} shipperLat - Vĩ độ hiện tại của Shipper
+     * @param {number} shipperLon - Kinh độ hiện tại của Shipper
+     * @param {number} receiverLat - Vĩ độ của Người nhận (Tĩnh)
+     * @param {number} receiverLon - Kinh độ của Người nhận (Tĩnh)
+     * @param {string} status - Trạng thái giao hàng (e.g., 'prepared', 'shipping', 'finish')
      */
-    function initOrUpdateMap(shipperLat, shipperLon, storeLat, storeLon, receiverLat, receiverLon, status) {
-        const storePos = [storeLat, storeLon];
+    function initOrUpdateMap(shipperLat, shipperLon, receiverLat, receiverLon, status) {
+        // HÀM ĐÃ ĐƯỢC THAY ĐỔI: Bỏ hẳn storeLat và storeLon
         const receiverPos = [receiverLat, receiverLon];
         currentStatus = status;
 
@@ -155,12 +154,11 @@
 
         // --- BƯỚC 1: KHỞI TẠO MAP VÀ MARKER TĨNH (CHỈ CHẠY LẦN ĐẦU) ---
         if (!map) {
-            // Lưu tọa độ tĩnh
-            locations.store = storePos;
+            // Lưu tọa độ tĩnh của người nhận
             locations.receiver = receiverPos;
 
-            // Vị trí trung tâm ban đầu: nếu có shipper thì trung tâm là shipper, ngược lại là cửa hàng
-            const initialCenter = hasShipperData ? [shipperLat, shipperLon] : storePos;
+            // Vị trí trung tâm ban đầu: nếu có shipper thì trung tâm là shipper, ngược lại là người nhận
+            const initialCenter = hasShipperData ? [shipperLat, shipperLon] : receiverPos;
 
             // 1. Khởi tạo map
             map = L.map('map', {
@@ -173,8 +171,7 @@
                 attribution: '&copy; CartoDB & OpenStreetMap'
             }).addTo(map);
 
-            // 3. Tạo Marker tĩnh (Store và Receiver)
-            storeMarker = L.marker(locations.store, { icon: storeIcon, title: "Cửa hàng" }).addTo(map);
+            // 3. Tạo Marker Người nhận
             receiverMarker = L.marker(locations.receiver, { icon: userIcon, title: "Người nhận" }).addTo(map);
 
             // 4. Tạo Marker Shipper (Ẩn đi nếu chưa có data)
@@ -183,9 +180,25 @@
                 title: "Shipper",
                 opacity: hasShipperData ? 1 : 0
             }).addTo(map);
+
+            // Xóa đường nếu trạng thái ban đầu là finish
+            if (status === "finish") {
+                if (routeLine) map.removeLayer(routeLine);
+                hideLoader();
+                shipperMarker.setOpacity(0);
+            }
         }
 
         // --- BƯỚC 2: CẬP NHẬT VỊ TRÍ VÀ TUYẾN ĐƯỜNG (CHẠY MỌI LÚC) ---
+
+        if (status === "finish") {
+            // Trạng thái Finish: Ẩn Shipper và xóa đường
+            if (routeLine) map.removeLayer(routeLine);
+            hideLoader();
+            shipperMarker.setOpacity(0);
+            map.flyTo(locations.receiver, 16, { duration: 0.8 });
+            return;
+        }
 
         if (hasShipperData) {
             // --- KỊCH BẢN A: CÓ DATA SHIPPER ---
@@ -193,53 +206,24 @@
 
             // 1. Cập nhật vị trí và hiển thị Shipper
             shipperMarker.setLatLng(shipperPos);
-            shipperMarker.setOpacity(1); // Đảm bảo Shipper hiển thị
+            shipperMarker.setOpacity(1);
 
-            // 2. Cập nhật tuyến đường dựa trên trạng thái (Shipper -> Target)
-            switch (status) {
-                case "prepared":
-                case "pickingUp":
-                    // 🚚 Từ shipper đến cửa hàng
-                    const isAtStore = Math.abs(shipperLat - locations.store[0]) < 0.00001 &&
-                                     Math.abs(shipperLon - locations.store[1]) < 0.00001;
+            // 2. VẼ ĐƯỜNG TỪ SHIPPER ĐẾN NGƯỜI NHẬN
+            const isAtReceiver = Math.abs(shipperLat - locations.receiver[0]) < 0.00001 &&
+                                 Math.abs(shipperLon - locations.receiver[1]) < 0.00001;
 
-                    if (!isAtStore) {
-                        drawRoute(shipperLat, shipperLon, locations.store[0], locations.store[1]);
-                    } else {
-                        // Shipper đã đến cửa hàng
-                        if (routeLine) map.removeLayer(routeLine);
-                        hideLoader(); // Đảm bảo ẩn loader nếu không gọi API
-                        map.flyTo(locations.store, map.getZoom() > 16 ? map.getZoom() : 16, { duration: 0.5 });
-                    }
-                    break;
-
-                case "delivering":
-                    // 🚚 Từ shipper đến người nhận
-                    const isAtReceiver = Math.abs(shipperLat - locations.receiver[0]) < 0.00001 &&
-                                         Math.abs(shipperLon - locations.receiver[1]) < 0.00001;
-
-                    if (!isAtReceiver) {
-                        drawRoute(shipperLat, shipperLon, locations.receiver[0], locations.receiver[1]);
-                    } else {
-                        // Shipper đã đến người nhận
-                        if (routeLine) map.removeLayer(routeLine);
-                        hideLoader(); // Đảm bảo ẩn loader nếu không gọi API
-                        map.flyTo(locations.receiver, 16, { duration: 0.5 });
-                    }
-                    break;
-
-                case "finish":
-                    if (routeLine) map.removeLayer(routeLine);
-                    hideLoader(); // Đảm bảo ẩn loader khi kết thúc
-                    map.flyTo(locations.receiver, 16, { duration: 0.8 });
-                    shipperMarker.setOpacity(0); // Ẩn Shipper khi giao xong
-                    return;
+            if (!isAtReceiver) {
+                // Vẽ tuyến đường Shipper -> Người nhận
+                drawRoute(shipperLat, shipperLon, locations.receiver[0], locations.receiver[1]);
+            } else {
+                // Shipper đã đến Người nhận
+                if (routeLine) map.removeLayer(routeLine);
+                hideLoader();
+                map.flyTo(locations.receiver, 16, { duration: 0.5 });
             }
 
-            // 3. Zoom mượt đến shipper (nếu không phải finish)
-            if (status !== "finish") {
-                 map.flyTo(shipperPos, map.getZoom() > 15 ? map.getZoom() : 15, { duration: 0.5 });
-            }
+            // 3. Zoom mượt đến shipper
+            map.flyTo(shipperPos, map.getZoom() > 15 ? map.getZoom() : 15, { duration: 0.5 });
 
         } else {
             // --- KỊCH BẢN B: KHÔNG CÓ DATA SHIPPER (0, 0) ---
@@ -249,15 +233,12 @@
                 shipperMarker.setOpacity(0);
             }
 
-            // 2. Vẽ tuyến đường cố định Cửa hàng -> Người nhận
-            if (status !== "finish") {
-                drawRoute(locations.store[0], locations.store[1], locations.receiver[0], locations.receiver[1]);
-            } else {
-                 // Nếu finish mà không có data shipper (trường hợp hiếm) thì chỉ zoom vào người nhận
-                 if (routeLine) map.removeLayer(routeLine);
-                 hideLoader(); // Đảm bảo ẩn loader khi kết thúc
-                 map.flyTo(locations.receiver, 16, { duration: 0.8 });
-            }
+            // 2. Xóa tuyến đường (vì không thể vẽ đường từ Shipper nếu không có tọa độ)
+            if (routeLine) map.removeLayer(routeLine);
+            hideLoader();
+
+            // 3. Zoom vào người nhận
+            map.flyTo(locations.receiver, 15, { duration: 0.5 });
         }
     }
 
