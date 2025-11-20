@@ -1,5 +1,8 @@
 package vn.haui.android_project.view;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -10,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,6 +55,9 @@ public class OrdersHistoryFragment extends Fragment {
     }
     private RecyclerView recyclerView;
 
+    private ProgressBar progressBar;
+
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -69,6 +76,7 @@ public class OrdersHistoryFragment extends Fragment {
         return fragment;
     }
     private void loadActiveOrders(List<Order> orderList) {
+        progressBar.setVisibility(VISIBLE);
 
         if (mAuth == null || mAuth.getCurrentUser() == null) {
             Toast.makeText(getContext(), "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
@@ -96,6 +104,8 @@ public class OrdersHistoryFragment extends Fragment {
             // Gắn adapter
             OrderAdapter adapter = new OrderAdapter(orders);
             recyclerView.setAdapter(adapter);
+            recyclerView.setVisibility(VISIBLE);
+            progressBar.setVisibility(GONE);
         });
     }
 
@@ -119,7 +129,11 @@ public class OrdersHistoryFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rvHistoryOrders);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        progressBar = view.findViewById(R.id.progressBar);
+
         loadActiveOrders(this.orders);
+        recyclerView.setVisibility(GONE);
+        progressBar.setVisibility(VISIBLE);
 
 //        List<Order> orderList = List.of(
 //                new Order(
