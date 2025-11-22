@@ -88,7 +88,7 @@
     <string name="cancel_order">Đã hủy</string>
     <string name="cancel_order_desc">Đơn hàng đã được hủy</string>
     <string name="choose_recipient">Địa chỉ nhận hàng</string>
-    <string name="all_recipients">Tất cả đa chỉ</string>
+    <string name="all_recipients">Tất cả địa chỉ</string>
     <string name="add_new_recipient">Thêm mới</string>
     <string name="select_your_location">Chọn vị trí của bạn</string>
     <string name="use_your_location">Sử dụng vị trí của bạn</string>

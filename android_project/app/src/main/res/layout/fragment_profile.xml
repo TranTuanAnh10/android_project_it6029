@@ -24,7 +24,7 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Profile"
+                android:text="@string/profile_setting"
                 android:textColor="#222222"
                 android:textSize="30sp"
                 android:textStyle="bold"
