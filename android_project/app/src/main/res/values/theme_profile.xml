@@ -25,7 +25,6 @@
 
     <string name="reward_points">RewardPoints</string>
     <string name="reward_points_count">7.000</string>
-    <string name="order_placed">Order placed</string>
     <string name="order_placed_count">7.000</string>
     <string name="favorites">Favorites</string>
     <string name="favorites_count">7.000</string>
@@ -47,5 +46,5 @@
     <string name="profile_phone_number">Phone number</string>
     <string name="profile_name">Name</string>
     <string name="profile_edit_your_profile">Edit your Profile</string>
-    <string name="profile_save">Save</string>
+    <string name="profile_save">Lưu</string>
 </resources>

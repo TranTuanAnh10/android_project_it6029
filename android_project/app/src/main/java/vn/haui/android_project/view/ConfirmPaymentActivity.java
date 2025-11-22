@@ -59,6 +59,7 @@ import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.utils.TimeUtils;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
@@ -119,7 +120,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private String codeVoucher;
     private DatabaseReference orderRef;
     private FirebaseDatabase firebaseDatabase;
-
+    FirebaseUser currentUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -397,7 +398,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     double subTotal = 0;
     double discount = 0;
-    double deliveryFee = 5.00;
+    double deliveryFee = 50000;
     double finalTotal = 0;
 
     private void updateSummary(List<ItemOrderProduct> products) {
@@ -432,7 +433,6 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private void placeOrder() {
         writeSampleOrder();
-        Toast.makeText(this, "Đã đặt hàng thành công!", Toast.LENGTH_LONG).show();
     }
 
 
@@ -596,6 +596,9 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", orderId);
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        orderData.put("uid", currentUser.getUid());
+        orderData.put("created_at", TimeUtils.getCreationTime());
         orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
         orderData.put("subTotal", subTotal);
         orderData.put("deliveryFee", deliveryFee);
@@ -610,8 +613,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("delivery", getDeliveryDataForDatabase());
         // --- Vị trí shipper ---
         Map<String, Object> shipperLocation = new HashMap<>();
-        shipperLocation.put("lat", pickupLat);
-        shipperLocation.put("lng", pickupLon);
+        shipperLocation.put("lat", 0);
+        shipperLocation.put("lng", 0);
 
         // --- Vị trí cửa hàng ---
         Map<String, Object> storeLocation = new HashMap<>();
@@ -630,5 +633,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef.setValue(orderData)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
                 .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
+
+        Intent intent = new Intent(ConfirmPaymentActivity.this, OrderPlacedActivity.class);
+        intent.putExtra("ORDER_ID", orderId);
+        startActivity(intent);
+        finish();
     }
 }

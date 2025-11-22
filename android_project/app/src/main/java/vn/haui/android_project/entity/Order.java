@@ -3,9 +3,6 @@ package vn.haui.android_project.entity;
 import java.util.List;
 import java.util.Map;
 
-import vn.haui.android_project.entity.ItemOrderProduct;
-import vn.haui.android_project.entity.UserLocationEntity;
-
 public class Order {
 
     private String orderId;
@@ -16,7 +13,7 @@ public class Order {
     private int deliveryFee;
     private int discount;
     private int subTotal;
-    private int total;
+    private Double total;
 
     private UserLocationEntity addressUser;
     private Map<String, String> delivery;
@@ -27,6 +24,8 @@ public class Order {
 
     private PaymentCard paymentCard;
 
+    private String uid;
+
     public PaymentCard getPaymentCard() {
         return paymentCard;
     }
@@ -35,7 +34,7 @@ public class Order {
         this.paymentCard = paymentCard;
     }
 
-    public Order() {} // Firebase bắt buộc
+    public Order() {}
 
     // GETTER + SETTER
 
@@ -95,11 +94,11 @@ public class Order {
         this.subTotal = subTotal;
     }
 
-    public int getTotal() {
+    public Double getTotal() {
         return total;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(Double total) {
         this.total = total;
     }
 
@@ -150,4 +149,13 @@ public class Order {
     public void setStore(Map<String, Object> store) {
         this.store = store;
     }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
 }

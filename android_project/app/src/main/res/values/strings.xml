@@ -25,20 +25,20 @@
     <string name="pickingUpDesc">Đang chuẩn bị hàng</string>
     <string name="deliveringDesc">Đang giao hàng</string>
     <string name="finishDesc">Đã giao hàng thành công</string>
-    <string name="cancelOrder">Cancel Order</string>
+    <string name="cancelOrder">Hủy đơn hàng</string>
     <string name="confirmOrder">Xác nhận đơn hàng</string>
     <string name="home">Home</string>
     <string name="work">Work</string>
     <string name="other">Other</string>
     <string name="delete">Delete</string>
 
-    <string name="location_type">Location type</string>
-    <string name="recipient_name">Recipient name</string>
-    <string name="phone_number">Phone number</string>
+    <string name="location_type">Loại vị trí</string>
+    <string name="recipient_name">Tên người nhận</string>
+    <string name="phone_number">Số điện thoại</string>
 
-    <string name="address">Address</string>
-    <string name="set_as_default_address">Set as default address</string>
-    <string name="country">Country</string>
+    <string name="address">Địa chỉ</string>
+    <string name="set_as_default_address">Đặt làm địa chỉ mặc định</string>
+    <string name="country">Quốc gia</string>
     <string name="zip_code">Zip Code</string>
     <string name="choose_from_map">Chọn địa chỉ mới</string>
 
@@ -76,4 +76,42 @@
     <string name="confirm_payment">Xác nhận thanh toán</string>
     <string name="recipient_info">Thông tin người nhận</string>
     <string name="order_info">Thông tin đặt hàng</string>
+    <string name="order_detail">Đơn hàng</string>
+    <string name="order_placed">Đã đặt hàng</string>
+    <string name="track_your_order">Theo dõi đơn hàng</string>
+    <string name="return_home">Trang chủ</string>
+    <string name="payment_successful">Thanh toán thành công</string>
+    <string name="payment_successful_desc">Chúng tôi đang xử lý đơn hàng của bạn và sẽ sớm giao hàng cho bạn.</string>
+    <string name="your_order_is_being_processed">Đơn hàng của bạn đang được xử lý</string>
+    <string name="estimate">Thời gian ước tính</string>
+    <string name="driver_info">Thông tin người giao hàng</string>
+    <string name="cancel_order">Đã hủy</string>
+    <string name="cancel_order_desc">Đơn hàng đã được hủy</string>
+    <string name="choose_recipient">Địa chỉ nhận hàng</string>
+    <string name="all_recipients">Tất cả đa chỉ</string>
+    <string name="add_new_recipient">Thêm mới</string>
+    <string name="select_your_location">Chọn vị trí của bạn</string>
+    <string name="use_your_location">Sử dụng vị trí của bạn</string>
+
+    <string name="recent_search">Kết quả tìm kiếm</string>
+    <string name="choose_from_map2">Chọn từ Bản đồ</string>
+    <string name="confirm_location">Xác nhận</string>
+    <string name="add_new">Thêm mới</string>
+    <string name="payment_methods">Phương thức thanh toán</string>
+    <string name="my_cards">Thẻ của tôi</string>
+
+    <string name="label_name_on_card">Tên trên thẻ</string>
+    <string name="hint_enter_your_name">Nhập tên của bạn</string>
+    <string name="label_card_number">Số thẻ</string>
+    <string name="hint_enter_card_number">Nhập số thẻ</string>
+    <string name="expiration_date">Ngày hết hạn</string>
+
+    <string name="screen_title_edit_card">Chỉnh sửa thẻ</string>
+    <string name="hint_name_on_card">Ví dụ: Bruno Andersons</string>
+    <string name="hint_card_number">Nhập số thẻ</string>
+    <string name="label_expiration_date">Ngày hết hạn</string>
+    <string name="hint_expiration_date">MM/YY</string>
+    <string name="label_cvv">Mã CVV</string>
+    <string name="hint_cvv">Mã bảo mật</string>
+    <string name="button_edit_card">Cập nhật thẻ</string>
 </resources>

@@ -1,4 +1,5 @@
 package vn.haui.android_project.entity;
+import com.google.firebase.database.PropertyName;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -16,6 +17,8 @@ public class UserLocationEntity implements Serializable {
     private String country;
     private String zipCode;
 
+    private boolean isDefault;
+
     public UserLocationEntity() {}
 
     public UserLocationEntity(String id,String recipientName, double latitude, double longitude, String address,
@@ -31,6 +34,12 @@ public class UserLocationEntity implements Serializable {
         this.locationType= locationType;
         this.country=country;
         this.zipCode=zipCode;
+    }
+
+
+    @PropertyName("default")
+    public void setDefault(boolean isDefault) {
+        this.isDefault = isDefault;
     }
 
     public String getCountry() {
@@ -82,6 +91,7 @@ public class UserLocationEntity implements Serializable {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
+    @PropertyName("default")
     public boolean getDefault() { return defaultLocation; }
     public void setDefaultLocation(boolean defaultLocation) { this.defaultLocation = defaultLocation; }
 

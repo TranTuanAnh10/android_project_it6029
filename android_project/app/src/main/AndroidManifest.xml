@@ -37,6 +37,9 @@
             android:name=".view.ShipperActivity"
             android:exported="false" />
         <activity
+            android:name=".view.OrderPlacedActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.EditCardActivity"
             android:exported="false" />
         <activity
