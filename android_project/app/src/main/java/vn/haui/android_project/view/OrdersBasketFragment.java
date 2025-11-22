@@ -62,6 +62,8 @@ public class OrdersBasketFragment extends Fragment {
 
     private Button btnOrder;
 
+    private ProgressBar progressBar;
+
     public OrdersBasketFragment() {
         // Required empty public constructor
     }
@@ -106,7 +108,7 @@ public class OrdersBasketFragment extends Fragment {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_orders_basket, container, false);
         this.view = view;
-
+        progressBar = view.findViewById(R.id.progressBar);
         rvBasketStores = view.findViewById(R.id.rvBasketOrders);
         btnOrder = view.findViewById(R.id.btn_order_cart);
         btnOrder.setOnClickListener(new View.OnClickListener() {
@@ -135,6 +137,8 @@ public class OrdersBasketFragment extends Fragment {
         return view;
     }
     private void loadCart() {
+        progressBar.setVisibility(View.VISIBLE); // ⬅️ Hiện loading
+
         if (mAuth == null || mAuth.getCurrentUser() == null) {
             Toast.makeText(getContext(), "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
             return;
@@ -145,6 +149,7 @@ public class OrdersBasketFragment extends Fragment {
                 .child(userId);
 
         cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Cart cart = snapshot.getValue(Cart.class);
@@ -153,6 +158,7 @@ public class OrdersBasketFragment extends Fragment {
                     cart = new Cart(new ArrayList<>());
                 }
                 cartData = cart;
+                progressBar.setVisibility(View.GONE);
                 updateCart(cartData);
             }
 
