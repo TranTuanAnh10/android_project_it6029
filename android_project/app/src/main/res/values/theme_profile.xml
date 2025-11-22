@@ -46,5 +46,5 @@
     <string name="profile_phone_number">Phone number</string>
     <string name="profile_name">Name</string>
     <string name="profile_edit_your_profile">Edit your Profile</string>
-    <string name="profile_save">Save</string>
+    <string name="profile_save">Lưu</string>
 </resources>

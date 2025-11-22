@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:paddingBottom="8dp"
         android:textAlignment="center"
-        android:text="Select your location"
+        android:text="@string/select_your_location"
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -29,7 +29,7 @@
         android:drawableStart="@android:drawable/ic_menu_search"
         android:drawablePadding="8dp"
         android:ellipsize="none"
-        android:hint="Search your address"
+        android:hint="@string/select_your_location"
         android:inputType="textCapSentences|textMultiLine"
         android:maxEms="30"
         android:maxLines="5"
@@ -43,7 +43,7 @@
         android:id="@+id/btnUseMyLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Use your location"
+        android:text="@string/use_your_location"
         android:textColor="#EB4D57"
         android:backgroundTint="@color/md_theme_onSecondary"
         android:layout_marginTop="12dp"
@@ -58,7 +58,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginLeft="10dp"
         android:textSize="20dp"
-        android:text="Recent search"
+        android:text="@string/recent_search"
         android:textStyle="bold" />
 
     <ListView
@@ -96,7 +96,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Choose from Map"
+            android:text="@string/choose_from_map2"
             android:textColor="#EB4D57"
             android:textSize="16sp" />
     </LinearLayout>

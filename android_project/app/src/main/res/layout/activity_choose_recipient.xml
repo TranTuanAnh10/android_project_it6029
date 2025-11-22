@@ -18,7 +18,7 @@
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose Recipient"
+            android:text="@string/choose_recipient"
             android:textSize="20sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -27,7 +27,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="All Recipients"
+            android:text="@string/all_recipients"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp"
@@ -59,7 +59,7 @@
             android:id="@+id/btn_add_recipient"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="+ Add Recipient"
+            android:text="@string/add_new_recipient"
             android:backgroundTint="#FF4560"
             android:textColor="@android:color/white"
             android:textSize="18sp"/>

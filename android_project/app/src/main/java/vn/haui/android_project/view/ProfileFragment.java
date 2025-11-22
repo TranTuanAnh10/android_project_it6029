@@ -42,7 +42,7 @@ public class ProfileFragment extends Fragment {
     Button btn_logout;
     ImageView imgUser;
     ImageButton editProfile;
-    TextView tvUserName, tvUserEmail,pointYumyard,saveRecipients,paymentMethods;
+    TextView tvUserName, tvUserEmail,saveRecipients,paymentMethods;
     View view;
     @Nullable
     @Override
@@ -101,10 +101,7 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
         btn_logout.setOnClickListener(v -> logoutUser(authUser.getUid()));
-        pointYumyard.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileFragment.this.getContext(), OrderTrackingActivity.class);
-            startActivity(intent);
-        });
+
         paymentMethods.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileFragment.this.getContext(), PaymentMethodsActivity.class);
             startActivity(intent);
@@ -122,7 +119,6 @@ public class ProfileFragment extends Fragment {
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvUserEmail =view.findViewById(R.id.tv_user_email);
         editProfile=view.findViewById(R.id.iv_edit_profile);
-        pointYumyard=view.findViewById(R.id.point_yumyard);
         saveRecipients=view.findViewById(R.id.save_recipients);
         paymentMethods=view.findViewById(R.id.payment_methods);
     }
