@@ -227,6 +227,14 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.finish);
             tvStatusDescTag.setText(R.string.finishDesc);
             btnCancelOrder.setVisibility(View.GONE);
+        }else if (status.equals(MyConstant.REJECT)) {
+            tvStatusTag.setText(R.string.reject_status);
+            tvStatusDescTag.setText(R.string.reject_status_desc);
+            btnCancelOrder.setVisibility(View.GONE);
+        }else if (status.equals(MyConstant.CANCEL_ORDER)) {
+            tvStatusTag.setText(R.string.reject_status);
+            tvStatusDescTag.setText(R.string.cancel_order_status_desc);
+            btnCancelOrder.setVisibility(View.GONE);
         }
     }
 
@@ -277,7 +285,6 @@ public class OrderDetailsActivity extends AppCompatActivity {
             imgLocationIcon.setImageResource(R.drawable.ic_marker);
         }
     }
-
     private void showConfirmationDialog(String message) {
         // Ở đây cần triển khai DialogFragment hoặc AlertDialog tùy chỉnh.
         // Ví dụ đơn giản:
@@ -285,10 +292,23 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 .setTitle("Xác nhận hủy")
                 .setMessage(message)
                 .setPositiveButton("Xác nhận", (dialog, which) -> {
+                    updateOrderStatus(MyConstant.CANCEL_ORDER);
                     // Logic hủy đơn hàng
                     Toast.makeText(this, "Đơn hàng đã được yêu cầu hủy.", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Không", null)
                 .show();
+    }
+    private void updateOrderStatus(String newStatus) {
+        // Cập nhật trạng thái lên Firebase
+        orderRef.child("status").setValue(newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    String msg = "Đã xác nhận đơn hàng!";
+                    if(newStatus.equals(MyConstant.REJECT)) msg = "Đã hủy đơn hàng!";
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 }

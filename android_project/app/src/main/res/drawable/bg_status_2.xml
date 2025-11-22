@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Định nghĩa Bo Góc (ví dụ 8dp) -->
+    <corners android:radius="8dp" />
+
+    <!-- Định nghĩa màu nền tạm thời/placeholder.
+         CHÚNG TA SẼ THAY THẾ MÀU NÀY BẰNG CODE JAVA -->
+    <solid android:color="#CCCCCC" />
+
+    <!-- Bạn có thể thêm viền <stroke> nếu cần -->
+
+</shape>

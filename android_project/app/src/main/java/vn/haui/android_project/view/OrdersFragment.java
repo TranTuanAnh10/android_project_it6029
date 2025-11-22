@@ -105,7 +105,7 @@ public class OrdersFragment extends Fragment {
     }
     private void setActiveButton(Button activeButton) {
         // Màu bạn định nghĩa trong colors.xml
-        int activeColor = getResources().getColor(R.color.md_theme_primary, null);
+        int activeColor = getResources().getColor(R.color.md_theme_onPrimary, null);
         int inactiveColor = getResources().getColor(R.color.md_theme_surfaceVariant, null);
         int activeText = getResources().getColor(android.R.color.white, null);
         int inactiveText = getResources().getColor(R.color.md_theme_onBackground, null);

@@ -114,4 +114,14 @@
     <string name="label_cvv">Mã CVV</string>
     <string name="hint_cvv">Mã bảo mật</string>
     <string name="button_edit_card">Cập nhật thẻ</string>
+    <string name="reject_status">Đã hủy</string>
+    <string name="reject_status_desc">Đã hủy từ nhà hàng</string>
+    <string name="cancel_order_status_desc">Đã hủy từ người dùng</string>
+
+    <string name="screen_title_orders">Đơn hàng</string>
+    <string name="content_description_search">Tìm kiếm</string>
+    <string name="tab_deliver">Đang giao</string>
+    <string name="tab_history">Lịch sử</string>
+    <string name="tab_basket">Giỏ hàng</string>
+    <string name="label_active_orders">Đơn hàng đang hoạt động</string>
 </resources>

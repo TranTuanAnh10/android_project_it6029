@@ -18,13 +18,22 @@ public class Order {
     private UserLocationEntity addressUser;
     private Map<String, String> delivery;
     private List<ItemOrderProduct> productList;
-    private Map<String,Object> receiver;
-    private Map<String,Object>  shipper;
-    private Map<String,Object>  store;
+    private Map<String, Object> receiver;
+    private Map<String, Object> shipper;
+    private Map<String, Object> store;
 
     private PaymentCard paymentCard;
 
     private String uid;
+    private String created_at;
+
+    public String getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(String created_at) {
+        this.created_at = created_at;
+    }
 
     public PaymentCard getPaymentCard() {
         return paymentCard;
@@ -34,7 +43,8 @@ public class Order {
         this.paymentCard = paymentCard;
     }
 
-    public Order() {}
+    public Order() {
+    }
 
     // GETTER + SETTER
 

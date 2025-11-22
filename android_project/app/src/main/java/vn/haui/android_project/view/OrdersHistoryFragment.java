@@ -95,7 +95,11 @@ public class OrdersHistoryFragment extends Fragment {
             for (DataSnapshot child : snapshot.getChildren()) {
                 Order order = child.getValue(Order.class);
 
-                if (order != null && Objects.equals(order.getStatus(), MyConstant.FINISH)&& userId.equals(order.getUid())) {
+                if (order != null
+                        && (Objects.equals(order.getStatus(), MyConstant.FINISH)
+                        || Objects.equals(order.getStatus(), MyConstant.REJECT)
+                        || Objects.equals(order.getStatus(), MyConstant.CANCEL_ORDER))
+                        && userId.equals(order.getUid())) {
                     orders.add(order);
                 }
             }
