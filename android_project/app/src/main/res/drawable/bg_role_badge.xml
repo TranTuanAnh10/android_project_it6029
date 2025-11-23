@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Màu nền mặc định (sẽ được code Java đổi màu sau) -->
+    <solid android:color="#E0E0E0"/>
+
+    <!-- Bo tròn 4 góc 8dp -->
+    <corners android:radius="8dp"/>
+</shape>

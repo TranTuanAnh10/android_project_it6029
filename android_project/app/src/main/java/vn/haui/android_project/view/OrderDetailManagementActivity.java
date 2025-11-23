@@ -35,6 +35,7 @@ import java.util.List;
 import vn.haui.android_project.R;
 // Sử dụng lại Adapter có sẵn của bạn (như file bạn vừa cung cấp thông tin)
 import vn.haui.android_project.adapter.OrderItemsAdapter;
+import vn.haui.android_project.adapter.OrderManagementItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.entity.Order;
 import vn.haui.android_project.entity.UserLocationEntity;
@@ -57,7 +58,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
 
     // RecyclerView
     private RecyclerView rvOrderItems;
-    private OrderItemsAdapter orderItemsAdapter;
+    private OrderManagementItemsAdapter orderItemsAdapter;
     private List<ItemOrderProduct> productList = new ArrayList<>();
 
     // Actions
@@ -92,7 +93,8 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
         // Dòng này sẽ chạy ngon lành sau khi initViews đã chạy
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
-        }    }
+        }
+    }
 
     private void initViews() {
         // Header Info
@@ -141,7 +143,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         rvOrderItems.setLayoutManager(new LinearLayoutManager(this));
         // Dùng OrderItemsAdapter có sẵn
-        orderItemsAdapter = new OrderItemsAdapter(productList);
+        orderItemsAdapter = new OrderManagementItemsAdapter(productList);
         rvOrderItems.setAdapter(orderItemsAdapter);
     }
 
@@ -165,7 +167,8 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
 
                 // Lấy danh sách sản phẩm
                 DataSnapshot productListSnapshot = snapshot.child("productList");
-                GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {};
+                GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {
+                };
                 if (productListSnapshot.exists()) {
                     List<ItemOrderProduct> fetchedList = productListSnapshot.getValue(t);
                     if (fetchedList != null) {
@@ -242,57 +245,102 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
     }
 
     // --- 1. XỬ LÝ THANH TRẠNG THÁI (TÍCH LŨY MÀU ĐỎ) ---
+    // --- 1. XỬ LÝ THANH TRẠNG THÁI & MÀU SẮC UI ---
     private void mappingStep(String status) {
         if (status == null) return;
 
-        // Reset mặc định về màu xám hết trước khi set màu đỏ
-        resetStepColors();
+        resetStepColors(); // Reset icon về xám
 
-        // Màu đỏ dùng mã #EB4D57 (hoặc mã màu đỏ của bạn)
-        int activeColor = Color.parseColor("#EB4D57");
+        // Mã màu cho các đường kẻ stepper (giữ nguyên màu đỏ của bạn)
+        int activeLineColor = Color.parseColor("#EB4D57");
 
-        if (status.equals(MyConstant.REJECT)) {
-            // TRƯỜNG HỢP TỪ CHỐI: KHÔNG CÓ CÁI NÀO ĐỎ HẾT
-            tvStatusTag.setText("Đã hủy");
-            tvStatusDescTag.setText("Đơn hàng đã bị từ chối/hủy bỏ");
-            // Có thể set chữ màu đỏ cho dễ nhìn
-            tvStatusTag.setTextColor(activeColor);
+        // --- XỬ LÝ RIÊNG CHO REJECT / CANCEL (NỀN ĐỎ - CHỮ TRẮNG) ---
+        if (status.equalsIgnoreCase(MyConstant.REJECT)) {
+            tvStatusTag.setText("TỪ CHỐI");
+            tvStatusDescTag.setText("Đơn hàng đã bị từ chối.");
+            // Set nền ĐỎ ĐẬM (#D32F2F), bo góc, chữ trắng
+            setStatusBadgeStyle(tvStatusTag, "#D32F2F");
+            setStatusBadgeStyle(tvStatusDescTag, "#D32F2F");
+            return;
+        }
+        if (status.equalsIgnoreCase(MyConstant.CANCEL_ORDER)) {
+            tvStatusTag.setText("Đã huỷ");
+            tvStatusDescTag.setText("Đơn hàng đã bị huỷ.");
+
+            // Set nền ĐỎ ĐẬM (#D32F2F), bo góc, chữ trắng
+            setStatusBadgeStyle(tvStatusTag, "#D32F2F");
+            setStatusBadgeStyle(tvStatusDescTag, "#D32F2F");
             return;
         }
 
-        // Logic tích lũy: Nếu là Finish -> thì cả Prepared, PickingUp, Delivering cũng phải đỏ
+        // --- XỬ LÝ CÁC TRẠNG THÁI TIẾN TRÌNH (NỀN MÀU HỢP LÝ - CHỮ TRẮNG) ---
 
-        // BƯỚC 1: PREPARED (Luôn đỏ nếu không hủy)
+        // 1. PREPARED (Màu Cam - Chờ đợi)
         stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
         tvStatusTag.setText(getString(R.string.prepared));
         tvStatusDescTag.setText(getString(R.string.preparedDesc));
 
-        if (status.equals(MyConstant.PREPARED)) return; // Dừng ở đây nếu chỉ mới prepared
+        // Set badge
+        setStatusBadgeStyle(tvStatusTag, "#F57C00"); // Cam đậm
+        setStatusBadgeStyle(tvStatusDescTag, "#F57C00"); // Cam đậm
 
-        // BƯỚC 2: PICKING UP
+        if (status.equals(MyConstant.PREPARED)) return;
+
+        // 2. PICKING UP (Màu Tím - Đang xử lý/Lấy hàng)
         stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
-        stepPickingUpLine.setBackgroundColor(activeColor);
+        stepPickingUpLine.setBackgroundColor(activeLineColor);
         tvStatusTag.setText(getString(R.string.pickingUp));
         tvStatusDescTag.setText(getString(R.string.pickingUpDesc));
+        setStatusBadgeStyle(tvStatusDescTag, "#7B1FA2"); // Tím đậm
+
+        // Set badge
+        setStatusBadgeStyle(tvStatusTag, "#7B1FA2"); // Tím đậm
 
         if (status.equals(MyConstant.PICKINGUP)) return;
 
-        // BƯỚC 3: DELIVERING
+        // 3. DELIVERING (Màu Xanh Dương - Đang giao)
         stepDelivering.setImageResource(R.drawable.ic_delivering_order_active);
-        stepDeliveringLine.setBackgroundColor(activeColor);
+        stepDeliveringLine.setBackgroundColor(activeLineColor);
         tvStatusTag.setText(getString(R.string.delivering));
         tvStatusDescTag.setText(getString(R.string.deliveringDesc));
 
+        // Set badge
+        setStatusBadgeStyle(tvStatusTag, "#1976D2"); // Xanh dương đậm
+        setStatusBadgeStyle(tvStatusDescTag, "#1976D2"); // Xanh dương đậm
+
         if (status.equals(MyConstant.DELIVERING)) return;
 
-        // BƯỚC 4: FINISH
+        // 4. FINISH (Màu Xanh Lá - Hoàn thành)
         if (status.equals(MyConstant.FINISH)) {
             stepFinish.setImageResource(R.drawable.ic_finish_order_active);
-            stepFinishLine.setBackgroundColor(activeColor);
+            stepFinishLine.setBackgroundColor(activeLineColor);
             tvStatusTag.setText(getString(R.string.finish));
             tvStatusDescTag.setText(getString(R.string.finishDesc));
+
+            // Set badge
+            setStatusBadgeStyle(tvStatusTag, "#388E3C"); // Xanh lá đậm
+            setStatusBadgeStyle(tvStatusDescTag, "#388E3C"); // Xanh lá đậm
         }
     }
+
+    // --- HÀM HỖ TRỢ TẠO NỀN MÀU BO GÓC + CHỮ TRẮNG ---
+    private void setStatusBadgeStyle(TextView tv, String colorHex) {
+        // 1. Set màu chữ trắng
+        tv.setTextColor(Color.WHITE);
+
+        // 2. Tạo background màu động
+        android.graphics.drawable.GradientDrawable drawable = new android.graphics.drawable.GradientDrawable();
+        drawable.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        drawable.setCornerRadius(16); // Bo tròn góc 16dp
+        drawable.setColor(Color.parseColor(colorHex)); // Màu nền theo tham số
+
+        // 3. Gán background
+        tv.setBackground(drawable);
+
+        // 4. Thêm padding để chữ không bị dính lề (Trái, Trên, Phải, Dưới)
+        tv.setPadding(30, 12, 30, 12);
+    }
+
 
     private void resetStepColors() {
         // Đặt lại icon xám (cần file drawable _inactive tương ứng của bạn, hoặc dùng icon mặc định)
@@ -325,11 +373,11 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
         orderRef.child("status").setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
                     String msg = "Đã xác nhận đơn hàng!";
-                    if(newStatus.equals(MyConstant.REJECT)) msg = "Đã từ chối đơn hàng!";
+                    if (newStatus.equals(MyConstant.REJECT)) msg = "Đã từ chối đơn hàng!";
 
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
-                    if(newStatus.equals(MyConstant.PICKINGUP)){
+                    if (newStatus.equals(MyConstant.PICKINGUP)) {
                         findAndNotifyShippers();
                     }
 
@@ -341,6 +389,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                         Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
     }
+
     private void findAndNotifyShippers() {
         DatabaseReference shippersRef = FirebaseDatabase.getInstance().getReference("shippers");
 

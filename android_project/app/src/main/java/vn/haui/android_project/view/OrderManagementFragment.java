@@ -95,7 +95,8 @@ public class OrderManagementFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText("Đang lấy hàng")); // 1: pickingUp
         tabLayout.addTab(tabLayout.newTab().setText("Đang giao"));     // 2: delivering
         tabLayout.addTab(tabLayout.newTab().setText("Hoàn thành"));    // 3: finish
-        tabLayout.addTab(tabLayout.newTab().setText("Từ chối"));    // 3: finish
+        tabLayout.addTab(tabLayout.newTab().setText("Từ chối"));    // 4: reject
+        tabLayout.addTab(tabLayout.newTab().setText("Đã huỷ"));    // 4: cancel
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -106,6 +107,7 @@ public class OrderManagementFragment extends Fragment {
                     case 2: currentStatus = MyConstant.DELIVERING; break;
                     case 3: currentStatus = MyConstant.FINISH; break;
                     case 4: currentStatus = MyConstant.REJECT; break;
+                    case 5: currentStatus = MyConstant.CANCEL_ORDER; break;
                 }
                 filterListByStatus(currentStatus);
             }
@@ -170,7 +172,8 @@ public class OrderManagementFragment extends Fragment {
             else if(status.equals(MyConstant.PICKINGUP)) statusVN = "Đang lấy hàng";
             else if(status.equals(MyConstant.DELIVERING)) statusVN = "Đang giao hàng";
             else if(status.equals(MyConstant.FINISH)) statusVN = "Hoàn thành";
-            else if (status.equals(MyConstant.REJECT)) statusVN = "Đã hủy";
+            else if (status.equals(MyConstant.REJECT)) statusVN = "Từ chối";
+            else if (status.equals(MyConstant.CANCEL_ORDER)) statusVN = "Đã huỷ";
             tvNoOrders.setText("Không có đơn hàng: " + statusVN);
         } else {
             tvNoOrders.setVisibility(View.GONE);
