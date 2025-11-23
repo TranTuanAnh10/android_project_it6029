@@ -50,26 +50,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Name on Card" />
+                android:text="@string/label_name_on_card" />
 
             <EditText
                 android:id="@+id/et_name_on_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter your name"
+                android:hint="@string/hint_enter_your_name"
                 android:inputType="textCapWords" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Card number" />
+                android:text="@string/label_card_number" />
 
             <EditText
                 android:id="@+id/et_card_number"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter card number"
+                android:hint="@string/hint_enter_card_number"
                 android:inputType="number"
                 android:maxLength="19" />
 
@@ -89,7 +89,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Expiration date" />
+                        android:text="@string/expiration_date" />
 
                     <EditText
                         android:id="@+id/et_expiration_date"
@@ -134,7 +134,7 @@
         android:layout_marginBottom="16dp"
         android:textColor="#FFFFFF"
         android:backgroundTint="@android:color/holo_red_light"
-        android:text="Add card"
+        android:text="@string/add_new_card"
         android:textSize="18sp"
         android:textStyle="bold"
         app:cornerRadius="8dp"

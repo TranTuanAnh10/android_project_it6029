@@ -46,7 +46,7 @@ public class AdminScreenActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.admin_container, new ProductManagementFragment())
+                    .replace(R.id.admin_container, new OrderManagementFragment())
                     .commit();
         }
 

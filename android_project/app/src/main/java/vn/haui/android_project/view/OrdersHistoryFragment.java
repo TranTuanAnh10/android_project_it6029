@@ -1,19 +1,34 @@
 package vn.haui.android_project.view;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.Order;
+import vn.haui.android_project.enums.MyConstant;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -31,10 +46,17 @@ public class OrdersHistoryFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private List<Order> orders = new ArrayList<>();
+
+    private FirebaseAuth mAuth;
+
     public OrdersHistoryFragment() {
         // Required empty public constructor
     }
     private RecyclerView recyclerView;
+
+    private ProgressBar progressBar;
+
 
     /**
      * Use this factory method to create a new instance of
@@ -53,6 +75,43 @@ public class OrdersHistoryFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+    private void loadActiveOrders(List<Order> orderList) {
+        progressBar.setVisibility(VISIBLE);
+
+        if (mAuth == null || mAuth.getCurrentUser() == null) {
+            Toast.makeText(getContext(), "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String userId = mAuth.getCurrentUser().getUid();
+
+        DatabaseReference orderRef = FirebaseDatabase.getInstance()
+                .getReference("orders");
+
+        orderRef.get().addOnSuccessListener(snapshot -> {
+
+
+
+            for (DataSnapshot child : snapshot.getChildren()) {
+                Order order = child.getValue(Order.class);
+
+                if (order != null
+                        && (Objects.equals(order.getStatus(), MyConstant.FINISH)
+                        || Objects.equals(order.getStatus(), MyConstant.REJECT)
+                        || Objects.equals(order.getStatus(), MyConstant.CANCEL_ORDER))
+                        && userId.equals(order.getUid())) {
+                    orders.add(order);
+                }
+            }
+
+            Log.d("ORDER_DEBUG", "Orders: " + new Gson().toJson(orders));
+            // Gắn adapter
+            OrderAdapter adapter = new OrderAdapter(orders);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setVisibility(VISIBLE);
+            progressBar.setVisibility(GONE);
+        });
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +120,8 @@ public class OrdersHistoryFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        mAuth = FirebaseAuth.getInstance();
+
     }
 
     @Override
@@ -72,29 +133,14 @@ public class OrdersHistoryFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rvHistoryOrders);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        progressBar = view.findViewById(R.id.progressBar);
 
-        List<Order> orderList = List.of(
-                new Order(
-                        "The Daily Grind Hub",
-                        "1 item",
-                        "Estimate arrival: 10:25",
-                        "Order placed",
-                        "$20",
-                        R.drawable.image_pizza
-                ),new Order(
-                        "Bugger Kings",
-                        "1 item",
-                        "Estimate arrival: 10:25",
-                        "Order placed",
-                        "$10",
-                        R.drawable.banh_mi_op_la
-                )
-        );
-        // Gắn adapter
-        OrderAdapter adapter = new OrderAdapter(orderList);
-        recyclerView.setAdapter(adapter);
+        loadActiveOrders(this.orders);
+        recyclerView.setVisibility(GONE);
+        progressBar.setVisibility(VISIBLE);
 
         return view;
 
     }
+
 }

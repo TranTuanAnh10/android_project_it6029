@@ -5,7 +5,8 @@ public class MyConstant {
     public static final String PICKINGUP="pickingUp";
     public static final String DELIVERING="delivering";
     public static final String FINISH="finish";
-
+    public static final String REJECT="reject";
+    public static final String CANCEL_ORDER="cancel";
 
     public static final String Card_VISA="Visa";
     public static final String CARD_MASTERCARD="Mastercard";

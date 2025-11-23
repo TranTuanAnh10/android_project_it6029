@@ -1,66 +1,179 @@
 package vn.haui.android_project.view;
 
+import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.View;import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import vn.haui.android_project.R;
+import vn.haui.android_project.adapter.OrderManagementAdapter;
+import vn.haui.android_project.entity.Order;
+import vn.haui.android_project.enums.MyConstant;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link OrderManagementFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class OrderManagementFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private TabLayout tabLayout;
+    private RecyclerView recyclerView;
+    private ProgressBar progressBar;
+    private TextView tvNoOrders;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private OrderManagementAdapter adapter;
+    private List<Order> allOrdersList = new ArrayList<>();
+    private List<Order> displayList = new ArrayList<>();
 
-    public OrderManagementFragment() {
-        // Required empty public constructor
-    }
+    private DatabaseReference mDatabase;
+    // Mặc định hiển thị tab đầu tiên: Chờ xác nhận
+    private String currentStatus = MyConstant.PREPARED;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment OrderManagementFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static OrderManagementFragment newInstance(String param1, String param2) {
-        OrderManagementFragment fragment = new OrderManagementFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    public OrderManagementFragment() { }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        // FIX CỨNG URL ĐỂ TRÁNH LỖI KẾT NỐI
+        String dbUrl = "https://haui-23d87-default-rtdb.asia-southeast1.firebasedatabase.app";
+        mDatabase = FirebaseDatabase.getInstance(dbUrl).getReference("orders");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_order_management, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        initViews(view);
+        setupRecyclerView();
+        setupTabs();
+        loadOrdersFromFirebase();
+    }
+
+    private void initViews(View view) {
+        tabLayout = view.findViewById(R.id.tab_layout_orders);
+        recyclerView = view.findViewById(R.id.recycler_view_orders);
+        progressBar = view.findViewById(R.id.progress_bar_orders);
+        tvNoOrders = view.findViewById(R.id.tv_no_orders);
+    }
+
+    private void setupRecyclerView() {
+        adapter = new OrderManagementAdapter(getContext(), displayList, order -> {
+            Intent intent = new Intent(getContext(), OrderDetailManagementActivity.class);
+            intent.putExtra("ORDER_ID", order.getOrderId());
+            startActivity(intent);
+        });
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void setupTabs() {
+        tabLayout.removeAllTabs();
+        // 4 TAB TƯƠNG ỨNG 4 TRẠNG THÁI
+        tabLayout.addTab(tabLayout.newTab().setText("Chờ xác nhận"));  // 0: prepared
+        tabLayout.addTab(tabLayout.newTab().setText("Đang lấy hàng")); // 1: pickingUp
+        tabLayout.addTab(tabLayout.newTab().setText("Đang giao"));     // 2: delivering
+        tabLayout.addTab(tabLayout.newTab().setText("Hoàn thành"));    // 3: finish
+        tabLayout.addTab(tabLayout.newTab().setText("Từ chối"));    // 3: finish
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0: currentStatus = MyConstant.PREPARED; break;
+                    case 1: currentStatus = MyConstant.PICKINGUP; break;
+                    case 2: currentStatus = MyConstant.DELIVERING; break;
+                    case 3: currentStatus = MyConstant.FINISH; break;
+                    case 4: currentStatus = MyConstant.REJECT; break;
+                }
+                filterListByStatus(currentStatus);
+            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    private void loadOrdersFromFirebase() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                allOrdersList.clear();
+                List<Order> tempList = new ArrayList<>();
+
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    try {
+                        Order order = data.getValue(Order.class);
+                        if (order != null) {
+                            if (order.getOrderId() == null || order.getOrderId().isEmpty()) {
+                                order.setOrderId(data.getKey());
+                            }
+                            tempList.add(order);
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("OrderError", "Lỗi convert tại key: " + data.getKey());
+                    }
+                }
+
+                allOrdersList.addAll(tempList);
+                Collections.reverse(allOrdersList); // Đảo ngược để đơn mới lên đầu
+
+                filterListByStatus(currentStatus);
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Lỗi tải: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                }
+            }
+        });
+    }
+
+    private void filterListByStatus(String status) {
+        displayList.clear();
+        for (Order order : allOrdersList) {
+            if (status.equalsIgnoreCase(order.getStatus())) {
+                displayList.add(order);
+            }
+        }
+        adapter.notifyDataSetChanged();
+
+        if (displayList.isEmpty()) {
+            tvNoOrders.setVisibility(View.VISIBLE);
+            String statusVN = "";
+            if(status.equals(MyConstant.PREPARED)) statusVN = "Chờ xác nhận";
+            else if(status.equals(MyConstant.PICKINGUP)) statusVN = "Đang lấy hàng";
+            else if(status.equals(MyConstant.DELIVERING)) statusVN = "Đang giao hàng";
+            else if(status.equals(MyConstant.FINISH)) statusVN = "Hoàn thành";
+            else if (status.equals(MyConstant.REJECT)) statusVN = "Đã hủy";
+            tvNoOrders.setText("Không có đơn hàng: " + statusVN);
+        } else {
+            tvNoOrders.setVisibility(View.GONE);
+        }
     }
 }

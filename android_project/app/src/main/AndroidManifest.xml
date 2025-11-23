@@ -19,6 +19,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".view.OrderDetailManagementActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.ProductEditActivity"
             android:exported="false" />
         <activity

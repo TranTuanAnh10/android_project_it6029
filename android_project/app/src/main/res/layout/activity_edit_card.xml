@@ -31,7 +31,7 @@
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Edit card"
+            android:text="@string/screen_title_edit_card"
             android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Name on Card"
+                android:text="@string/label_name_on_card"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
@@ -81,16 +81,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/rounded_edittext_bg"
-                android:hint="Bruno Andersons"
+                android:hint="@string/hint_name_on_card"
                 android:inputType="textCapWords"
                 android:padding="12dp"
-                android:text="Bruno Andersons" />
+                android:text="@string/hint_name_on_card" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Card number"
+                android:text="@string/label_card_number"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
@@ -100,11 +100,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/rounded_edittext_bg"
-                android:hint="0123 4567 8901 2345"
+                android:hint="@string/hint_card_number"
                 android:inputType="number"
                 android:maxLength="19"
                 android:padding="12dp"
-                android:text="0123 4567 8901 2345" />
+                android:text="@string/hint_card_number" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -122,7 +122,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Expiration date"
+                        android:text="@string/label_expiration_date"
                         android:textColor="@android:color/black"
                         android:textSize="14sp" />
 
@@ -132,11 +132,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:background="@drawable/rounded_edittext_bg"
-                        android:hint="09/25"
+                        android:hint="@string/hint_expiration_date"
                         android:inputType="number"
                         android:maxLength="5"
                         android:padding="12dp"
-                        android:text="09/25" />
+                        android:text="@string/hint_expiration_date" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -149,7 +149,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CVV"
+                        android:text="@string/label_cvv"
                         android:textColor="@android:color/black"
                         android:textSize="14sp" />
 
@@ -159,11 +159,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:background="@drawable/rounded_edittext_bg"
-                        android:hint="234"
+                        android:hint="@string/hint_cvv"
                         android:inputType="numberPassword"
                         android:maxLength="4"
                         android:padding="12dp"
-                        android:text="234" />
+                        android:text="@string/hint_cvv" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -178,7 +178,7 @@
         android:layout_marginBottom="16dp"
         android:textColor="#FFFFFF"
         android:backgroundTint="@android:color/holo_red_light"
-        android:text="Edit card"
+        android:text="@string/button_edit_card"
         android:textSize="18sp"
         android:textStyle="bold"
         app:cornerRadius="8dp"

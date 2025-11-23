@@ -7,6 +7,8 @@
     android:background="#F9F9F9"
     tools:context=".view.OrdersFragment">
 
+
+
     <!-- 1. Header: Title + Search -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +23,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Orders"
+            android:text="@string/screen_title_orders"
             android:textColor="#222222"
             android:textSize="34sp"
             android:textStyle="bold" />
@@ -32,7 +34,7 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_search"
-            android:contentDescription="Search" />
+            android:contentDescription="@string/content_description_search" />
     </LinearLayout>
 
     <!-- 2. Tab buttons -->
@@ -51,9 +53,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Deliver"
+            android:text="@string/tab_deliver"
             android:textColor="#FFFFFF"
-            android:backgroundTint="@color/md_theme_primary"
+            android:backgroundTint="@color/md_theme_onPrimary"
             android:layout_marginEnd="5dp" />
 
         <Button
@@ -61,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="History"
+            android:text="@string/tab_history"
             android:textColor="@color/md_theme_onBackground"
             android:backgroundTint="@color/md_theme_surfaceVariant"
             android:layout_marginHorizontal="5dp" />
@@ -71,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Basket"
+            android:text="@string/tab_basket"
             android:textColor="@color/md_theme_onBackground"
             android:backgroundTint="@color/md_theme_surfaceVariant"
             android:layout_marginStart="5dp" />
@@ -79,7 +81,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Active orders"
+        android:text="@string/label_active_orders"
         android:textSize="25dp"
         android:id="@+id/orders_fragment_label"
         android:textColor="@color/color_text_home_page_text_black"

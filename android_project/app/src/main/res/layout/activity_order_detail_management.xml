@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/orders_details_screen"
+    android:id="@+id/orders_management_details_screen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FAFAFA">
@@ -13,7 +13,18 @@
         android:layout_marginTop="15dp"
         android:background="#FFFFFF"
         android:paddingBottom="80dp"> <!-- Padding cuối để nút Cancel không bị che -->
-
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#333333" />
         <!-- ==================================== -->
         <!-- 1. HEADER (TIÊU ĐỀ) -->
         <!-- ==================================== -->
@@ -22,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/order_detail"
+            android:text="Chi tiết đơn hàng"
             android:textColor="#333333"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -496,43 +507,45 @@
         <!-- ==================================== -->
         <!-- 7. ACTION BUTTONS (Đặt dưới cùng) -->
         <!-- ==================================== -->
-        <Button
-            android:id="@+id/btn_cancel_order"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginStart="16dp"
+        <LinearLayout
+            android:id="@+id/layout_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:layout_marginEnd="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:text="@string/cancelOrder"
-            android:textColor="#E04040"
-            app:cornerRadius="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_total_label"
-            app:strokeColor="#E04040"
-            app:strokeWidth="1dp" />
-
-
-        <Button
-            android:id="@+id/btn_confirm_order"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_marginBottom="32dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            android:backgroundTint="#FFFFFF"
-            android:text="@string/confirmOrder"
-            android:textColor="#E04040"
-            android:visibility="gone"
-            app:cornerRadius="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_total_label"
-            app:strokeColor="#E04040"
-            app:strokeWidth="1dp" />
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_total_label">
+
+            <!-- Nút Xác nhận: Nền XANH, Chữ TRẮNG -->
+            <!-- Sử dụng backgroundTint để đổi màu nền -->
+            <Button
+                android:id="@+id/btn_confirm_order"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="@color/color_text_home_page_green"
+                android:text="Xác nhận đơn hàng"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
+            <!-- Nút Hủy: Nền ĐỎ, Chữ TRẮNG -->
+            <Button
+                android:id="@+id/btn_cancel_order"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:backgroundTint="#D32F2F"
+                android:text="Từ chối đơn hàng"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

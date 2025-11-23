@@ -24,7 +24,7 @@
                 android:id="@+id/tvTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Profile"
+                android:text="@string/profile_setting"
                 android:textColor="#222222"
                 android:textSize="30sp"
                 android:textStyle="bold"
@@ -95,14 +95,14 @@
                 app:layout_constraintVertical_bias="0.525" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="107dp"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/bg_premium"
-            android:orientation="horizontal"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp">
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="107dp"-->
+<!--            android:layout_marginTop="24dp"-->
+<!--            android:background="@drawable/bg_premium"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:paddingStart="20dp"-->
+<!--            android:paddingEnd="20dp">-->
 
             <!--            <com.google.android.material.imageview.ShapeableImageView-->
             <!--                android:id="@+id/iv_sale"-->
@@ -116,19 +116,19 @@
             <!--                app:layout_constraintStart_toStartOf="parent"-->
             <!--                app:layout_constraintTop_toTopOf="parent"-->
             <!--                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />-->
-            <TextView
-                android:id="@+id/tv_text_sale"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="60dp"
-                android:layout_marginTop="37dp"
-                android:layout_marginBottom="20dp"
-                android:text="Bruno Andersons "
-                android:textSize="15sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toEndOf="@id/iv_avatar"
-                app:layout_constraintTop_toTopOf="@id/iv_avatar" />
-        </LinearLayout>
+<!--            <TextView-->
+<!--                android:id="@+id/tv_text_sale"-->
+<!--                android:layout_width="200dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginLeft="60dp"-->
+<!--                android:layout_marginTop="37dp"-->
+<!--                android:layout_marginBottom="20dp"-->
+<!--                android:text="Bruno Andersons "-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold"-->
+<!--                app:layout_constraintStart_toEndOf="@id/iv_avatar"-->
+<!--                app:layout_constraintTop_toTopOf="@id/iv_avatar" />-->
+<!--        </LinearLayout>-->
 
         <!-- 3. User Stats: Rewards, Orders, Favorites -->
         <!--        <LinearLayout-->
@@ -224,19 +224,6 @@
                 android:text="@string/profile_my_account"
                 android:textSize="22sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/point_yumyard"
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_point_yumyard"
-                android:text="@string/profile_your_yum_points" />
-
-            <TextView
-                android:id="@+id/vouchers"
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_vouchers"
-                android:text="@string/profile_my_vouchers" />
-
             <TextView
                 android:id="@+id/order_history"
                 style="@style/ProfileMenuItem"
@@ -255,89 +242,82 @@
                 android:drawableStart="@drawable/ic_payment_methods"
                 android:text="@string/profile_payment_methods" />
 
-            <TextView
-                android:id="@+id/security_centre"
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_security_centre"
-                android:drawableEnd="@null"
-                android:text="@string/profile_security_centre" />
-
         </LinearLayout>
         <!-- Settings Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="20dp"
-            android:background="@drawable/bg_profile"
-            android:orientation="vertical"
-            android:padding="16dp">
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="20dp"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            android:layout_marginEnd="20dp"-->
+<!--            android:background="@drawable/bg_profile"-->
+<!--            android:orientation="vertical"-->
+<!--            android:padding="16dp">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_settings"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/profile_settings"-->
+<!--                android:textSize="22sp"-->
+<!--                android:textStyle="bold" />-->
 
-            <TextView
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_help_centre"
-                android:text="@string/profile_help_centre" />
-            <!-- Dark mode -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp">
+<!--            <TextView-->
+<!--                style="@style/ProfileMenuItem"-->
+<!--                android:drawableStart="@drawable/ic_help_centre"-->
+<!--                android:text="@string/profile_help_centre" />-->
+<!--            &lt;!&ndash; Dark mode &ndash;&gt;-->
+<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:paddingTop="12dp"-->
+<!--                android:paddingBottom="12dp">-->
 
-                <ImageView
-                    android:id="@+id/iv_dark_mode_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_dark_mode"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+<!--                <ImageView-->
+<!--                    android:id="@+id/iv_dark_mode_icon"-->
+<!--                    android:layout_width="24dp"-->
+<!--                    android:layout_height="24dp"-->
+<!--                    android:src="@drawable/ic_dark_mode"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="@string/profile_dark_mode"
-                    android:textColor="#333"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/iv_dark_mode_icon"
-                    app:layout_constraintTop_toTopOf="parent" />
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginStart="16dp"-->
+<!--                    android:text="@string/profile_dark_mode"-->
+<!--                    android:textColor="#333"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textStyle="bold"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintStart_toEndOf="@id/iv_dark_mode_icon"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+<!--                <com.google.android.material.switchmaterial.SwitchMaterial-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+<!--            </androidx.constraintlayout.widget.ConstraintLayout>-->
 
-            <TextView
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_notification_settings"
-                android:text="@string/profile_notification_settings" />
+<!--            <TextView-->
+<!--                style="@style/ProfileMenuItem"-->
+<!--                android:drawableStart="@drawable/ic_notification_settings"-->
+<!--                android:text="@string/profile_notification_settings" />-->
 
-            <TextView
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_feedback"
-                android:text="@string/profile_feedback" />
+<!--            <TextView-->
+<!--                style="@style/ProfileMenuItem"-->
+<!--                android:drawableStart="@drawable/ic_feedback"-->
+<!--                android:text="@string/profile_feedback" />-->
 
-            <TextView
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_abount_yumyard"
-                android:text="@string/profile_about_yumyard" />
+<!--            <TextView-->
+<!--                style="@style/ProfileMenuItem"-->
+<!--                android:drawableStart="@drawable/ic_abount_yumyard"-->
+<!--                android:text="@string/profile_about_yumyard" />-->
 
-        </LinearLayout>
+<!--        </LinearLayout>-->
 
         <!-- Log Out Button -->
         <Button

@@ -59,6 +59,7 @@ import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.utils.TimeUtils;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
@@ -597,6 +598,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("orderId", orderId);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         orderData.put("uid", currentUser.getUid());
+        orderData.put("created_at", TimeUtils.getCreationTime());
         orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
         orderData.put("subTotal", subTotal);
         orderData.put("deliveryFee", deliveryFee);
@@ -611,8 +613,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("delivery", getDeliveryDataForDatabase());
         // --- Vị trí shipper ---
         Map<String, Object> shipperLocation = new HashMap<>();
-        shipperLocation.put("lat", pickupLat);
-        shipperLocation.put("lng", pickupLon);
+        shipperLocation.put("lat", 0);
+        shipperLocation.put("lng", 0);
 
         // --- Vị trí cửa hàng ---
         Map<String, Object> storeLocation = new HashMap<>();

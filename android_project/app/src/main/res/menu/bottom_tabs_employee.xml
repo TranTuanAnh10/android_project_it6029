@@ -4,13 +4,13 @@
     <item
         android:id="@+id/btn_order"
         android:icon="@drawable/ic_order"
-        android:title="Orders" />
+        android:title="Đơn hàng" />
     <item
         android:id="@+id/btn_product"
         android:icon="@drawable/ic_product"
-        android:title="Products" />
+        android:title="Sản phẩm" />
     <item
         android:id="@+id/btn_profile"
         android:icon="@drawable/ic_user"
-        android:title="Me" />
+        android:title="Thông tin" />
 </menu>

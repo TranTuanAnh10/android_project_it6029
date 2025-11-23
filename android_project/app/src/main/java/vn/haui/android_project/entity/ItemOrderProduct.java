@@ -7,6 +7,7 @@ public class ItemOrderProduct {
     private double unitPrice;
     private String image;
     private String idItem;
+    private double totalPrice;
     public ItemOrderProduct( String idItem,String name, String details, int quantity, double unitPrice, String image) {
         this.idItem=idItem;
         this.name = name;
@@ -18,6 +19,7 @@ public class ItemOrderProduct {
 
     public ItemOrderProduct() {
     }
+
     public String getIdItem() {
         return idItem;
     }
@@ -39,6 +41,10 @@ public class ItemOrderProduct {
     public String getDetails() { return details; }
     public int getQuantity() { return quantity; }
     public double getUnitPrice() { return unitPrice; }
+
+    public void setTotalPrice() {
+        this.totalPrice = unitPrice * quantity;
+    }
 
     // Tổng giá = Giá đơn vị * Số lượng
     public double getTotalPrice() { return unitPrice * quantity; }
