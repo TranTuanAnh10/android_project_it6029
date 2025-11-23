@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -29,10 +30,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
@@ -47,7 +51,9 @@ import java.util.Map;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.ShipperOrderAdapter;
 import vn.haui.android_project.entity.ProductItem;
+import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.model.OrderShiperHistory;
+import vn.haui.android_project.services.LocationService;
 
 public class ShipperActivity extends AppCompatActivity implements ShipperOrderAdapter.OnItemClickListener {
     private Spinner spinnerStatus;
@@ -58,7 +64,8 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
     private RecyclerView recyclerViewOrders;
     private ShipperOrderAdapter shipperOrderAdapter;
     private List<OrderShiperHistory> listOrder = new ArrayList<>();
-
+    private DatabaseReference notiRef;
+    private LocationService locationService;
     private DatabaseReference mDatabase;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +78,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
             return insets;
         });
         initDropdown();
+        locationService = new LocationService(this);
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference("shippers").child(currentUserId);
         myCalendar = Calendar.getInstance();
@@ -174,61 +182,141 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
         });
     }
 
-    private BroadcastReceiver newOrderReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String orderId = intent.getStringExtra("orderId");
-            String pickup = intent.getStringExtra("pickupAddress");
-            String delivery = intent.getStringExtra("deliveryAddress");
+    private void listenForNewOrders() {
+        notiRef = FirebaseDatabase.getInstance().getReference("Notifications").child(currentUserId);
 
-            showConfirmOrderDialog(orderId, pickup, delivery);
-        }
-    };
-    private void showConfirmOrderDialog(String orderId, String pickup, String delivery) {
+        notiRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if (snapshot.exists()) {
+                    String title = snapshot.child("title").getValue(String.class);
+                    String content = snapshot.child("content").getValue(String.class);
+                    String orderId = snapshot.child("orderId").getValue(String.class);
+                    String notiKey = snapshot.getKey(); // Key để xóa thông báo sau này
 
-        if (currentOrderDialog != null && currentOrderDialog.isShowing()) {
-            return;
-        }
+                    // Hiển thị Dialog
+                    showNewOrderDialog(title, content, orderId, notiKey);
+                }
+            }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_confirm_order_shipper, null);
-
-        TextView textOrderId = view.findViewById(R.id.text_order_id);
-        TextView textPickup = view.findViewById(R.id.text_pickup);
-        TextView textDelivery = view.findViewById(R.id.text_delivery);
-        Button btnCancel = view.findViewById(R.id.btn_cancel);
-        Button btnConfirm = view.findViewById(R.id.btn_confirm);
-
-        textOrderId.setText("Mã đơn: #" + orderId);
-        textPickup.setText("Lấy hàng: " + pickup);
-        textDelivery.setText("Giao hàng: " + delivery);
-
-        builder.setView(view)
-                .setTitle("ĐƠN HÀNG MỚI")
-                .setCancelable(false);
-
-        currentOrderDialog = builder.create();
-
-        btnCancel.setOnClickListener(v -> {
-            // TODO: Xử lý logic khi Shipper "Hủy"
-            // (Gửi thông báo từ chối lên server, v.v.)
-            Toast.makeText(this, "Đã hủy đơn " + orderId, Toast.LENGTH_SHORT).show();
-            currentOrderDialog.dismiss();
+            // Các hàm override khác không dùng đến nhưng bắt buộc phải để
+            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String s) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String s) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
-
-        btnConfirm.setOnClickListener(v -> {
-            // TODO: Xử lý logic khi Shipper "Xác nhận"
-            // (Cập nhật trạng thái đơn hàng, gửi thông báo cho khách, v.v.)
-            Toast.makeText(this, "Đã nhận đơn " + orderId, Toast.LENGTH_SHORT).show();
-            currentOrderDialog.dismiss();
-        });
-
-        currentOrderDialog.show();
     }
 
-    private void acceptOrder(){
+    /**
+     * 2. Hiển thị Dialog xác nhận nhận đơn
+     */
+    private void showNewOrderDialog(String title, String content, String orderId, String notiKey) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(content)
+                .setCancelable(false) // Bắt buộc phải chọn
+                .setPositiveButton("NHẬN ĐƠN", (dialog, which) -> {
+                    // Xử lý nhận đơn (Quan trọng)
+                    processOrderAcceptance(orderId, notiKey);
+                })
+                .setNegativeButton("ĐỂ SAU", (dialog, which) -> {
+                    // Xóa thông báo khỏi máy mình để không hiện lại
+                    notiRef.child(notiKey).removeValue();
+                    dialog.dismiss();
+                })
+                .show();
+    }
 
+    private void processOrderAcceptance(String orderId, String notiKey) {
+        DatabaseReference orderRef = FirebaseDatabase.getInstance().getReference("orders").child(orderId);
+
+        orderRef.runTransaction(new Transaction.Handler() {
+            @NonNull
+            @Override
+            public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                String status = currentData.child("status").getValue(String.class);
+
+                if (status != null && status.equals("picking_up") && !currentData.hasChild("shipperId")) {
+                    MutableData shipperNode = currentData.child("shipper");
+                    locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
+                        @Override
+                        public void onLocationResult(double la, double log, String add) {
+                            shipperNode.child("lat").setValue(la);
+                            shipperNode.child("lng").setValue(log);
+                        }
+                        @Override
+                        public void onLocationError(String errorMessage) {
+                            Toast.makeText(ShipperActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    shipperNode.child("shipperId").setValue(currentUserId);
+
+                    currentData.child("status").setValue(MyConstant.DELIVERING);
+
+                    return Transaction.success(currentData);
+                } else {
+                    return Transaction.abort();
+                }
+            }
+
+            @Override
+            public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+
+                notiRef.child(notiKey).removeValue();
+
+                if (committed) {
+                    Toast.makeText(ShipperActivity.this, "Nhận đơn thành công!", Toast.LENGTH_SHORT).show();
+
+                    FirebaseDatabase.getInstance().getReference("shippers")
+                            .child(currentUserId).child("status").setValue("busy");
+
+                    saveToShipperHistory(currentData, orderId);
+                    // 2. Chuyển sang màn hình chi tiết đơn hàng
+                    // Intent intent = new Intent(ShipperMainActivity.this, OrderDetailActivity.class);
+                    // intent.putExtra("ORDER_ID", orderId);
+                    // startActivity(intent);
+
+                } else {
+                    Toast.makeText(ShipperActivity.this, "Đơn đã có người nhận.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+    private void saveToShipperHistory(DataSnapshot orderSnapshot, String orderId) {
+        String price = String.valueOf(orderSnapshot.child("total").getValue());
+        if (price.equals("null")) price = "0";
+
+        DataSnapshot addressNode = orderSnapshot.child("addressUser");
+
+        String name = addressNode.child("recipientName").getValue(String.class);
+        String phone = addressNode.child("phoneNumber").getValue(String.class);
+        String address = addressNode.child("address").getValue(String.class);
+        String currentDate = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date());
+
+        OrderShiperHistory historyItem = new OrderShiperHistory(
+                orderId,
+                "shipping",
+                name,
+                phone,
+                address,
+                price,
+                currentDate
+        );
+
+        DatabaseReference historyRef = FirebaseDatabase.getInstance()
+                .getReference("shippers")
+                .child(currentUserId)
+                .child("historys");
+
+        historyRef.child(orderId).setValue(historyItem);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notiRef != null) {
+
+        }
     }
 
 
