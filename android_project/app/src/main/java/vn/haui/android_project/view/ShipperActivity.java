@@ -114,27 +114,19 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
         });
         updateLabel();
         getOrderHistory();
+        listenForNewOrders();
     }
     @Override
     public void onItemClick(OrderShiperHistory order) {
-        Toast.makeText(this, "Bạn đã chọn đơn hàng của: " + order.getReceiverName(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Bạn đã chọn đơn hàng của: " + order.getReceiverName(), Toast.LENGTH_SHORT).show();
 
-        if (order.getStatus().contains("done"))
+        if (order.getStatus().contains(MyConstant.FINISH))
             return;
-         
-        // và gửi kèm ID hoặc toàn bộ đối tượng đơn hàng.
-        /*
-        Intent intent = new Intent(ShipperActivity.this, OrderDetailActivity.class);
 
-        // Cách 1: Gửi ID (khuyến khích nếu bạn cần lấy dữ liệu mới nhất từ Firebase ở màn hình sau)
-        intent.putExtra("ORDER_ID", order.getOrderId());
-
-        // Cách 2: Gửi toàn bộ đối tượng (để làm được điều này, lớp OrderShiperHistory
-        // cần implement Serializable hoặc Parcelable)
-        // intent.putExtra("ORDER_OBJECT", order);
-
-        startActivity(intent);
-        */
+        Intent intent1 = new Intent(ShipperActivity.this, OrderTrackingActivity.class);
+        intent1.putExtra("ORDER_ID", order.getOrderId());
+        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        this.startActivity(intent1);
     }
 
     private void getOrderHistory(){
@@ -217,7 +209,17 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
                 .setCancelable(false) // Bắt buộc phải chọn
                 .setPositiveButton("NHẬN ĐƠN", (dialog, which) -> {
                     // Xử lý nhận đơn (Quan trọng)
-                    processOrderAcceptance(orderId, notiKey);
+                    locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
+                        @Override
+                        public void onLocationResult(double la, double log, String add) {
+                            processOrderAcceptance(orderId, notiKey, la, log);
+                        }
+                        @Override
+                        public void onLocationError(String errorMessage) {
+                            Toast.makeText(ShipperActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
                 })
                 .setNegativeButton("ĐỂ SAU", (dialog, which) -> {
                     // Xóa thông báo khỏi máy mình để không hiện lại
@@ -227,29 +229,23 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
                 .show();
     }
 
-    private void processOrderAcceptance(String orderId, String notiKey) {
+    private void processOrderAcceptance(String orderId, String notiKey, double la, double log) {
         DatabaseReference orderRef = FirebaseDatabase.getInstance().getReference("orders").child(orderId);
 
         orderRef.runTransaction(new Transaction.Handler() {
             @NonNull
             @Override
             public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                if (currentData.getValue() == null) {
+                    return Transaction.success(currentData);
+                }
                 String status = currentData.child("status").getValue(String.class);
-
-                if (status != null && status.equals("picking_up") && !currentData.hasChild("shipperId")) {
+                if (status != null && status.equals(MyConstant.PICKINGUP) && !currentData.child("shipper").hasChild("shipperId")) {
                     MutableData shipperNode = currentData.child("shipper");
-                    locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
-                        @Override
-                        public void onLocationResult(double la, double log, String add) {
-                            shipperNode.child("lat").setValue(la);
-                            shipperNode.child("lng").setValue(log);
-                        }
-                        @Override
-                        public void onLocationError(String errorMessage) {
-                            Toast.makeText(ShipperActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                        }
-                    });
 
+
+                    shipperNode.child("lat").setValue(la);
+                    shipperNode.child("lng").setValue(log);
                     shipperNode.child("shipperId").setValue(currentUserId);
 
                     currentData.child("status").setValue(MyConstant.DELIVERING);
