@@ -86,7 +86,11 @@ public class OrderManagementAdapter extends RecyclerView.Adapter<OrderManagement
             }
             // --- THÊM ĐOẠN NÀY ---
             else if (statusRaw.equalsIgnoreCase(MyConstant.REJECT)) {
-                statusVN = "Đã hủy";
+                statusVN = "Từ chối";
+                colorRes = android.R.color.holo_red_dark; // Màu đỏ báo hiệu đơn hủy
+            }
+            else if (statusRaw.equalsIgnoreCase(MyConstant.CANCEL_ORDER)) {
+                statusVN = "Đã huỷ";
                 colorRes = android.R.color.holo_red_dark; // Màu đỏ báo hiệu đơn hủy
             }
         }
