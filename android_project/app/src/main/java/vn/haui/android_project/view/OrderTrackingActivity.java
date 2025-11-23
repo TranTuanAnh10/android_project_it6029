@@ -5,6 +5,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import androidx.fragment.app.Fragment;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -31,12 +32,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 
 import java.text.DecimalFormat;
@@ -50,9 +54,11 @@ import vn.haui.android_project.R;
 
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.UserEntity;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+import vn.haui.android_project.enums.UserRole;
 
 
 public class OrderTrackingActivity extends AppCompatActivity {
@@ -93,6 +99,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
     private RecyclerView rvOrderItems;
     private OrderItemsAdapter orderItemsAdapter;
+    private String userRole;
     private List<ItemOrderProduct> productList = new ArrayList<>();
     DecimalFormat formatter = new DecimalFormat("#,###");
     @Override
@@ -127,7 +134,15 @@ public class OrderTrackingActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
         orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
-
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection(DatabaseTable.USERS.getValue()).document(FirebaseAuth.getInstance().getUid());
+        userRef.get().addOnSuccessListener(snapshot -> {
+            UserEntity userFirebase = snapshot.toObject(UserEntity.class);
+            userRole = userFirebase.getRole();
+            if(userRole.contains(UserRole.SHIPPER.getValue())){
+                btnConfirmOrder.setVisibility(VISIBLE);
+            }
+        });
         // 4️⃣ Ghi dữ liệu mẫu
 //        writeSampleOrder();
 
@@ -176,8 +191,45 @@ public class OrderTrackingActivity extends AppCompatActivity {
         });
 
         btnConfirmOrder.setOnClickListener(v -> {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin.", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Giao hàng thanh cong", Toast.LENGTH_SHORT).show();
+            new AlertDialog.Builder(this)
+                    .setTitle("Xác nhận hoàn thành")
+                    .setMessage("Bạn xác nhận đã giao đơn hàng này thành công và muốn kết thúc đơn?")
+                    .setCancelable(false)
+                    .setPositiveButton("Đúng, đã giao", (dialog, which) -> {
+                        completeOrder(orderId);
+                    })
+                    .setNegativeButton("Hủy", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .show();
+
         });
+
+    }
+
+    private void completeOrder(String orderId) {
+        String currentShipperId = FirebaseAuth.getInstance().getUid();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+
+        Map<String, Object> updates = new HashMap<>();
+
+        updates.put("/orders/" + orderId + "/status", MyConstant.FINISH);
+
+        updates.put("/shippers/" + currentShipperId + "/status", "ready");
+
+        updates.put("/shippers/" + currentShipperId + "/historys/" + orderId + "/status", MyConstant.FINISH);
+
+        rootRef.updateChildren(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Giao hàng thành công!", Toast.LENGTH_SHORT).show();
+                    finish();
+                    Intent intent1 = new Intent(OrderTrackingActivity.this, ShipperActivity.class);
+                    this.startActivity(intent1);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void mappingLayoutSummary() {
@@ -401,6 +453,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
             tvStatusDescTag.setText(R.string.finishDesc);
             btnCancelOrder.setVisibility(View.GONE);
         }
+
+
     }
     private void mappingViewMap() {
         webViewMap = findViewById(R.id.webViewMap);
