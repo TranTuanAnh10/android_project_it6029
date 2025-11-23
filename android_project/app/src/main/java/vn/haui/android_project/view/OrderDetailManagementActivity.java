@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import vn.haui.android_project.R;
@@ -328,6 +329,10 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
 
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
+                    if(newStatus.equals(MyConstant.PICKINGUP)){
+                        findAndNotifyShippers();
+                    }
+
                     // Vì ta dùng addValueEventListener (Realtime) ở hàm loadOrderData
                     // Nên khi Firebase thay đổi status -> UI sẽ tự động cập nhật lại (Ẩn nút, Đổi màu step bar)
                     // Không cần reload thủ công hay finish() trừ khi bạn muốn thoát.
@@ -335,5 +340,47 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
+    }
+    private void findAndNotifyShippers() {
+        DatabaseReference shippersRef = FirebaseDatabase.getInstance().getReference("shippers");
+
+        shippersRef.orderByChild("status").equalTo("ready")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot shipperSnapshot : snapshot.getChildren()) {
+                                String shipperId = shipperSnapshot.getKey(); // Lấy key (VD: 7h25UM...)
+
+                                sendNotificationToDatabase(shipperId, orderId);
+                            }
+                            Toast.makeText(getApplicationContext(), "Đã tìm thấy shipper và gửi thông báo", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Không có shipper nào đang rảnh (ready)!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    private void sendNotificationToDatabase(String shipperUid, String orderId) {
+        DatabaseReference notiRef = FirebaseDatabase.getInstance().getReference("Notifications").child(shipperUid);
+
+        String notiId = notiRef.push().getKey();
+
+        HashMap<String, Object> notiMap = new HashMap<>();
+        notiMap.put("title", "Đơn hàng mới!");
+        notiMap.put("content", "Có đơn hàng mới cần giao ngay.");
+        notiMap.put("orderId", orderId);
+        notiMap.put("isRead", false);
+        notiMap.put("timestamp", System.currentTimeMillis());
+
+        if (notiId != null) {
+            notiRef.child(notiId).setValue(notiMap);
+        }
     }
 }
