@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -64,12 +69,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         if (index != -1) {
             itemName = itemName.substring(0, index);
         }
-        int drawableId = context.getResources().getIdentifier(
-                itemName,
-                "drawable",
-                context.getPackageName()
-        );
-        holder.imgStore.setImageResource(drawableId);
+//        int drawableId = context.getResources().getIdentifier(
+//                itemName,
+//                "drawable",
+//                context.getPackageName()
+//        );
+//        holder.imgStore.setImageResource(drawableId);
+        loadPreviewImage(order.getProductList().get(0).getImage(),holder.imgStore);
         holder.itemView.setOnClickListener(v -> {
             if (MyConstant.DELIVERING.equals(order.getStatus())) {
                 Intent intent1 = new Intent(context, OrderTrackingActivity.class);
@@ -107,6 +113,20 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvStatus = itemView.findViewById(R.id.tvStatus);
             tvPrice = itemView.findViewById(R.id.tvPrice);
         }
+    }
+    private void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+        Log.d("IMG_URL:" ,url);
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
     }
 
 
