@@ -57,11 +57,7 @@
             android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@+id/tv_header_title">
 
-            <!-- Delivery Type -->
-            <!-- Delivery Type -->
-
-
-            <!-- Spacer -->
+            <!-- TRẠNG THÁI (Bên trái) -->
             <TextView
                 android:id="@+id/tv_status_tag"
                 android:layout_width="wrap_content"
@@ -70,36 +66,68 @@
                 android:gravity="center_vertical"
                 android:textColor="#343434"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:text="Đang giao hàng" />
 
+            <!-- Khoảng trống ở giữa -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
-            <!-- Estimated Arrival -->
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="4dp"
-                android:src="@drawable/ic_clock_check"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="23dp"
-                android:text="@string/estimate"
-                android:textColor="#0075B8"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tv_estimate_time"
+            <!-- CỤM THỜI GIAN (Bên phải) -->
+            <!-- Bọc vào LinearLayout vertical để xếp chồng 2 dòng thời gian -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:textColor="#343434"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <!-- Dòng 1: Thời gian ước tính (Cũ) -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="4dp"
+                        android:src="@drawable/ic_clock_check"
+                        app:tint="#0075B8"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/estimate"
+                        android:textColor="#0075B8"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tv_estimate_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="#343434"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="15:30" />
+                </LinearLayout>
+
+                <!-- Dòng 2: Thời gian đặt hàng (MỚI THÊM) -->
+                <TextView
+                    android:id="@+id/tv_order_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="#757575"
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    tools:text="Đặt lúc: 14:30 20/11" />
+
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Order ID -->
