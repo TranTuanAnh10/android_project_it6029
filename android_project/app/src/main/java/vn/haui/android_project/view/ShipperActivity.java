@@ -67,6 +67,8 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
     private DatabaseReference notiRef;
     private LocationService locationService;
     private DatabaseReference mDatabase;
+
+    private String nameShipper, phoneShipper, emailShipper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +89,11 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
         recyclerViewOrders.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewOrders.setAdapter(shipperOrderAdapter);
         btnDatePicker = findViewById(R.id.btn_date_picker);
+
+        Intent intent = getIntent();
+        nameShipper = intent.getStringExtra("USER_NAME");
+        phoneShipper = intent.getStringExtra("USER_PHONE");
+        emailShipper = intent.getStringExtra("USER_EMAIL");
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -191,7 +198,6 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
                 }
             }
 
-            // Các hàm override khác không dùng đến nhưng bắt buộc phải để
             @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String s) {}
             @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
             @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String s) {}
@@ -199,14 +205,11 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
         });
     }
 
-    /**
-     * 2. Hiển thị Dialog xác nhận nhận đơn
-     */
     private void showNewOrderDialog(String title, String content, String orderId, String notiKey) {
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(content)
-                .setCancelable(false) // Bắt buộc phải chọn
+                .setCancelable(false)
                 .setPositiveButton("NHẬN ĐƠN", (dialog, which) -> {
                     // Xử lý nhận đơn (Quan trọng)
                     locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
@@ -222,7 +225,6 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
 
                 })
                 .setNegativeButton("ĐỂ SAU", (dialog, which) -> {
-                    // Xóa thông báo khỏi máy mình để không hiện lại
                     notiRef.child(notiKey).removeValue();
                     dialog.dismiss();
                 })
@@ -246,7 +248,13 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
 
                     shipperNode.child("lat").setValue(la);
                     shipperNode.child("lng").setValue(log);
-                    shipperNode.child("shipperId").setValue(currentUserId);
+
+                    Map<String, Object> shipperInfoMap = new HashMap<>();
+                    shipperInfoMap.put("shipperId", currentUserId);
+                    shipperInfoMap.put("shipperName", nameShipper);
+                    shipperInfoMap.put("shipperPhone", phoneShipper);
+                    shipperInfoMap.put("shipperEmail", emailShipper );
+                    shipperNode.child("shipperInfo").setValue(shipperInfoMap);
 
                     currentData.child("status").setValue(MyConstant.DELIVERING);
 
