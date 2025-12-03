@@ -121,6 +121,9 @@ public class SplashScreenActivity extends AppCompatActivity {
 
                     if (role != null && role.equals(UserRole.SHIPPER.getValue())) {
                         Intent intent = new Intent(SplashScreenActivity.this, ShipperActivity.class);
+                        intent.putExtra("USER_PHONE", phone);
+                        intent.putExtra("USER_EMAIL", user.getEmail());
+                        intent.putExtra("USER_NAME", user.getDisplayName());
                         startActivity(intent);
                         finish();
                     } else if (role != null && role.equals(UserRole.ADMIN.getValue())) {

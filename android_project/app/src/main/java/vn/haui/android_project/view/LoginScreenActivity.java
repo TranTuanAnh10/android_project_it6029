@@ -186,6 +186,9 @@ public class LoginScreenActivity extends AppCompatActivity {
                     finish();
                 }else if (("shipper").equals(role)){
                     Intent intent = new Intent(LoginScreenActivity.this, ShipperActivity.class);
+                    intent.putExtra("USER_PHONE", phone);
+                    intent.putExtra("USER_EMAIL", user.getEmail());
+                    intent.putExtra("USER_NAME", user.getDisplayName());
                     startActivity(intent);
                     finish();
                 }
