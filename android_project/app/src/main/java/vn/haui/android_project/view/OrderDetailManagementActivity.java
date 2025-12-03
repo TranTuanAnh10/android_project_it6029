@@ -47,7 +47,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
     private static final String TAG = "OrderDetailManagement";
 
     // Views
-    private TextView tvOrderId, tvStatusTag, tvStatusDescTag, tvEstimateArrival;
+    private TextView tvOrderId, tvStatusTag, tvStatusDescTag, tvEstimateArrival, tvOrderTime;
     private TextView tvDriverName, tvLicensePlate, tvDriverInfoTitle;
     private TextView tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private TextView tvDeliveryFee, tvDiscount, tvTotal;
@@ -102,6 +102,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
         tvStatusTag = findViewById(R.id.tv_status_tag);
         tvStatusDescTag = findViewById(R.id.tv_status_desc_tag);
         tvEstimateArrival = findViewById(R.id.tv_estimate_time);
+        tvOrderTime = findViewById(R.id.tv_order_time);
 
         // Timeline Steps (Icon và Line)
         stepPrepared = findViewById(R.id.step_prepared);
@@ -160,6 +161,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                 String driver = snapshot.child("driver").getValue(String.class);
                 String license = snapshot.child("licensePlate").getValue(String.class);
                 String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
+                String timeOrder = snapshot.child("created_at").getValue(String.class);
 
                 Double fee = snapshot.child("deliveryFee").getValue(Double.class);
                 Double discount = snapshot.child("discount").getValue(Double.class);
@@ -186,7 +188,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                 }
 
                 // Update UI
-                updateOrderInfoUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
+                updateOrderInfoUI(orderId, status, driver, license, fee, discount, total, estimateArrival, timeOrder);
 
                 // Xử lý logic ẩn hiện nút
                 setupActionButtons(status);
@@ -200,10 +202,11 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
     }
 
     private void updateOrderInfoUI(String orderId, String status, String driver, String license,
-                                   Double fee, Double discount, Double total, String estimate) {
+                                   Double fee, Double discount, Double total, String estimate, String timeOrder) {
 
         tvOrderId.setText("Mã đơn: " + orderId);
         tvEstimateArrival.setText(estimate != null ? estimate : "Đang cập nhật");
+        tvOrderTime.setText(estimate != null ? timeOrder : "Đang cập nhật");
 
         // Hiển thị tài xế (chỉ khi có dữ liệu)
         if (driver != null && !driver.isEmpty()) {
