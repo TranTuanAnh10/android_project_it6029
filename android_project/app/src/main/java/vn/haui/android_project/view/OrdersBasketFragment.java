@@ -22,6 +22,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -169,6 +172,20 @@ public class OrdersBasketFragment extends Fragment {
             }
         });
     }
+    private void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
+    }
     private void updateCart(Cart cart){
         LinearLayout parent = rvBasketStores;
         parent.removeAllViews();
@@ -193,17 +210,18 @@ public class OrdersBasketFragment extends Fragment {
             String formattedPrice = formatter.format(item.getPrice()) + "đ";
             tvProductPrice.setText(formattedPrice);
 
-            String itemName = item.getImage();
-            int index = itemName.lastIndexOf('.');
-            if (index != -1) {
-                itemName = itemName.substring(0, index);
-            }
-            int drawableId = context.getResources().getIdentifier(
-                    itemName,
-                    "drawable",
-                    context.getPackageName()
-            );
-            ivProductImage.setImageResource(drawableId);
+//            String itemName = item.getImage();
+//            int index = itemName.lastIndexOf('.');
+//            if (index != -1) {
+//                itemName = itemName.substring(0, index);
+//            }
+//            int drawableId = context.getResources().getIdentifier(
+//                    itemName,
+//                    "drawable",
+//                    context.getPackageName()
+//            );
+//            ivProductImage.setImageResource(drawableId);
+            loadPreviewImage(item.getImage(), ivProductImage);
             btnMinus.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
