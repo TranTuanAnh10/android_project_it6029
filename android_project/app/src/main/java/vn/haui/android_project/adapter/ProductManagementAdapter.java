@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,6 +27,7 @@ public class ProductManagementAdapter extends RecyclerView.Adapter<ProductManage
 
     private Context context;
     private List<ProductItem> productList;
+    private List<ProductItem> originalList; // [MỚI] Danh sách gốc (để backup)
     private OnProductClickListener listener;
 
     public interface OnProductClickListener {
@@ -36,12 +38,45 @@ public class ProductManagementAdapter extends RecyclerView.Adapter<ProductManage
         this.context = context;
         this.productList = productList;
         this.listener = listener;
+        this.originalList = new ArrayList<>(productList);
     }
 
-    // Hàm để Fragment gọi khi cần refresh dữ liệu
+    // [MỚI] Hàm cập nhật dữ liệu chuẩn (thay thế notifyDataSetChanged trần trụi)
     public void updateData(List<ProductItem> newList) {
-        this.productList = newList;
+        // 1. Tạo một bản sao tạm thời của dữ liệu mới trước
+        // Lý do: Nếu newList và this.productList là cùng một object, lệnh clear() bên dưới sẽ xóa sạch cả 2
+        List<ProductItem> temp = new ArrayList<>(newList);
+
+        // 2. Xóa danh sách hiển thị cũ và thêm dữ liệu từ bản sao
+        this.productList.clear();
+        this.productList.addAll(temp);
+
+        // 3. Cập nhật danh sách gốc (để dùng cho chức năng tìm kiếm)
+        this.originalList.clear();
+        this.originalList.addAll(temp);
+
+        // 4. Báo cập nhật giao diện
         notifyDataSetChanged();
+    }
+
+    // [MỚI] Hàm lọc tìm kiếm
+    public void filter(String text) {
+        productList.clear(); // Xóa danh sách hiện tại
+
+        if (text == null || text.isEmpty()) {
+            // Nếu ô tìm kiếm rỗng -> Hiện lại toàn bộ từ danh sách gốc
+            productList.addAll(originalList);
+        } else {
+            // Nếu có chữ -> Lọc
+            text = text.toLowerCase().trim();
+            for (ProductItem item : originalList) {
+                // Kiểm tra tên sản phẩm có chứa từ khóa không
+                if (item.getName().toLowerCase().contains(text)) {
+                    productList.add(item);
+                }
+            }
+        }
+        notifyDataSetChanged(); // Cập nhật giao diện
     }
 
     @NonNull
