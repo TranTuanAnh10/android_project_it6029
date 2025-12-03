@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,6 +61,7 @@ public class ProductManagementFragment extends Fragment {
     private List<String> categoryNames = new ArrayList<>();
 
     private FirebaseFirestore db;
+    private SearchView svSearch; // [MỚI] Khai báo biến tìm kiếm
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,6 +75,9 @@ public class ProductManagementFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_product_management, container, false);
         recyclerView = view.findViewById(R.id.recycler_view_products);
         fabAddProduct = view.findViewById(R.id.fab_add_product);
+        // [MỚI] Ánh xạ SearchView từ XML
+        svSearch = view.findViewById(R.id.sv_product_search);
+        setupSearch(); // [MỚI] Gọi hàm setup tìm kiếm
         setupRecyclerView();
         return view;
     }
@@ -127,7 +132,7 @@ public class ProductManagementFragment extends Fragment {
     // --- PHẦN 1: LOAD SẢN PHẨM VỚI FIELD VIẾT HOA/THƯỜNG LỘN XỘN ---
     private void loadProducts() {
         db.collection("products")
-                .orderBy("Name", Query.Direction.ASCENDING) // Sắp xếp theo Name (Hoa)
+                .orderBy("Name", Query.Direction.ASCENDING) // Sắp xếp theo tên A-Z
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     // 1. Xóa list cũ để cập nhật mới hoàn toàn
@@ -136,11 +141,11 @@ public class ProductManagementFragment extends Fragment {
                     for (var doc : queryDocumentSnapshots) {
                         try {
                             ProductItem product = new ProductItem();
-                            product.setId(doc.getId());
+                            product.setId(doc.getId()); // Lấy ID document
 
-                            // --- ÁNH XẠ THỦ CÔNG ĐỂ KHỚP VỚI DB ---
+                            // --- ÁNH XẠ DỮ LIỆU TỪ FIRESTORE ---
 
-                            // Name (Viết hoa)
+                            // Name (Viết hoa chữ đầu theo DB của bạn)
                             String name = doc.getString("Name");
                             product.setName(name != null ? name : "No Name");
 
@@ -156,19 +161,18 @@ public class ProductManagementFragment extends Fragment {
                             String category = doc.getString("Category");
                             product.setCategory(category != null ? category : "");
 
-                            // rate (Viết thường - như bạn mô tả)
-                            Double rate = doc.getDouble("rate");
-                            // Nếu class ProductItem có setRate thì bỏ comment dòng dưới
-                            // product.setRate(rate != null ? rate : 5.0);
-
                             // Description (Viết hoa)
                             String desc = doc.getString("Description");
-                            // product.setDescription(desc);
+                            product.setDescription(desc != null ? desc : "");
 
-                            // status (Thường là viết thường, kiểm tra cả 2 cho chắc)
+                            // Status (Có thể là status hoặc Status)
                             String status = doc.getString("status");
                             if (status == null) status = doc.getString("Status");
                             product.setStatus(status != null ? status : "available");
+
+                            // Rate (Viết thường) - Nếu class ProductItem có trường này
+                            // Double rate = doc.getDouble("rate");
+                            // product.setRate(rate != null ? rate : 5.0);
 
                             productList.add(product);
                         } catch (Exception e) {
@@ -176,12 +180,37 @@ public class ProductManagementFragment extends Fragment {
                         }
                     }
 
-                    // 2. Thông báo Adapter cập nhật lại
+                    // 2. [QUAN TRỌNG] Cập nhật dữ liệu vào Adapter thông qua hàm updateData
+                    // Để nó lưu vào cả list gốc (originalList) phục vụ việc tìm kiếm
                     if (adapter != null) {
-                        adapter.notifyDataSetChanged();
+                        adapter.updateData(productList);
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Lỗi tải sản phẩm", e));
+    }
+
+
+    // [MỚI] Hàm xử lý sự kiện tìm kiếm
+    private void setupSearch() {
+        svSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // Khi nhấn nút Enter trên bàn phím -> Lọc
+                if (adapter != null) {
+                    adapter.filter(query);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Khi đang gõ từng chữ -> Lọc ngay lập tức (Realtime search)
+                if (adapter != null) {
+                    adapter.filter(newText);
+                }
+                return true;
+            }
+        });
     }
 
     private void showAddProductDialog() {

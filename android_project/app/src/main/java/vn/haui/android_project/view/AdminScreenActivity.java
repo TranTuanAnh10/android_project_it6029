@@ -46,7 +46,7 @@ public class AdminScreenActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.admin_container, new OrderManagementFragment())
+                    .replace(R.id.admin_container, new ReportFragment())
                     .commit();
         }
 
@@ -64,6 +64,8 @@ public class AdminScreenActivity extends AppCompatActivity {
                 selectedFragment = new UserManagementFragment();
             }else if (itemId == R.id.btn_profile) {
                 selectedFragment = new ProfileFragment();
+            }else if (itemId == R.id.btn_report) {
+                selectedFragment = new ReportFragment();
             }
 
             if (selectedFragment != null) {
