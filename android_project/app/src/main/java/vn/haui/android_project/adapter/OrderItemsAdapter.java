@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -61,25 +63,26 @@ public class OrderItemsAdapter extends RecyclerView.Adapter<OrderItemsAdapter.Vi
             itemQuantity.setText("x " + item.getQuantity());
             String imageName = item.getImage();
             if (imageName != null && !imageName.isEmpty()) {
-                String resourceName = imageName.replace(".png", "")
-                        .replace(".jpg", "")
-                        .trim()
-                        .toLowerCase(Locale.getDefault());
+//                String resourceName = imageName.replace(".png", "")
+//                        .replace(".jpg", "")
+//                        .trim()
+//                        .toLowerCase(Locale.getDefault());
+                loadPreviewImage(imageName, itemPhoto);
 
-                int imageResourceId = context.getResources().getIdentifier(
-                        resourceName,
-                        "drawable",
-                        context.getPackageName()
-                );
-                if (imageResourceId > 0) {
-                    Glide.with(context)
-                            .load(imageResourceId)
-                            .placeholder(R.drawable.image_breakfast)
-                            .error(R.drawable.image_breakfast)
-                            .into(itemPhoto);
-                } else {
-                    Glide.with(context).load(R.drawable.image_breakfast).into(itemPhoto);
-                }
+//                int imageResourceId = context.getResources().getIdentifier(
+//                        resourceName,
+//                        "drawable",
+//                        context.getPackageName()
+//                );
+//                if (imageResourceId > 0) {
+//                    Glide.with(context)
+//                            .load(imageResourceId)
+//                            .placeholder(R.drawable.image_breakfast)
+//                            .error(R.drawable.image_breakfast)
+//                            .into(itemPhoto);
+//                } else {
+//                    Glide.with(context).load(R.drawable.image_breakfast).into(itemPhoto);
+//                }
             } else {
                 // Nếu tên ảnh bị rỗng/null, tải ảnh fallback
                 Glide.with(context).load(R.drawable.image_breakfast).into(itemPhoto);
@@ -87,6 +90,20 @@ public class OrderItemsAdapter extends RecyclerView.Adapter<OrderItemsAdapter.Vi
         }
     }
 
+    private static void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
+    }
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
