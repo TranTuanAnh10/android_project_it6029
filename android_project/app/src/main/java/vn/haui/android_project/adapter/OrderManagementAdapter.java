@@ -58,11 +58,15 @@ public class OrderManagementAdapter extends RecyclerView.Adapter<OrderManagement
         // 3. Thời gian
         holder.tvDate.setText(order.getTimeDisplay() != null ? order.getTimeDisplay() : "");
 
-        // 4. Tổng tiền
+        // thời gian đặt hàng
+        holder.tvCreatedDate.setText(order.getCreated_at() != null ? order.getCreated_at() : "");
+
+
+        // 5. Tổng tiền
         DecimalFormat formatter = new DecimalFormat("#,###");
         holder.tvTotal.setText(formatter.format(order.getTotal()) + "đ");
 
-        // 5. XỬ LÝ TRẠNG THÁI & MÀU SẮC
+        // 6. XỬ LÝ TRẠNG THÁI & MÀU SẮC
         String statusRaw = order.getStatus();
         String statusVN = "Đang cập nhật";
         int colorRes = android.R.color.black;
@@ -107,7 +111,7 @@ public class OrderManagementAdapter extends RecyclerView.Adapter<OrderManagement
     }
 
     public static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView tvOrderId, tvDate, tvStatus, tvTotal, tvAddress;
+        TextView tvOrderId, tvDate, tvStatus, tvTotal, tvAddress, tvCreatedDate;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -117,6 +121,7 @@ public class OrderManagementAdapter extends RecyclerView.Adapter<OrderManagement
             tvStatus = itemView.findViewById(R.id.tv_order_status);
             tvTotal = itemView.findViewById(R.id.tv_order_total);
             tvAddress = itemView.findViewById(R.id.tv_order_address);
+            tvCreatedDate = itemView.findViewById(R.id.tv_created_date);
         }
     }
 }

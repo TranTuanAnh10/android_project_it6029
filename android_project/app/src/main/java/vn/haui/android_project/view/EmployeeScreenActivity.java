@@ -46,7 +46,7 @@ public class EmployeeScreenActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.employee_container, new OrderManagementFragment())
+                    .replace(R.id.employee_container, new ReportFragment())
                     .commit();
         }
 
@@ -65,6 +65,9 @@ public class EmployeeScreenActivity extends AppCompatActivity {
             }
             if (itemId == R.id.btn_profile) {
                 selectedFragment = new ProfileFragment();
+            }
+            if (itemId == R.id.btn_report) {
+                selectedFragment = new ReportFragment();
             }
             // Bạn có thể thêm các case else if khác ở đây nếu nhân viên có thêm chức năng
 
