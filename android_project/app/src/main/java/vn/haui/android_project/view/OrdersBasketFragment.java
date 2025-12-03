@@ -172,7 +172,7 @@ public class OrdersBasketFragment extends Fragment {
             }
         });
     }
-    private void loadPreviewImage(String url, ImageView imageView) {
+    private static void loadPreviewImage(String url, ImageView imageView) {
         if (url == null || url.isEmpty()) return;
 
         GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()

@@ -27,6 +27,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -120,6 +123,20 @@ public class SearchResultActivity extends AppCompatActivity {
         }
     }
 
+    private void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
+    }
     private void loadAllHomeData() {
         db.collection(COLLECTION_PRODUCTS)
                 .get()
@@ -258,24 +275,24 @@ public class SearchResultActivity extends AppCompatActivity {
             DecimalFormat formatter = new DecimalFormat("#,###");
             String formattedPrice = formatter.format(item.getPrice()) + "đ";
             tvProductPrice.setText(formattedPrice);
-
-            String itemName = item.getImage();
-            int index = itemName.lastIndexOf('.');
-            if (index != -1) {
-                itemName = itemName.substring(0, index);
-            }
-            int drawableId = context.getResources().getIdentifier(
-                    itemName,
-                    "drawable",
-                    context.getPackageName()
-            );
-            ivProductImage.setImageResource(drawableId);
+//
+//            String itemName = item.getImage();
+//            int index = itemName.lastIndexOf('.');
+//            if (index != -1) {
+//                itemName = itemName.substring(0, index);
+//            }
+//            int drawableId = context.getResources().getIdentifier(
+//                    itemName,
+//                    "drawable",
+//                    context.getPackageName()
+//            );
+//            ivProductImage.setImageResource(drawableId);
 //            Glide.with(context)
 //                    .load(drawableId)
 //                    .placeholder(R.drawable.img_cake)
 //                    .error(R.drawable.ic_burger)
 //                    .into(ivProductImage);
-
+                loadPreviewImage(item.getImage(), ivProductImage);
             itemView.setOnClickListener(v -> {
                 onProductItemClick(item);
             });

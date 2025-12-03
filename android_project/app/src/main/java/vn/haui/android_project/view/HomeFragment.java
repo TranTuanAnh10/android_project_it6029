@@ -20,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.material.textfield.TextInputEditText;
 
 import android.view.Gravity;
@@ -251,17 +253,18 @@ public class HomeFragment extends Fragment {
             String formattedPrice = formatter.format(item.getPrice()) + "đ";
             tvProductPrice.setText(formattedPrice);
 
-            String itemName = item.getImage();
-            int index = itemName.lastIndexOf('.');
-            if (index != -1) {
-                itemName = itemName.substring(0, index);
-            }
-            int drawableId = context.getResources().getIdentifier(
-                    itemName,
-                    "drawable",
-                    context.getPackageName()
-            );
-            ivProductImage.setImageResource(drawableId);
+//            String itemName = item.getImage();
+//            int index = itemName.lastIndexOf('.');
+//            if (index != -1) {
+//                itemName = itemName.substring(0, index);
+//            }
+//            int drawableId = context.getResources().getIdentifier(
+//                    itemName,
+//                    "drawable",
+//                    context.getPackageName()
+//            );
+//            ivProductImage.setImageResource(drawableId);
+            loadPreviewImage(item.getImage(), ivProductImage);
 //            Glide.with(context)
 //                    .load(drawableId)
 //                    .placeholder(R.drawable.img_cake)
@@ -274,6 +277,21 @@ public class HomeFragment extends Fragment {
 
             parent.addView(itemView);
         }
+    }
+
+    private void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
     }
     private void populateProductReadyToLunch(List<ProductItem> items) {
         LinearLayout parent = view.findViewById(R.id.layoutReadyForLunch);
@@ -308,23 +326,24 @@ public class HomeFragment extends Fragment {
             DecimalFormat formatter = new DecimalFormat("#,###");
             String formattedPrice = formatter.format(item.getPrice()) + "đ";
             tvProductPrice.setText(formattedPrice);
-
-            String itemName = item.getImage();
-            int index = itemName.lastIndexOf('.');
-            if (index != -1) {
-                itemName = itemName.substring(0, index);
-            }
-            int drawableId = context.getResources().getIdentifier(
-                    itemName,
-                    "drawable",
-                    context.getPackageName()
-            );
-            ivProductImage.setImageResource(drawableId);
+//
+//            String itemName = item.getImage();
+//            int index = itemName.lastIndexOf('.');
+//            if (index != -1) {
+//                itemName = itemName.substring(0, index);
+//            }
+//            int drawableId = context.getResources().getIdentifier(
+//                    itemName,
+//                    "drawable",
+//                    context.getPackageName()
+//            );
+//            ivProductImage.setImageResource(drawableId);
 //            Glide.with(context)
 //                    .load(drawableId)
 //                    .placeholder(R.drawable.img_cake)
 //                    .error(R.drawable.ic_burger)
 //                    .into(ivProductImage);
+            loadPreviewImage(item.getImage(), ivProductImage);
 
             itemView.setOnClickListener(v -> {
                 onProductItemClick(item);
