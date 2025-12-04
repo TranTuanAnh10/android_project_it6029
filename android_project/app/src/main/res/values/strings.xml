@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">YumYard</string>
-    <string name="onboard_title">Delight Delivered,\n Cravings Satisfied.</string>
-    <string name="onboard_subtitle">Savor the convenience of delicious meals delivered right to your doorstep. Let\'s embark on a culinary journey together!</string>
+    <string name="onboard_title">Niềm vui được mang đến,\n Thỏa mãn cơn thèm ăn.</string>
+    <string name="onboard_subtitle">Tận hưởng sự tiện lợi của những bữa ăn ngon được giao tận nhà. Cùng nhau bắt đầu hành trình ẩm thực nào!</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -124,4 +124,18 @@
     <string name="tab_history">Lịch sử</string>
     <string name="tab_basket">Giỏ hàng</string>
     <string name="label_active_orders">Đơn hàng đang hoạt động</string>
+
+    <string name="content_description_delivery_illustration">Minh họa giao hàng</string>
+    <string name="login_title">Bắt đầu ngay nào</string>
+    <string name="login_subtitle">Tạo tài khoản để bắt đầu đặt hàng</string>
+    <string name="continue_with">Tiếp tục với</string>
+    <string name="button_google">Google</string>
+    <string name="or_separator">Hoặc</string>
+    <string name="label_your_email">Email của bạn</string>
+    <string name="hint_enter_email">Nhập email của bạn</string>
+    <string name="label_your_password">Mật khẩu của bạn</string>
+    <string name="hint_enter_password">Nhập mật khẩu của bạn</string>
+    <string name="terms_agreement_part1">Bằng việc nhấn "Tiếp tục", bạn đồng ý với</string>
+    <string name="terms_and_conditions">Điều khoản và Điều kiện</string>
+    <string name="button_continue">Tiếp tục</string>
 </resources>

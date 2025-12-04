@@ -17,6 +17,21 @@
         <!-- ==================================== -->
         <!-- 1. HEADER (TIÊU ĐỀ) -->
         <!-- ==================================== -->
+
+        <!-- NÚT QUAY LẠI (ĐÃ THÊM MỚI) -->
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_header_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tv_header_title"
+            tools:ignore="ContentDescription" />
+
         <TextView
             android:id="@+id/tv_header_title"
             android:layout_width="wrap_content"

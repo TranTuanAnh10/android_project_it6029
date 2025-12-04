@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -36,6 +37,7 @@ public class OrderPlacedActivity extends AppCompatActivity {
     private String orderId, status;
     private DatabaseReference orderRef;
     private FirebaseDatabase firebaseDatabase;
+    private ImageButton imageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +96,7 @@ public class OrderPlacedActivity extends AppCompatActivity {
     }
 
     private void listenOrderRealtime() {
+        imageButton.setOnClickListener(v -> onBackPressed());
         orderRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -114,5 +117,6 @@ public class OrderPlacedActivity extends AppCompatActivity {
         // Lưu ý: Đảm bảo ID trong XML là R.id.btnReturnHome, nếu không phải thì thay bằng R.id.btn_return_home
         btnReturnHome = findViewById(R.id.btn_return_home);
         btnTrackOrder = findViewById(R.id.btn_track_order);
+        imageButton = findViewById(R.id.btn_back);
     }
 }

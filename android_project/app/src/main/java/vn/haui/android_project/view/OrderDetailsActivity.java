@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,7 +36,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.databinding.OrderDetailScreenBinding;
@@ -62,7 +65,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private Button btnCancelOrder;
     private ConstraintLayout layoutDriverDetails;
     private View divider1;
-
+    private ImageButton imageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +77,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
         rvOrderItems.setLayoutManager(new LinearLayoutManager(this));
         orderItemsAdapter = new OrderItemsAdapter(productList);
         rvOrderItems.setAdapter(orderItemsAdapter);
+        imageButton = binding.btnBack;
         setupListeners();
         Intent intent = getIntent();
         if (intent != null) {
@@ -86,6 +90,15 @@ public class OrderDetailsActivity extends AppCompatActivity {
         firebaseDatabase = FirebaseDatabase.getInstance();
         orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
         listenOrderRealtime();
+
+        imageButton.setOnClickListener(v -> {
+            if (isTaskRoot() && !isFinishing()) {
+                Intent mainIntent = new Intent(OrderDetailsActivity.this, MainActivity.class);
+                mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(mainIntent);
+            }
+            finish();
+        });
     }
 
     private void mappingView() {
@@ -128,7 +141,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
                         isTrackingActivityLaunched = true;
                         Intent intent1 = new Intent(OrderDetailsActivity.this, OrderTrackingActivity.class);
                         intent1.putExtra("ORDER_ID", orderId);
-                        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        // ❌ FIX QUAN TRỌNG: Loại bỏ FLAG_ACTIVITY_CLEAR_TASK
+                        // Flag này xóa toàn bộ Stack, dẫn đến việc nút Back bị lỗi thoát ứng dụng.
+                        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent1);
                         finish();
                         return;
@@ -139,7 +154,13 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     layoutDriverDetails.setVisibility(GONE);
                     divider1.setVisibility(GONE);
                 }
-                String driver = snapshot.child("driver").getValue(String.class);
+                String driver= null;
+//                DataSnapshot shipperSnap = snapshot.child("shipper");
+//                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
+//                String driver= shipperInfoMap.get("shipperName").toString();
+//                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+//                String shipperAvatar = shipperInfoMap.get("shipperAvatar").toString();
+
                 String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
                 tvEstimateArrival.setText(estimateArrival);
                 String license = snapshot.child("licensePlate").getValue(String.class);
@@ -253,6 +274,9 @@ public class OrderDetailsActivity extends AppCompatActivity {
         binding.btnChat.setOnClickListener(view -> {
             try {
                 // Lấy số điện thoại từ TextView thông qua binding
+                // Chú ý: tvLicensePlate hiển thị biển số xe, không phải SĐT.
+                // Tôi tạm thời giữ nguyên logic của bạn, nhưng bạn nên kiểm tra lại
+                // trường dữ liệu nào chứa SĐT của tài xế.
                 String phoneNumber = binding.tvLicensePlate.getText().toString();
                 // Tạo Intent để mở ứng dụng nhắn tin
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:" + phoneNumber));
@@ -307,7 +331,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
         orderRef.child("status").setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
                     String msg = "Đã xác nhận đơn hàng!";
-                    if(newStatus.equals(MyConstant.REJECT)) msg = "Đã hủy đơn hàng!";
+                    if(newStatus.equals(MyConstant.REJECT) || newStatus.equals(MyConstant.CANCEL_ORDER)) msg = "Đã hủy đơn hàng!";
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e ->

@@ -30,6 +30,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -352,25 +354,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     itemDefaulCount.setText(quantityText);
                     itemDefaul.setText(itemOrderProduct.getName());
                     String imageName = itemOrderProduct.getImage();
-                    int imageResourceId = 0;
-
-                    if (imageName != null && !imageName.isEmpty()) {
-                        String resourceName = imageName.replace(".png", "")
-                                .replace(".jpg", "")
-                                .trim()
-                                .toLowerCase(Locale.getDefault());
-                        imageResourceId = OrderTrackingActivity.this.getResources().getIdentifier(
-                                resourceName,
-                                "drawable",
-                                OrderTrackingActivity.this.getPackageName()
-                        );
-                    }
-                    int finalResourceId = (imageResourceId > 0) ? imageResourceId : R.drawable.image_breakfast;
-                    Glide.with(OrderTrackingActivity.this)
-                            .load(finalResourceId)
-                            .placeholder(R.drawable.image_breakfast)
-                            .error(R.drawable.image_breakfast)
-                            .into(itemDefaulImg);
+                    loadPreviewImage(imageName, itemDefaulImg);
                 }
 
                 orderItemsAdapter = new OrderItemsAdapter(productList);
@@ -383,6 +367,10 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 DataSnapshot shipperSnap = snapshot.child("shipper");
                 Double currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
                 Double currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
+                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
+                String shipperName= shipperInfoMap.get("shipperName").toString();
+                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+
                 String jsCall = String.format(Locale.US,
                         "initOrUpdateMap(%f, %f, %f, %f, '%s')",
                         currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
@@ -480,5 +468,20 @@ public class OrderTrackingActivity extends AppCompatActivity {
         } else {
             imgLocationIcon.setImageResource(R.drawable.ic_marker);
         }
+    }
+
+    private static void loadPreviewImage(String url, ImageView imageView) {
+        if (url == null || url.isEmpty()) return;
+
+        GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                .build());
+
+        Glide.with(imageView.getContext())
+                .load(glideUrl)
+                .override(600, 600)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_delete)
+                .into(imageView);
     }
 }
