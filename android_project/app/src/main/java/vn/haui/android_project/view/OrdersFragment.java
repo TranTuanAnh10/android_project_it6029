@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import vn.haui.android_project.R;
@@ -28,7 +30,9 @@ public class OrdersFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    Button btnDeliver, btnHistory, btnBasket;
+    Button btnDeliver, btnHistory, btnBasket ;
+
+    ImageView btnBack;
 
     TextView label;
 
@@ -71,6 +75,7 @@ public class OrdersFragment extends Fragment {
         btnDeliver = view.findViewById(R.id.btnDeliver);
         btnHistory = view.findViewById(R.id.btnHistory);
         btnBasket = view.findViewById(R.id.btnBasket);
+        btnBack = view.findViewById(R.id.btnBack);
         label = view.findViewById(R.id.orders_fragment_label);
         // Mặc định hiển thị tab "Deliver now"
         replaceChildFragment(new OrdersActiveFragment());
@@ -94,6 +99,11 @@ public class OrdersFragment extends Fragment {
             label.setText("In-basket items");
 
 
+        });
+        btnBack.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
         });
 
         return view;

@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ProfileFragment();
             }
             if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction().replace(R.id.container, selectedFragment).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, selectedFragment).addToBackStack(null).commit();
             }
             return true;
         });
