@@ -5,14 +5,16 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ShipperActivity"
-    android:orientation="vertical">
+    tools:context=".view.ShipperActivity">
+
+    <!-- 1. AppBarLayout được ghim lên trên cùng của màn hình -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        tools:ignore="MissingConstraints">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -20,67 +22,72 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/md_theme_onPrimary"
             app:title="DANH SÁCH ĐƠN"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@android:color/white"
+            app:theme="@style/MyToolbarTheme" />/>
 
     </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- 2. LinearLayout chứa bộ lọc được đặt ngay bên dưới AppBarLayout -->
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="#F0F0F0"
+        android:id="@+id/filter_section"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="12dp"
-        tools:context=".OrderListFragment">
+        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/btn_date_picker"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:text="21/01/2022"
+            android:textColor="#fff"
+            android:paddingHorizontal="16dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lọc theo"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@android:color/black"/>
 
-            <Button
-                android:id="@+id/btn_date_picker"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="21/01/2022"
-                android:textColor="#fff"
-                android:paddingHorizontal="16dp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Lọc theo"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="8dp"
-                android:textColor="@android:color/black"/>
-
-            <Spinner
-                android:id="@+id/spinner_status_filter"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="40dp"
-                android:background="@drawable/rounded_edittext_bg"
-                android:paddingHorizontal="16dp" />
-        </LinearLayout>
-
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/search_view"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/rounded_edittext_bg"
-            app:queryHint="Nhập thông tin đơn cần tìm"
-            app:iconifiedByDefault="false" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_orders"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
+        <Spinner
+            android:id="@+id/spinner_status_filter"
+            android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="12dp"
-            tools:listitem="@layout/item_shipper_order" />
-
+            android:layout_height="40dp"
+            android:background="@drawable/rounded_edittext_bg"
+            android:paddingHorizontal="16dp" />
     </LinearLayout>
+
+    <!-- 3. Thanh tìm kiếm được đặt bên dưới bộ lọc -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/rounded_edittext_bg"
+        app:queryHint="Nhập thông tin đơn cần tìm"
+        app:iconifiedByDefault="false"
+        app:layout_constraintTop_toBottomOf="@id/filter_section"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 4. RecyclerView chiếm toàn bộ không gian còn lại ở dưới -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_orders"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/search_view"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_shipper_order" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,6 +22,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -38,6 +39,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -67,7 +72,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
     private DatabaseReference notiRef;
     private LocationService locationService;
     private DatabaseReference mDatabase;
-
+    Toolbar toolbar;
     private String nameShipper, phoneShipper, emailShipper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +83,29 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.shipper_menu);
+        toolbar.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_logout) {
+                new AlertDialog.Builder(this)
+                    .setTitle("Xác nhận đăng xuất")
+                    .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
+                    .setPositiveButton("Đồng ý", (dialog, which) -> {
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent = new Intent(this, LoginScreenActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .setNegativeButton("Hủy", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .show();
+                return true;
+            }
+            return false;
         });
         initDropdown();
         locationService = new LocationService(this);
@@ -94,6 +122,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
         nameShipper = intent.getStringExtra("USER_NAME");
         phoneShipper = intent.getStringExtra("USER_PHONE");
         emailShipper = intent.getStringExtra("USER_EMAIL");
+
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -119,10 +148,12 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
                 ).show();
             }
         });
-        updateLabel();
+//        updateLabel();
+        btnDatePicker.setText("Chọn ngày");
         getOrderHistory();
         listenForNewOrders();
     }
+
     @Override
     public void onItemClick(OrderShiperHistory order) {
         //Toast.makeText(this, "Bạn đã chọn đơn hàng của: " + order.getReceiverName(), Toast.LENGTH_SHORT).show();
@@ -339,7 +370,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
                 }
             }
 
-            boolean dateMatch = (order.getDate() != null && order.getDate().equals(selectedDate));
+            boolean dateMatch = (btnDatePicker.getText().equals("Chọn ngày") || (order.getDate() != null && order.getDate().equals(selectedDate)));
 
             if (statusMatch && dateMatch) {
                 filteredList.add(order);
