@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -67,18 +69,22 @@ public class OrderProductAdapter extends RecyclerView.Adapter<OrderProductAdapte
             DecimalFormat formatter = new DecimalFormat("#,###");
             String priceText = formatter.format(product.getTotalPrice()) + "đ";
             tvProductPrice.setText(priceText);
-            String imageName = product.getImage();
-            int imageResourceId = context.getResources().getIdentifier(
-                    imageName.replace(".png", "").replace(".jpg", ""), // Bỏ đuôi file
-                    "drawable",
-                    context.getPackageName()
-            );
-            Glide.with(context)
-                    .load(imageResourceId)
-                    .placeholder(R.drawable.image_breakfast)
-                    .error(R.drawable.image_breakfast)
-                    .into(imgProductThumb);
+            loadPreviewImage(product.getImage(), imgProductThumb);
+        }
 
+        private static void loadPreviewImage(String url, ImageView imageView) {
+            if (url == null || url.isEmpty()) return;
+
+            GlideUrl glideUrl = new GlideUrl(url, new LazyHeaders.Builder()
+                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36")
+                    .build());
+
+            Glide.with(imageView.getContext())
+                    .load(glideUrl)
+                    .override(600, 600)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_delete)
+                    .into(imageView);
         }
     }
 }
