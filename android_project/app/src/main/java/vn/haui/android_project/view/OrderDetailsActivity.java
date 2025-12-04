@@ -154,11 +154,12 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     layoutDriverDetails.setVisibility(GONE);
                     divider1.setVisibility(GONE);
                 }
-                DataSnapshot shipperSnap = snapshot.child("shipper");
-                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
-                String driver= shipperInfoMap.get("shipperName").toString();
-                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
-                String shipperAvatar = shipperInfoMap.get("shipperAvatar").toString();
+                String driver= null;
+//                DataSnapshot shipperSnap = snapshot.child("shipper");
+//                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
+//                String driver= shipperInfoMap.get("shipperName").toString();
+//                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+//                String shipperAvatar = shipperInfoMap.get("shipperAvatar").toString();
 
                 String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
                 tvEstimateArrival.setText(estimateArrival);
