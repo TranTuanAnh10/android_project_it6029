@@ -43,9 +43,11 @@
     <string name="choose_from_map">Chọn địa chỉ mới</string>
 
     <!--    Home Screen-->
-    <string name="category">Categorys</string>
+    <string name="category">Danh mục</string>
+    <string name="top_picks">Lựa chọn hàng đầu</string>
     <string name="top_rate">Đánh giá cao</string>
     <string name="best_selling">Bán chạy</string>
+    <string name="ready_for_lunch">Sẵn sàng cho bữa ăn</string>
 
     <string name="greeting_message">Chào  </string>
     <string name="order_prompt">Bạn đã sẵn sàng đặt hàng chưa?</string>

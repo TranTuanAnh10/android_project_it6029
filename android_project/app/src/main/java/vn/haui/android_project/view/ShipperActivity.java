@@ -365,7 +365,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
             if (selectedStatus.equals("Tất cả")) {
                 statusMatch = true;
             } else {
-                if(order.getStatus() != null && order.getStatus().equalsIgnoreCase(selectedStatus)){
+                if(order.getStatus() != null && shipperOrderAdapter.getTextStatus(order.getStatus()).equalsIgnoreCase(selectedStatus)){
                     statusMatch = true;
                 }
             }
@@ -396,7 +396,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
     private void initDropdown(){
         spinnerStatus = findViewById(R.id.spinner_status_filter);
 
-        String[] filterOptions = new String[]{"Tất cả", "Đã giao", "Đang giao", "Không thành công"};
+        String[] filterOptions = new String[]{"Tất cả", "Đã xong", "Đang giao"};
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -415,6 +415,7 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
 
                 // TODO: Gọi hàm lọc RecyclerView của bạn tại đây
                 // Ví dụ: filterOrderList(selectedStatus);
+                filterData();
             }
 
             @Override
