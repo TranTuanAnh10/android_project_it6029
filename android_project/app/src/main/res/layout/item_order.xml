@@ -69,13 +69,14 @@
 
         <TextView
             android:id="@+id/tvStatus"
-            android:textColor="#FFFFFF"
+            android:textColor="#343434"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:background="@drawable/bg_status"
             android:paddingHorizontal="8dp"
             android:paddingVertical="2dp"
-            android:textSize="12sp"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:layout_marginTop="4dp"/>
     </LinearLayout>
 
