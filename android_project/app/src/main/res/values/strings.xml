@@ -141,4 +141,17 @@
     <string name="terms_and_conditions">Điều khoản và Điều kiện</string>
     <string name="button_continue">Tiếp tục</string>
     <string name="rateOrder">Đánh giá đơn hàng</string>
+    <string name="content_description_back">Nút quay lại</string>
+    <string name="title_rating_activity">Đánh giá Trải nghiệm của Bạn</string>
+    <string name="button_return_home">Trang chủ</string>
+    <string name="button_submit_review">Gửi Đánh giá</string>
+    <!-- Food/Restaurant Rating Section -->
+    <string name="title_food_rating">Đánh giá Món ăn</string>
+    <!-- Driver Rating Section -->
+    <string name="title_driver_rating">Đánh giá Tài xế</string>
+    <string name="driver_info_placeholder">Adam West (34 LD 5225)</string>
+    <string name="hint_driver_rating">Chạm để đánh giá</string>
+    <!-- Comment Section -->
+    <string name="title_comment">Bình luận về Trải nghiệm</string>
+    <string name="hint_comment_experience">Mô tả trải nghiệm của bạn (ví dụ: Món ăn nóng hổi, tài xế thân thiện...)</string>
 </resources>

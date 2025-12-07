@@ -79,12 +79,12 @@ public class OrderPlacedActivity extends AppCompatActivity {
                     Intent intent1 = new Intent(OrderPlacedActivity.this, OrderDetailsActivity.class);
                     intent1.putExtra("ORDER_ID", orderId);
                     startActivity(intent1);
-                    finish();
+
                 } else if (MyConstant.DELIVERING.equals(status)) {
                     Intent intent1 = new Intent(OrderPlacedActivity.this, OrderTrackingActivity.class);
                     intent1.putExtra("ORDER_ID", orderId);
                     startActivity(intent1);
-                    finish();
+
                 }
 //                else if (MyConstant.FINISH.equals(status)){
 //                    Intent intent1 = new Intent(OrderPlacedActivity.this, MainActivity.class);
