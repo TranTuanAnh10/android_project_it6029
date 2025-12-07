@@ -332,7 +332,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         return R.drawable.ic_credit_card;
     }
 
-
+    DatabaseReference cartRef;
     private void loadData() {
         authUser = FirebaseAuth.getInstance().getCurrentUser();
         if (authUser == null) {
@@ -351,7 +351,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         productAdapter = new OrderProductAdapter(productList); // KHỞI TẠO NGAY
         recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
         recyclerOrderItems.setAdapter(productAdapter); // GÁN NGAY
-        DatabaseReference cartRef = FirebaseDatabase.getInstance()
+        cartRef = FirebaseDatabase.getInstance()
                 .getReference("carts")
                 .child(authUser.getUid());
 
@@ -633,7 +633,23 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef.setValue(orderData)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
                 .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
-
+        ///  xoa toan bo trong gio hang sau khi thanh toan
+        if (cartRef == null) {
+            System.err.println("Lỗi: Người dùng chưa đăng nhập hoặc tham chiếu database chưa sẵn sàng.");
+            return;
+        }
+        cartRef.removeValue(new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                    // Xóa thất bại
+                    System.err.println("Xóa giỏ hàng thất bại: " + databaseError.getMessage());
+                } else {
+                    // Xóa thành công
+                    System.out.println("Giỏ hàng của người dùng " + authUser.getUid() + " đã được xóa thành công.");
+                }
+            }
+        });
         Intent intent = new Intent(ConfirmPaymentActivity.this, OrderPlacedActivity.class);
         intent.putExtra("ORDER_ID", orderId);
         startActivity(intent);

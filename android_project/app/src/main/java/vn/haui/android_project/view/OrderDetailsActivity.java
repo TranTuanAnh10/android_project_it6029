@@ -62,7 +62,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, imgLocationIcon;
     private TextView tvStatusTag, tvStatusDescTag, tvDriverInfoTitle, tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
-    private Button btnCancelOrder;
+    private Button btnCancelOrder,btnRateOrder;
     private ConstraintLayout layoutDriverDetails;
     private View divider1;
     private ImageButton imageButton;
@@ -104,6 +104,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private void mappingView() {
         tvEstimateArrival = findViewById(R.id.tv_estimate_time);
         btnCancelOrder = findViewById(R.id.btn_cancel_order);
+        btnRateOrder= findViewById(R.id.btn_rate_order);
         // ✅ Gắn view con bên trong layoutSummary)
         stepPrepared = findViewById(R.id.step_prepared);
         stepPickingUp = findViewById(R.id.step_pickingUp);
@@ -224,6 +225,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             tvStatusTag.setText(R.string.prepared);
             tvStatusDescTag.setText(R.string.preparedDesc);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.PICKINGUP)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -231,6 +233,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.pickingUp);
             tvStatusDescTag.setText(R.string.pickingUpDesc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.DELIVERING)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -240,6 +243,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.delivering);
             tvStatusDescTag.setText(R.string.deliveringDesc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.FINISH)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -251,14 +255,17 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.finish);
             tvStatusDescTag.setText(R.string.finishDesc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.VISIBLE);
         }else if (status.equals(MyConstant.REJECT)) {
             tvStatusTag.setText(R.string.reject_status);
             tvStatusDescTag.setText(R.string.reject_status_desc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         }else if (status.equals(MyConstant.CANCEL_ORDER)) {
             tvStatusTag.setText(R.string.reject_status);
             tvStatusDescTag.setText(R.string.cancel_order_status_desc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         }
     }
 
