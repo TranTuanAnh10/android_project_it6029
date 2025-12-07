@@ -1,5 +1,6 @@
 package vn.haui.android_project;
 
+import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
 
 import android.content.Intent;
@@ -28,14 +29,24 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
@@ -55,6 +66,7 @@ public class ActivityRating extends AppCompatActivity {
     private RatingBar restaurantRatingBar,driverRatingBar;
     private Button submitReviewButton;
     private EditText commentEditText;
+    private  List<String> productIds = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,7 +119,11 @@ public class ActivityRating extends AppCompatActivity {
                     if (fetchedList != null) {
                         productList.clear();
                         productList.addAll(fetchedList);
-
+                        productIds = fetchedList.stream()
+                                .map(ItemOrderProduct::getIdItem)   // hoặc getIdTem
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .collect(Collectors.toList());
                     }
                 }
                 orderItemsAdapter.notifyDataSetChanged();
@@ -131,6 +147,8 @@ public class ActivityRating extends AppCompatActivity {
             Toast.makeText(this, "Lỗi: Không tìm thấy ID đơn hàng.", Toast.LENGTH_SHORT).show();
             return;
         }
+        // update rating cho mon an
+        updateRatingByList(productIds,Math.round(restaurantRating));
         // Tạo một đối tượng Map chứa dữ liệu đánh giá để gửi lên Firebase
         Map<String, Object> ratingData = new HashMap<>();
         // Sử dụng Double để lưu giá trị số thực trong Firebase
@@ -166,4 +184,37 @@ public class ActivityRating extends AppCompatActivity {
         driverRatingBar.setRating(DEFAULT_RATING);
         submitReviewButton.setEnabled(true);
     }
+
+    private static final String COLLECTION_PRODUCTS = "products";
+    public void updateRatingByList(List<String> productIds, int userRate) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        for (String productId : productIds) {
+            DocumentReference ref =
+                    db.collection(COLLECTION_PRODUCTS).document(productId);
+            db.runTransaction(transaction -> {
+                DocumentSnapshot snapshot = transaction.get(ref);
+                Double rate = snapshot.getDouble("rate");
+                Long ratingCount = snapshot.getLong("ratingCount");
+
+                if (rate == null || ratingCount == null) {
+                    transaction.set(ref, new HashMap<String, Object>() {{
+                        put("rate", (double) userRate);
+                        put("ratingCount", 1);
+                    }}, SetOptions.merge());
+                } else {
+                    double newRate =
+                            (rate * ratingCount + userRate) / (ratingCount + 1);
+                    transaction.update(ref,
+                            "rate", newRate,
+                            "ratingCount", ratingCount + 1
+                    );
+                }
+                return null;
+            });
+        }
+    }
+
+
+
+
 }
