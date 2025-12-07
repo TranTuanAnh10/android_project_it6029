@@ -1,18 +1,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:padding="10dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_card"
-    android:layout_marginBottom="8dp"
-    >
+    android:layout_marginBottom="8dp">
 
     <ImageView
         android:id="@+id/imgStore"
         android:layout_width="80dp"
         android:layout_height="80dp"
+        android:background="@drawable/rounded_background"
+        android:outlineProvider="background"
+        android:clipToOutline="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/illustration" />
+        android:src="@drawable/img_pizza_margherita"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -43,7 +48,6 @@
         <LinearLayout
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="6dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 

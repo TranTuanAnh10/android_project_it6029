@@ -11,11 +11,11 @@
         android:id="@+id/img_product_thumb"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:background="@drawable/rounded_background"
+        android:outlineProvider="background"
+        android:clipToOutline="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/img_banh_mi_cha_ca"
-        android:contentDescription="Product Thumbnail"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/img_pizza_margherita"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:src="@tools:sample/avatars" />
 

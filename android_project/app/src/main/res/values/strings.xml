@@ -154,4 +154,6 @@
     <!-- Comment Section -->
     <string name="title_comment">Bình luận về Trải nghiệm</string>
     <string name="hint_comment_experience">Mô tả trải nghiệm của bạn (ví dụ: Món ăn nóng hổi, tài xế thân thiện...)</string>
+    <string name="label_history_orders">Lịch sử mua hàng</string>
+    <string name="label_basket_orders">Giỏ hàng</string>
 </resources>
