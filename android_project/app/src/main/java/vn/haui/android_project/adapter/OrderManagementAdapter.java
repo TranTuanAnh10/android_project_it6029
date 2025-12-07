@@ -69,8 +69,7 @@ public class OrderManagementAdapter extends RecyclerView.Adapter<OrderManagement
             // Ví dụ: "20/11/2025 10:06:44 PM" -> lấy phần giờ "10:06:44 PM"
             try {
                 if (createdDate.contains(" ")) {
-                    String timeOnly = createdDate.substring(createdDate.indexOf(" ") + 1);
-                    holder.tvCreatedDate.setText("Thời gian: " + timeOnly);
+                    holder.tvCreatedDate.setText("Thời gian: " + createdDate);
                 } else {
                     holder.tvCreatedDate.setText(createdDate);
                 }
