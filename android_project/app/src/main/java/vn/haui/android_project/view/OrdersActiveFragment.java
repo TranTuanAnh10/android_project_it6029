@@ -23,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -110,6 +111,7 @@ public class OrdersActiveFragment extends Fragment {
 
             Log.d("ORDER_DEBUG", "Orders: " + new Gson().toJson(orders));
             // Gắn adapter
+            Collections.reverse(orders);
             OrderAdapter adapter = new OrderAdapter(orders);
             recyclerView.setAdapter(adapter);
             recyclerView.setVisibility(VISIBLE);
