@@ -126,15 +126,29 @@ public class ReportFragment extends Fragment {
         // Reset UI
         tvTotalRevenue.setText("Đang tính...");
 
-        long startDateMillis = calendarStart.getTimeInMillis();
-        long endDateMillis = calendarEnd.getTimeInMillis();
+        //1. CHUẨN HÓA THỜI GIAN LỌC (Quan trọng)
+        // Đưa ngày bắt đầu về 00:00:00
+        Calendar cStart = (Calendar) calendarStart.clone();
+        cStart.set(Calendar.HOUR_OF_DAY, 0);
+        cStart.set(Calendar.MINUTE, 0);
+        cStart.set(Calendar.SECOND, 0);
+        cStart.set(Calendar.MILLISECOND, 0);
+
+        // Đưa ngày kết thúc về 23:59:59
+        Calendar cEnd = (Calendar) calendarEnd.clone();
+        cEnd.set(Calendar.HOUR_OF_DAY, 23);
+        cEnd.set(Calendar.MINUTE, 59);
+        cEnd.set(Calendar.SECOND, 59);
+        cEnd.set(Calendar.MILLISECOND, 999);
+
+        long startDateMillis = cStart.getTimeInMillis();
+        long endDateMillis = cEnd.getTimeInMillis();
 
         if (startDateMillis > endDateMillis) {
             Toast.makeText(getContext(), "Ngày bắt đầu không được lớn hơn ngày kết thúc", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Truy cập vào node "orders" trên Realtime Database
         mDatabase.child("orders").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -144,60 +158,68 @@ public class ReportFragment extends Fragment {
                 int countDelivered = 0;
                 int countCancelled = 0;
 
-                // Định dạng ngày khớp với: "20/11/2025 10:06:44 PM"
-                // Dùng Locale.US để hiểu được chữ "PM" hoặc "AM"
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss a", Locale.US);
+                // CHỈ CẦN PARSE NGÀY - KHÔNG CẦN GIỜ
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
                 for (DataSnapshot data : snapshot.getChildren()) {
                     try {
-                        // 1. LẤY NGÀY TẠO (created_at)
+                        // 1. LẤY NGÀY
                         String dateStr = data.child("created_at").getValue(String.class);
                         Date orderDate = null;
 
                         if (dateStr != null && !dateStr.isEmpty()) {
                             try {
-                                orderDate = sdf.parse(dateStr);
+                                // CẮT CHUỖI: Chỉ lấy phần ngày (trước dấu cách đầu tiên)
+                                // Ví dụ: "04/12/2025 01:00:31 CH" -> "04/12/2025"
+                                String justDate = dateStr.split(" ")[0];
+                                orderDate = sdf.parse(justDate);
                             } catch (Exception e) {
-                                // Fallback: Nếu lỡ có đơn nào định dạng khác hoặc thiếu PM/AM
                                 Log.e("ReportDate", "Lỗi parse ngày: " + dateStr);
                             }
                         }
 
-                        if (orderDate == null) continue; // Bỏ qua nếu không có ngày
+                        if (orderDate == null) continue;
 
-                        // 2. SO SÁNH KHOẢNG THỜI GIAN
+                        // 2. SO SÁNH
+                        // orderDate sau khi parse sẽ là 00:00:00 của ngày đó
+                        // Nên nó sẽ nằm trong khoảng Start(00:00:00) -> End(23:59:59)
                         if (orderDate.getTime() >= startDateMillis && orderDate.getTime() <= endDateMillis) {
 
-                            // 3. LẤY TỔNG TIỀN (total - kiểu Double trong Order.java)
-                            Double total = data.child("total").getValue(Double.class);
-                            if (total == null) total = 0.0;
+                            // 3. LẤY GIÁ TIỀN (Xử lý an toàn)
+                            double total = 0.0;
+                            Object totalObj = data.child("total").getValue();
+                            if (totalObj instanceof Number) {
+                                total = ((Number) totalObj).doubleValue();
+                            } else if (totalObj instanceof String) {
+                                try {
+                                    String cleanStr = ((String) totalObj).replace(",", "").replace(".", "");
+                                    total = Double.parseDouble(cleanStr);
+                                } catch (Exception e) {
+                                }
+                            }
 
-                            // 4. LẤY TRẠNG THÁI (status)
+                            // 4. LẤY TRẠNG THÁI
                             String status = data.child("status").getValue(String.class);
 
                             if (status != null) {
-                                status = status.trim(); // Xóa khoảng trắng thừa
-
-                                // -- LOGIC PHÂN LOẠI TRẠNG THÁI (Dùng MyConstant) --
-                                if (status.equals(MyConstant.PREPARED)) {
+                                status = status.trim();
+                                if (status.equalsIgnoreCase(MyConstant.PREPARED)) {
                                     countPending++;
-                                } else if (status.equals(MyConstant.PICKINGUP) || status.equals(MyConstant.DELIVERING)) {
+                                } else if (status.equalsIgnoreCase(MyConstant.PICKINGUP) || status.equalsIgnoreCase(MyConstant.DELIVERING)) {
                                     countShipping++;
-                                } else if (status.equals(MyConstant.FINISH)) {
+                                } else if (status.equalsIgnoreCase(MyConstant.FINISH)) {
                                     countDelivered++;
-                                    // CHỈ CỘNG DOANH THU KHI ĐƠN ĐÃ HOÀN THÀNH
                                     totalRevenue += total;
-                                } else if (status.equals(MyConstant.CANCEL_ORDER) || status.equals(MyConstant.REJECT)) {
+                                } else if (status.equalsIgnoreCase(MyConstant.CANCEL_ORDER) || status.equalsIgnoreCase(MyConstant.REJECT)) {
                                     countCancelled++;
                                 }
                             }
                         }
                     } catch (Exception e) {
-                        Log.e("ReportFragment", "Lỗi xử lý đơn ID: " + data.getKey() + " - " + e.getMessage());
+                        Log.e("ReportFragment", "Lỗi vòng lặp: " + e.getMessage());
                     }
                 }
 
-                // Cập nhật giao diện
                 updateUI(totalRevenue, countPending, countShipping, countDelivered, countCancelled);
             }
 
