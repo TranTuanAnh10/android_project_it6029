@@ -1,153 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Layout tổng thể cho Fragment hiển thị danh sách Thông báo và Tin nhắn. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F9F9F9">
+    android:background="#F8F8F8"> <!-- Màu nền nhạt cho toàn bộ Fragment -->
 
-    <!-- Header -->
+    <!-- 1. HEADER - Thanh tiêu đề đơn giản (đã loại bỏ nút tìm kiếm) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="20dp">
+        android:paddingStart="16dp"
+        android:paddingTop="36dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Notifications"
-            android:textColor="#222222"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+            android:text="@string/notifications_title"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#1F2937"/>
 
-        <Button
-            android:id="@+id/btnSearch"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="12dp"
-            android:drawableStart="@drawable/ic_google"
-            android:textAllCaps="false" />
     </LinearLayout>
 
-    <!-- Tabs: Notifications / Messages -->
-<!--    <LinearLayout-->
-<!--        android:id="@+id/tabContainer"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="horizontal"-->
-<!--        android:gravity="center"-->
-<!--        android:layout_marginHorizontal="16dp"-->
-<!--        android:layout_marginBottom="8dp"-->
-<!--        android:background="@drawable/bg_tab_container">-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/tabNotifications"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="40dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:gravity="center"-->
-<!--            android:text="Notifications"-->
-<!--            android:textColor="@color/white"-->
-<!--            android:background="@drawable/bg_tab_selected"-->
-<!--            android:textStyle="bold" />-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/tabMessages"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="40dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:gravity="center"-->
-<!--            android:text="Messages"-->
-<!--            android:textColor="#888888"-->
-<!--            android:background="@drawable/bg_tab_unselected"/>-->
-<!--    </LinearLayout>-->
-
-    <!-- Nội dung chính -->
-<!--    <ScrollView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:layout_weight="1"-->
-<!--        android:paddingHorizontal="16dp">-->
-
-<!--        <LinearLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="vertical">-->
-
-<!--            &lt;!&ndash; Section: New updates &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="New updates"-->
-<!--                android:textStyle="bold"-->
-<!--                android:textSize="16sp"-->
-<!--                android:layout_marginVertical="8dp"-->
-<!--                android:textColor="#333333" />-->
-
-<!--            &lt;!&ndash; Một item thông báo &ndash;&gt;-->
-<!--            <LinearLayout-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:orientation="horizontal"-->
-<!--                android:paddingVertical="8dp">-->
-
-<!--                <ImageView-->
-<!--                    android:layout_width="40dp"-->
-<!--                    android:layout_height="40dp"-->
-<!--                    android:src="@drawable/ic_user"-->
-<!--                    android:layout_marginEnd="12dp"-->
-<!--                    android:background="@drawable/bg_circle_gray"-->
-<!--                    android:padding="6dp"/>-->
-
-<!--                <LinearLayout-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_weight="1"-->
-<!--                    android:orientation="vertical">-->
-
-<!--                    <TextView-->
-<!--                        android:text="Adam West"-->
-<!--                        android:textStyle="bold"-->
-<!--                        android:textColor="#222222"-->
-<!--                        android:textSize="14sp"/>-->
-
-<!--                    <TextView-->
-<!--                        android:text="Hi, I'm on my way"-->
-<!--                        android:textColor="#777777"-->
-<!--                        android:textSize="13sp"/>-->
-<!--                </LinearLayout>-->
-
-<!--                <TextView-->
-<!--                    android:text="Just now"-->
-<!--                    android:textSize="12sp"-->
-<!--                    android:textColor="#999999"-->
-<!--                    android:layout_marginEnd="4dp"/>-->
-
-<!--                <View-->
-<!--                    android:layout_width="8dp"-->
-<!--                    android:layout_height="8dp"-->
-<!--                    android:background="@drawable/bg_dot_red"-->
-<!--                    android:layout_marginTop="6dp"/>-->
-<!--            </LinearLayout>-->
-
-<!--            &lt;!&ndash; Section: Older &ndash;&gt;-->
-<!--            <TextView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="Older"-->
-<!--                android:textStyle="bold"-->
-<!--                android:textSize="16sp"-->
-<!--                android:layout_marginVertical="8dp"-->
-<!--                android:textColor="#333333" />-->
-
-<!--            &lt;!&ndash; Thêm vài item tương tự &ndash;&gt;-->
-<!--            &lt;!&ndash; Bạn có thể lặp lại LinearLayout trên cho mỗi thông báo &ndash;&gt;-->
-
-<!--        </LinearLayout>-->
-<!--    </ScrollView>-->
+    <!-- 3. RECYCLERVIEW - Danh sách thông báo -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notifications_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"
+    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
 </LinearLayout>

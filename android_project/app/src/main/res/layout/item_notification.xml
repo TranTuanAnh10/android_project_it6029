@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_notification_ripple"> <!-- Thêm hiệu ứng gợn sóng khi chạm -->
+
+    <!-- Icon hoặc Avatar -->
+    <FrameLayout
+        android:id="@+id/icon_container"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/bg_icon_red"> <!-- Ví dụ nền icon mặc định -->
+        <!-- ImageView cho Icon/Avatar. Dùng thư viện như Glide/Picasso cho ảnh đại diện thực tế -->
+        <ImageView
+            android:id="@+id/iv_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_box"
+            android:tint="@color/md_theme_onPrimary"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+
+    <!-- Nội dung (Title và Subtitle) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Tiêu đề thông báo]"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#1F2937"/>
+
+        <TextView
+            android:id="@+id/tv_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[Nội dung tóm tắt của thông báo...]"
+            android:textSize="13sp"
+            android:textColor="#6B7280"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+    </LinearLayout>
+
+    <!-- Time và Unread dot -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Just now"
+            android:textSize="10sp"
+            android:textColor="#9CA3AF"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Dấu chấm tròn đỏ cho thông báo chưa đọc -->
+        <View
+            android:id="@+id/v_unread_dot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/bg_unread_dot"
+            android:visibility="gone"
+            android:layout_gravity="end"/>
+    </LinearLayout>
+</LinearLayout>

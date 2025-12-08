@@ -156,4 +156,6 @@
     <string name="hint_comment_experience">Mô tả trải nghiệm của bạn (ví dụ: Món ăn nóng hổi, tài xế thân thiện...)</string>
     <string name="label_history_orders">Lịch sử mua hàng</string>
     <string name="label_basket_orders">Giỏ hàng</string>
+    <string name="notifications_title">Thông báo</string>
+    <string name="messages_tab">Tin nhắn</string>
 </resources>

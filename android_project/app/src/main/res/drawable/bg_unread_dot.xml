@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Màu sắc mặc định cho dấu chấm chưa đọc (màu đỏ) -->
+    <solid android:color="#F87171" />
+    <size
+        android:width="6dp"
+        android:height="6dp" />
+</shape>
