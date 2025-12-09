@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar; // Thêm import cho ProgressBar
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -52,6 +54,7 @@ public class SelectLocationActivity extends AppCompatActivity {
     private Button btnUseMyLocation;
     private LinearLayout btnGoToMap;
     private ListView listRecent;
+    private ProgressBar progressBarLoading; // Khai báo ProgressBar
 
     private String address, activityView;
     private double latitude, longitude;
@@ -85,13 +88,13 @@ public class SelectLocationActivity extends AppCompatActivity {
         locationService = new LocationService(this);
         etSearchAddress = findViewById(R.id.etSearchAddress);
         btnUseMyLocation = findViewById(R.id.btnUseMyLocation);
-        btnGoToMap = findViewById(R.id.btnChooseFromMap); // 🔹 Thêm nút này trong XML
+        btnGoToMap = findViewById(R.id.btnChooseFromMap);
         listRecent = findViewById(R.id.listRecent);
+        progressBarLoading = findViewById(R.id.progress_bar_location_loading); // Ánh xạ ProgressBar
+
         userLocation = new UserLocationEntity();
         addressAdapter = new AddressAdapter(this, addressList);
         listRecent.setAdapter(addressAdapter);
-
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -193,6 +196,17 @@ public class SelectLocationActivity extends AppCompatActivity {
 
     private void searchAddress(String query) {
         new AsyncTask<String, Void, List<LocationItem>>() {
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                // 1. Hiển thị ProgressBar và ẩn ListView
+                progressBarLoading.setVisibility(View.VISIBLE);
+                listRecent.setVisibility(View.GONE);
+                addressList.clear(); // Xóa kết quả cũ ngay lập tức
+                addressAdapter.notifyDataSetChanged();
+            }
+
             @Override
             protected List<LocationItem> doInBackground(String... params) {
                 List<LocationItem> results = new ArrayList<>();
@@ -231,6 +245,12 @@ public class SelectLocationActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(List<LocationItem> result) {
+                // 2. Ẩn ProgressBar
+                progressBarLoading.setVisibility(View.GONE);
+
+                // 3. Hiển thị lại ListView
+                listRecent.setVisibility(View.VISIBLE);
+
                 addressList.clear();
                 locationList.clear();
                 for (LocationItem item : result) {
