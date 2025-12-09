@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.database.DataSnapshot;
@@ -60,6 +61,26 @@ public class ReportFragment extends Fragment {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         // Mặc định load dữ liệu tháng hiện tại
         loadReportData();
+
+        // --- CODE MỚI: Xử lý nút Quản lý Voucher ---
+        Button btnVoucher = view.findViewById(R.id.btn_manage_voucher);
+
+        btnVoucher.setOnClickListener(v -> {
+            // Chuyển sang màn hình VoucherManagementFragment
+            Fragment voucherFragment = new VoucherManagementFragment();
+
+            // Lấy FragmentManager từ Activity
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+
+            // R.id.admin_container là ID của FrameLayout trong AdminScreenActivity
+            // Bạn hãy kiểm tra lại file activity_admin_screen.xml để điền đúng ID nhé
+            transaction.replace(R.id.admin_container, voucherFragment);
+
+            // Thêm vào BackStack để khi bấm nút Back sẽ quay lại màn Report
+            transaction.addToBackStack(null);
+
+            transaction.commit();
+        });
 
         return view;
     }

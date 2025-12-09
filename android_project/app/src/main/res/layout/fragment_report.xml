@@ -286,5 +286,18 @@
             </com.google.android.material.card.MaterialCardView>
 
         </GridLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_manage_voucher"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:text="Quản lý Voucher &amp; Khuyến mãi"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:iconGravity="textStart"
+            app:cornerRadius="8dp"
+            android:backgroundTint="@color/color_text_home_page_white"/> <!-- Màu cam nổi bật -->
+
     </LinearLayout>
 </ScrollView>
