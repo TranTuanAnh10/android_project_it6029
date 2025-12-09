@@ -2,32 +2,54 @@ package vn.haui.android_project.view.bottomsheet;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
+import java.util.ArrayList;
+import java.util.List;
+
+// Import Adapter và Entity mới (Giả định nằm trong các package này)
 import vn.haui.android_project.R;
+import vn.haui.android_project.adapter.VoucherAdapter;
+import vn.haui.android_project.entity.VoucherEntity;
 
-public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
+// Class triển khai VoucherClickListener của Adapter
+public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment implements VoucherAdapter.VoucherClickListener {
 
     // --- 1. INTERFACE để gửi dữ liệu về Activity ---
     public interface VoucherSelectionListener {
-        void onVoucherSelected(String voucherCode, String discountAmount);
+        // Tham số thứ hai (discountAmount) trong VoucherEntity hiện tại không có,
+        // nên tôi giữ nguyên String, nhưng bạn nên cân nhắc sửa VoucherEntity
+        void onVoucherSelected(String voucherCode, Double discountAmount);
     }
-    private VoucherSelectionListener listener;
 
-    // --- 2. Khởi tạo Listener khi BottomSheet được đính kèm (attached) ---
+    private VoucherSelectionListener listener;
+    private FirebaseFirestore db;
+    private CollectionReference vouchersRef;
+
+    // Danh sách sẽ được Adapter sử dụng
+    private List<VoucherEntity> voucherList;
+    private RecyclerView recyclerView;
+    private VoucherAdapter voucherAdapter;
+
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -37,8 +59,9 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
         } else if (getParentFragment() instanceof VoucherSelectionListener) {
             listener = (VoucherSelectionListener) getParentFragment();
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement VoucherSelectionListener");
+            // Đây là đoạn code quan trọng để tránh crash nếu Activity/Fragment quên implement
+            Log.e("ChooseVoucherBottomSheet", getParentFragment() != null ? getParentFragment().toString() : context.toString() + " must implement VoucherSelectionListener");
+            // Không throw RuntimeException để tránh crash cứng BottomSheet, chỉ log lỗi.
         }
     }
 
@@ -67,38 +90,21 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+        vouchersRef = db.collection("vouchers");
 
-        // Nút Đóng BottomSheet (btn_close là ID bạn nên đặt trong layout)
+        // Khởi tạo danh sách và Adapter
+        voucherList = new ArrayList<>();
+        setupRecyclerView(view);
+
+        // Tải dữ liệu từ Firestore
+        loadVouchers();
+
+        // Nút Đóng BottomSheet (Giả định ID R.id.btn_close tồn tại)
         view.findViewById(R.id.btn_close).setOnClickListener(v -> dismiss());
 
-        // --- Cài đặt Dữ liệu Voucher (Bước mới) ---
-        setupVouchersData(view);
-
-        // --- Xử lý click cho các Item Voucher cố định (Sử dụng các ID đã include) ---
-
-        // Voucher 1: First Bite Free
-        View voucherItem1 = view.findViewById(R.id.item_voucher_1);
-        if (voucherItem1 != null) {
-            voucherItem1.setOnClickListener(v -> handleVoucherSelection("FIRSTBITE", "10,000đ"));
-        }
-
-        // Voucher 2: Weekend Feast Discount
-        View voucherItem2 = view.findViewById(R.id.item_voucher_2);
-        if (voucherItem2 != null) {
-            voucherItem2.setOnClickListener(v -> handleVoucherSelection("WEEKEND20", "20,000đ"));
-        }
-
-        // Voucher 3: Loyalty Lunch Rewards
-        View voucherItem3 = view.findViewById(R.id.item_voucher_3);
-        if (voucherItem3 != null) {
-            voucherItem3.setOnClickListener(v -> handleVoucherSelection("LOYALTYL", "15%"));
-        }
-
-        // Voucher 4: Family Meal Bonanza
-        View voucherItem4 = view.findViewById(R.id.item_voucher_4);
-        if (voucherItem4 != null) {
-            voucherItem4.setOnClickListener(v -> handleVoucherSelection("FAMILYBON", "5,000đ"));
-        }
+        // --- Bỏ qua logic Xử lý click cho các Item Voucher cố định (item_voucher_1 đến item_voucher_4)
+        // Vì giờ chúng ta dùng RecyclerView động.
 
         // Xử lý nút Apply (Áp dụng Code thủ công)
         Button btnUseCode = view.findViewById(R.id.btn_use_code);
@@ -107,9 +113,15 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
         if (btnUseCode != null && etVoucherCode != null) {
             btnUseCode.setOnClickListener(v -> {
                 String code = etVoucherCode.getText().toString().toUpperCase();
-                // Logic kiểm tra code thủ công (Ví dụ đơn giản)
-                if ("NEWMEMBER".equals(code)) {
-                    handleVoucherSelection("NEWMEMBER", "50% Off");
+
+                // Logic kiểm tra code thủ công: Tìm trong danh sách voucher đã tải
+                VoucherEntity selectedVoucher = findVoucherByCode(code);
+
+                if (selectedVoucher != null && selectedVoucher.isActive()) {
+                    // Giả định title của voucher là discountAmount (ví dụ: "Giảm 50K")
+                    handleVoucherSelection(selectedVoucher.getCode(), selectedVoucher.getDiscountValue());
+                } else if (selectedVoucher != null && !selectedVoucher.isValid()) {
+                    Toast.makeText(getContext(), "Voucher " + code + " không áp dụng được cho đơn hàng này.", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getContext(), "Mã giảm giá không hợp lệ.", Toast.LENGTH_SHORT).show();
                 }
@@ -118,57 +130,87 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
     }
 
     /**
+     * Khởi tạo và thiết lập RecyclerView
+     */
+    private void setupRecyclerView(View rootView) {
+        // Giả định layout bottom_sheet_choose_voucher có RecyclerView với ID là rv_vouchers
+        recyclerView = rootView.findViewById(R.id.rv_vouchers);
+        voucherAdapter = new VoucherAdapter(getContext(), voucherList, this); // 'this' là VoucherClickListener
+        if (recyclerView != null) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(voucherAdapter);
+        } else {
+            Log.e("ChooseVoucherBottomSheet", "Lỗi: Không tìm thấy RecyclerView với ID R.id.rv_vouchers trong layout!");
+        }
+    }
+
+
+    /**
      * Gửi dữ liệu voucher được chọn về Activity/Fragment cha
      */
-    private void handleVoucherSelection(String code, String discount) {
+    private void handleVoucherSelection(String code, Double discount) {
         if (listener != null) {
             listener.onVoucherSelected(code, discount);
         }
         dismiss(); // Đóng BottomSheet sau khi chọn
     }
 
-    // --- 5. LOGIC CẬP NHẬT DỮ LIỆU CỦA CÁC ITEM VOUCHER ---
     /**
-     * Cập nhật nội dung (Title, Description, Icon) cho từng item voucher
+     * Tải danh sách voucher từ Firestore và cập nhật Adapter
      */
-    private void setupVouchersData(View rootView) {
-        // Lấy ra các View containers đã được include
-        View item1 = rootView.findViewById(R.id.item_voucher_1);
-        View item2 = rootView.findViewById(R.id.item_voucher_2);
-        View item3 = rootView.findViewById(R.id.item_voucher_3);
-        View item4 = rootView.findViewById(R.id.item_voucher_4);
+    private void loadVouchers() {
+        // Lắng nghe sự thay đổi dữ liệu theo thời gian thực (addSnapshotListener)
+        vouchersRef.orderBy("name", Query.Direction.ASCENDING) // Đổi thành title để sắp xếp
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Lỗi tải voucher", error);
+                        return;
+                    }
+                    if (value != null) {
+                        List<VoucherEntity> newVouchers = new ArrayList<>();
+                        for (DocumentSnapshot doc : value.getDocuments()) {
+                            VoucherEntity voucher = doc.toObject(VoucherEntity.class);
+                            if (voucher != null) {
+                                // Gán ID từ Firestore Document cho Entity
+                                voucher.setId(doc.getId());
 
-        // Cấu trúc dữ liệu mẫu cho 4 voucher
-        updateVoucherItem(item1, "First Bite Free (FIRSTBITE)",
-                "Giảm 10,000đ cho đơn hàng đầu tiên của bạn. Áp dụng cho đơn tối thiểu 50,000đ.",
-                R.drawable.img_firstbite);
+                                // Gán giá trị mặc định cho isApplicable nếu không có trong doc (hoặc tự tính toán logic ở đây)
+                                // Giả định tất cả voucher tải về là áp dụng được trừ khi có trường khác quy định
+                                // Đây là nơi bạn sẽ thêm logic kiểm tra điều kiện áp dụng thực tế
+                                if (voucher.isActive() || voucher.getName().isEmpty()) { // Ví dụ: Giữ nguyên trạng thái từ DB
+                                    // Do VoucherEntity không có expiryDate, ta cần đảm bảo trường isApplicable được thiết lập đúng trong DB.
+                                }
 
-        updateVoucherItem(item2, "Weekend Feast (WEEKEND20)",
-                "Giảm 20% tối đa 20,000đ vào các ngày cuối tuần (Thứ 7, CN).",
-                R.drawable.img_weekend20);
-
-        updateVoucherItem(item3, "Loyalty Lunch (LOYALTYL)",
-                "Giảm 15% cho đơn hàng ăn trưa. Chỉ áp dụng 11h-14h hàng ngày.",
-                R.drawable.img_loyaltyl);
-
-        updateVoucherItem(item4, "Family Meal (FAMILYBON)",
-                "Giảm 5,000đ cho mọi đơn hàng có combo Family Meal.",
-                R.drawable.img_familybon);
+                                newVouchers.add(voucher);
+                            }
+                        }
+                        // Cập nhật dữ liệu vào Adapter
+                        voucherList.clear();
+                        voucherList.addAll(newVouchers);
+                        voucherAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     /**
-     * Hàm helper để ánh xạ và thiết lập dữ liệu cho một item voucher cụ thể
+     * Tìm kiếm Voucher theo mã code trong danh sách đã tải.
      */
-    private void updateVoucherItem(View item, String title, String description, int iconResId) {
-        if (item != null) {
-            TextView tvTitle = item.findViewById(R.id.tv_voucher_title);
-            TextView tvDesc = item.findViewById(R.id.tv_voucher_description);
-            ImageView ivIcon = item.findViewById(R.id.iv_payment_icon);
-
-            if (tvTitle != null) tvTitle.setText(title);
-            if (tvDesc != null) tvDesc.setText(description);
-            // Lưu ý: Đảm bảo bạn có các icon placeholder này trong thư mục drawable
-            if (ivIcon != null) ivIcon.setImageResource(iconResId);
+    private VoucherEntity findVoucherByCode(String code) {
+        for (VoucherEntity voucher : voucherList) {
+            if (code.equals(voucher.getCode())) {
+                return voucher;
+            }
         }
+        return null;
+    }
+
+    // --- 6. TRIỂN KHAI INTERFACE TỪ VOUCHERADAPTER ---
+
+    /**
+     * Xử lý khi người dùng nhấn vào nút "Áp dụng" trên một item voucher trong RecyclerView.
+     */
+    @Override
+    public void onVoucherClicked(VoucherEntity voucher) {
+        handleVoucherSelection(voucher.getCode(), voucher.getDiscountValue());
     }
 }

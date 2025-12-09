@@ -118,9 +118,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     double pickupLat = 21.0285;
     double pickupLon = 105.8542;
     private String codeVoucher;
+
     private DatabaseReference orderRef;
     private FirebaseDatabase firebaseDatabase;
     FirebaseUser currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,7 +204,9 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 }
         );
     }
+
     String timeDisplay;
+
     private void mappingLocation(UserLocationEntity defaultAddress) {
         newAddressDetail = defaultAddress.getAddress();
         newContact = defaultAddress.getPhoneNumber();
@@ -269,20 +273,19 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     }
 
     @Override
-    public void onVoucherSelected(String voucherCode, String discountAmount) {
+    public void onVoucherSelected(String voucherCode, Double discountAmount) {
         if (tvVoucherCode != null) {
             tvVoucherCode.setText(voucherCode);
         }
-        if (tvVoucherDiscount != null) {
-            tvVoucherDiscount.setText(discountAmount);
-        }
 
-        Toast.makeText(this, "Voucher " + voucherCode + " applied! (" + discountAmount + ")", Toast.LENGTH_SHORT).show();
         codeVoucher = voucherCode;
+        discount = discountAmount;
         // Cần gọi hàm tính toán lại tổng tiền thực tế
         updateSummary(productList);
     }
+
     PaymentCard paymentCard;
+
     @Override
     public void onCardSelected(PaymentCard selectedCard) {
         if (selectedCard == null) return;
@@ -290,7 +293,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             tvPaymentType.setText(selectedCard.getCardType());
         }
         if (tvPaymentDetails != null) {
-            paymentCard=selectedCard;
+            paymentCard = selectedCard;
             String fullNumber = selectedCard.getCardNumber();
             String last4Digits = fullNumber != null && fullNumber.length() >= 4
                     ? fullNumber.substring(fullNumber.length() - 4)
@@ -315,7 +318,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         if (ivPaymentIcon != null) {
             ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
         }
-        paymentCard= new PaymentCard();
+        paymentCard = new PaymentCard();
         paymentCard.setCardType("cash");
     }
 
@@ -333,6 +336,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     }
 
     DatabaseReference cartRef;
+
     private void loadData() {
         authUser = FirebaseAuth.getInstance().getCurrentUser();
         if (authUser == null) {
@@ -405,29 +409,20 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         for (ItemOrderProduct p : products) {
             subTotal += p.getTotalPrice();
         }
-        //tinh ma giam gia
-        if ("FIRSTBITE".equals(codeVoucher)) {
-            discount = 10000;
-        } else if ("WEEKEND20".equals(codeVoucher)) {
-            discount = 20000;
-        } else if ("LOYALTYL".equals(codeVoucher)) {
-            discount = subTotal * 0.15;
-        } else if ("FAMILYBON".equals(codeVoucher)) {
-            discount = 5000;
-        } else if ("NEWMEMBER".equals(codeVoucher)) {
-            discount = 50000;
-        }
-        finalTotal = subTotal - discount + deliveryFee;
 
+        finalTotal = subTotal - discount + deliveryFee;
         DecimalFormat formatter = new DecimalFormat("#,###");
         String priceText = formatter.format(finalTotal) + "đ";
         String allItemsText = formatter.format(subTotal) + "đ";
         String deliveryFeeText = formatter.format(deliveryFee) + "đ";
-        String discountText = "-" + formatter.format(discount) + "đ";
+        String discountText = "- " + formatter.format(discount) + "đ";
 
         tvAllItemsValue.setText(allItemsText);
         tvDeliveryFeeValue.setText(deliveryFeeText);
         tvDiscountValue.setText(discountText);
+        if (tvVoucherDiscount != null) {
+            tvVoucherDiscount.setText(discountText);
+        }
         tvTotalValue.setText(priceText);
     }
 
@@ -461,12 +456,14 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvPickup1100 = findViewById(R.id.tv_pickup_1100);
         tvPickup1130 = findViewById(R.id.tv_pickup_1130);
     }
+
     public static final String DELIVERY_TYPE_STANDARD = "StandardDelivery";
     public static final String DELIVERY_TYPE_SCHEDULE = "ScheduleOrder";
     public static final String DELIVERY_TYPE_PICKUP = "PickUpOrder";
     private String currentDeliveryType = DELIVERY_TYPE_STANDARD;
     private TextView[] scheduleChips;
     private TextView[] pickupChips;
+
     private void setupDeliveryListeners() {
         View.OnClickListener deliveryOptionClickListener = v -> {
             containerStandardDelivery.setActivated(false);
@@ -554,6 +551,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private String currentScheduleTime = null;
     private String currentPickupTime = null;
+
     private void handleTimeChipSelection(TextView selectedChip, TextView... chipGroup) {
         resetTimeChips(chipGroup);
         selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected); // Giả định drawable này tồn tại
@@ -567,6 +565,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             currentPickupTime = selectedTime;
         }
     }
+
     public Map<String, String> getDeliveryDataForDatabase() {
         Map<String, String> deliveryData = new HashMap<>();
 
