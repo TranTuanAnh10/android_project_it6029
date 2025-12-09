@@ -49,6 +49,14 @@ public class EmployeeScreenActivity extends AppCompatActivity {
                     .replace(R.id.employee_container, new ReportFragment())
                     .commit();
         }
+        // Trong onCreate của màn hình Employee
+        FirebaseMessaging.getInstance().subscribeToTopic("orders")
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("FCM", "Đăng ký thất bại", task.getException());
+                    }
+                });
+
 
         // Thiết lập listener cho Bottom Navigation của nhân viên
         // Hiện tại chỉ có 1 tab nên không cần listener, nhưng ta cứ để sẵn để dễ mở rộng
