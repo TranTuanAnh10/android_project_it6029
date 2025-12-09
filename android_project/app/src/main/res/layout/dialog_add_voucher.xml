@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Ảnh Preview -->
+        <ImageView
+            android:id="@+id/img_dialog_voucher"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            android:background="#E0E0E0"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_background" />
+
+        <!-- Layout nhập Link ảnh -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/edt_image_url"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Dán link ảnh vào đây..."
+                android:inputType="textUri"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btn_preview_image"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xem thử" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/edt_voucher_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mã Voucher (VD: SUMMER2024)" />
+
+        <EditText
+            android:id="@+id/edt_voucher_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tên chương trình" />
+
+        <EditText
+            android:id="@+id/edt_voucher_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả chi tiết" />
+
+        <!-- Thay Spinner bằng RadioGroup -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Loại giảm giá:"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/radio_group_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radio_percent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="Phần trăm (%)" />
+
+            <RadioButton
+                android:id="@+id/radio_amount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tiền mặt (VND)" />
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/edt_discount_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Giá trị giảm (VD: 20 hoặc 50000)"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/edt_min_order"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Đơn tối thiểu (VD: 100000)"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:id="@+id/tv_expiry_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#EEEEEE"
+            android:padding="12dp"
+            android:text="Chọn hạn sử dụng: Chưa chọn"
+            android:textSize="16sp" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_active"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:checked="true"
+            android:padding="8dp"
+            android:text="Trạng thái: Đang hoạt động"
+            android:textSize="16sp" />
+        <!-- Layout chứa 2 nút hành động -->
+        <!-- Tìm phần LinearLayout chứa các nút ở cuối file dialog_add_voucher.xml và thay thế bằng đoạn này -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_cancel"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Hủy"
+                android:textColor="#757575" />
+
+            <!-- Nút Xóa chỉ hiện khi đang Sửa -->
+            <Button
+                android:id="@+id/btn_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/color_text_home_page_red"
+                android:text="Xoá"
+                android:textColor="@color/color_text_home_page_white" />
+
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/color_text_home_page_green"
+                android:text="Lưu Voucher"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
