@@ -76,6 +76,33 @@ public class AdminScreenActivity extends AppCompatActivity {
             }
             return true;
         });
+        // ĐĂNG KÝ NHẬN THÔNG BÁO Ở ĐÂY
+        FirebaseMessaging.getInstance().subscribeToTopic("orders")
+                .addOnCompleteListener(task -> {
+                    String msg = "Đăng ký nhận đơn hàng thành công";
+                    if (!task.isSuccessful()) {
+                        msg = "Đăng ký thất bại";
+                    }
+                    Log.d("FCM", msg);
+                });
+
+        // --- THÊM ĐOẠN NÀY ĐỂ XỬ LÝ KHI BẤM VÀO THÔNG BÁO ---
+        if (getIntent() != null && getIntent().getExtras() != null) {
+            // Kiểm tra xem có data "open_fragment" gửi từ server (hoặc từ Service) không
+            String fragmentToOpen = getIntent().getStringExtra("open_fragment");
+
+            // Nếu server bảo mở màn hình quản lý đơn
+            if ("order_management".equals(fragmentToOpen)) {
+                // 1. Highlight icon "Đơn hàng" ở menu dưới đáy
+                bottomNavigationView.setSelectedItemId(R.id.btn_order);
+
+                // 2. Load Fragment Quản lý đơn hàng
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.admin_container, new OrderManagementFragment())
+                        .commit();
+            }
+        }
     }
 
     // Hàm saveUserFcmToken giữ nguyên, không cần sửa đổi gì thêm
