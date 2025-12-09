@@ -586,6 +586,9 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     /// save du lieu order
     private void writeSampleOrder() {
+        if (!validateOrder()) {
+            return; // Dừng lại nếu kiểm tra không thành công
+        }
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
         String timestamp = sdf.format(new Date());
         int randomNumber = RANDOM.nextInt(1000); // 0 to 999
@@ -655,4 +658,20 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         startActivity(intent);
         finish();
     }
+
+
+    private boolean validateOrder() { // Thay đổi kiểu trả về thành boolean
+        if (null == paymentCard) {
+            Toast.makeText(this, "Vui lòng chọn hình thức thanh toán", Toast.LENGTH_SHORT).show();
+            return false; // Trả về false nếu không hợp lệ
+        }
+        // Thêm các điều kiện kiểm tra khác nếu cần
+        // Ví dụ: kiểm tra địa chỉ giao hàng
+        if (addressUser == null) {
+            Toast.makeText(this, "Vui lòng chọn địa chỉ giao hàng", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true; // Trả về true nếu mọi thứ đều hợp lệ
+    }
+
 }
