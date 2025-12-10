@@ -17,6 +17,9 @@ public class VoucherEntity implements Serializable {
     private String discountType;    // Loại giảm giá: "PERCENT" (Phần trăm) hoặc "AMOUNT" (Tiền mặt)
     private double discountValue;   // Giá trị giảm (Ví dụ: 20 nếu là %, 50000 nếu là tiền)
     private double minOrderValue;   // Giá trị đơn hàng tối thiểu để áp dụng
+
+    private double maxOrderValue;   // Số tiền giảm tối đa
+
     private String description; // mô tả
 
     public VoucherEntity() {
@@ -25,7 +28,7 @@ public class VoucherEntity implements Serializable {
 
     public VoucherEntity(String id, String name, String code, String imageUrl,
                          long expiryDate, boolean isActive, String discountType,
-                         double discountValue, double minOrderValue, String description) {
+                         double discountValue, double minOrderValue, double maxOrderValue, String description) {
         this.id = id;
         this.name = name;
         this.code = code;
@@ -34,8 +37,18 @@ public class VoucherEntity implements Serializable {
         this.isActive = isActive;
         this.discountType = discountType;
         this.discountValue = discountValue;
+        this.maxOrderValue = maxOrderValue;
         this.minOrderValue = minOrderValue;
         this.description = description;
+
+    }
+
+    public double getMaxOrderValue() {
+        return maxOrderValue;
+    }
+
+    public void setMaxOrderValue(double maxOrderValue) {
+        this.maxOrderValue = maxOrderValue;
     }
 
     // --- Helper Method: Kiểm tra Voucher còn hiệu lực không ---

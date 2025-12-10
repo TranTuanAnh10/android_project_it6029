@@ -5,12 +5,10 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -43,9 +41,6 @@ public class VoucherManagementAdapter extends RecyclerView.Adapter<VoucherManage
     @NonNull
     @Override
     public VoucherViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Sử dụng layout item_voucher.xml mà bạn đã tạo trước đó
-        // Hoặc tạo một layout mới nếu muốn custom riêng cho admin (ví dụ: item_voucher_admin.xml)
-        // Ở đây mình giả định dùng chung item_voucher.xml nhưng thêm xử lý nút bấm
         View view = LayoutInflater.from(context).inflate(R.layout.item_voucher, parent, false);
         return new VoucherViewHolder(view);
     }
@@ -61,17 +56,29 @@ public class VoucherManagementAdapter extends RecyclerView.Adapter<VoucherManage
         holder.tvName.setText(voucher.getName());
         holder.tvDescription.setText(voucher.getDescription());
 
-        // 2. Hiển thị giá trị giảm giá (Format tiền tệ hoặc %)
+        // 2. Hiển thị giá trị giảm giá (CẬP NHẬT LOGIC MỚI)
         if ("PERCENT".equals(voucher.getDiscountType())) {
-            // Nếu là số nguyên (vd: 20.0) thì hiển thị 20%, nếu lẻ hiển thị 20.5%
+            // Format phần trăm (vd: 20% hoặc 20.5%)
+            String percentVal;
             if (voucher.getDiscountValue() % 1 == 0) {
-                holder.tvDiscountInfo.setText(String.format("Giảm: %.0f%%", voucher.getDiscountValue()));
+                percentVal = String.format(Locale.US, "%.0f%%", voucher.getDiscountValue());
             } else {
-                holder.tvDiscountInfo.setText(String.format("Giảm: %.1f%%", voucher.getDiscountValue()));
+                percentVal = String.format(Locale.US, "%.1f%%", voucher.getDiscountValue());
+            }
+
+            // Kiểm tra Max Order Value (Giảm tối đa)
+            if (voucher.getMaxOrderValue() > 0) {
+                String maxVal = String.format(Locale.US, "%,d", (long) voucher.getMaxOrderValue());
+                // Hiển thị: "Giảm 20% (Tối đa: 50,000đ)"
+                holder.tvDiscountInfo.setText("Giảm " + percentVal + " (Tối đa: " + maxVal + "đ)");
+            } else {
+                // Hiển thị: "Giảm 20%"
+                holder.tvDiscountInfo.setText("Giảm " + percentVal);
             }
         } else {
-            // Format tiền Việt Nam: 50,000 đ
-            holder.tvDiscountInfo.setText(String.format("Giảm: %,.0f đ", voucher.getDiscountValue()));
+            // Nếu là Tiền mặt (AMOUNT) -> "Giảm 50,000đ"
+            String amountVal = String.format(Locale.US, "%,d", (long) voucher.getDiscountValue());
+            holder.tvDiscountInfo.setText("Giảm " + amountVal + "đ");
         }
 
         // 3. Hiển thị ngày hết hạn
@@ -103,7 +110,7 @@ public class VoucherManagementAdapter extends RecyclerView.Adapter<VoucherManage
             if (listener != null) listener.onEditClick(voucher);
         });
 
-        // Nếu bạn muốn xử lý xóa khi nhấn giữ (Long Click)
+        // Xử lý nhấn giữ (Long Click) -> Xóa
         holder.itemView.setOnLongClickListener(v -> {
             if (listener != null) {
                 listener.onDeleteClick(voucher);
@@ -125,14 +132,13 @@ public class VoucherManagementAdapter extends RecyclerView.Adapter<VoucherManage
 
         ImageView imgPreview;
         TextView tvCode, tvName, tvDescription, tvDiscountInfo, tvExpiry, tvStatus;
-        // Nếu layout của bạn có nút xóa riêng, hãy khai báo thêm ở đây (ví dụ ImageButton btnDelete)
 
         public VoucherViewHolder(@NonNull View itemView) {
             super(itemView);
             imgPreview = itemView.findViewById(R.id.img_voucher_preview);
             tvCode = itemView.findViewById(R.id.tv_voucher_code);
             tvName = itemView.findViewById(R.id.tv_voucher_name);
-            tvDescription = itemView.findViewById(R.id.tv_voucher_description); // Đảm bảo ID này có trong XML
+            tvDescription = itemView.findViewById(R.id.tv_voucher_description);
             tvDiscountInfo = itemView.findViewById(R.id.tv_discount_info);
             tvExpiry = itemView.findViewById(R.id.tv_expiry_date);
             tvStatus = itemView.findViewById(R.id.tv_status);
