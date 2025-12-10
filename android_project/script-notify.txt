@@ -1,0 +1,7 @@
+node -v
+npm install -g firebase-tools  # Cài đặt hoặc cập nhật Firebase CLI
+firebase login                 # Đăng nhập vào tài khoản Google chứa dự án
+npx firebase-tools login # chạy login không được thì chạy cái này
+cd functions # vào thư mục function
+npm install # cài thư viện
+node local-server.js # chạy server
