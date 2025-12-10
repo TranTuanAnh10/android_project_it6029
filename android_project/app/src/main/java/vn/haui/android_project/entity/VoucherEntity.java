@@ -17,6 +17,7 @@ public class VoucherEntity implements Serializable {
     private String discountType;    // Loại giảm giá: "PERCENT" (Phần trăm) hoặc "AMOUNT" (Tiền mặt)
     private double discountValue;   // Giá trị giảm (Ví dụ: 20 nếu là %, 50000 nếu là tiền)
     private double minOrderValue;   // Giá trị đơn hàng tối thiểu để áp dụng
+    private double maxOrderValue;   // Số tiền giảm tối đa (nếu có)
     private String description; // mô tả
 
     public VoucherEntity() {
@@ -42,6 +43,14 @@ public class VoucherEntity implements Serializable {
     public boolean isValid() {
         long currentTime = System.currentTimeMillis();
         return isActive && (expiryDate > currentTime);
+    }
+
+    public double getMaxOrderValue() {
+        return maxOrderValue;
+    }
+
+    public void setMaxOrderValue(double maxOrderValue) {
+        this.maxOrderValue = maxOrderValue;
     }
 
     // --- Getter & Setter ---
