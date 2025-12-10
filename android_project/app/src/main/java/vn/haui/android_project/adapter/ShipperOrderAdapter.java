@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import vn.haui.android_project.R;
@@ -28,7 +29,7 @@ public class ShipperOrderAdapter extends RecyclerView.Adapter<ShipperOrderAdapte
 
     public ShipperOrderAdapter(Context context, List<OrderShiperHistory> orderList, OnItemClickListener listener) {
         this.context = context;
-        this.orderList = orderList;
+        this.orderList = new ArrayList<>();
         this.listener = listener;
     }
 
@@ -91,7 +92,8 @@ public class ShipperOrderAdapter extends RecyclerView.Adapter<ShipperOrderAdapte
         }
     }
     public void filterList(List<OrderShiperHistory> filteredList) {
-        orderList = filteredList;
+        this.orderList.clear();
+        this.orderList.addAll(filteredList);
         notifyDataSetChanged();
     }
 }

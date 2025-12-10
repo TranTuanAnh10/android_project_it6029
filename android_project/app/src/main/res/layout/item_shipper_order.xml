@@ -5,112 +5,181 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="6dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:layout_margin="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#E0E0E0"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/img_avatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_avatar_circle"
+            android:padding="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_menu_myplaces"
+            app:tint="#D32F2F" />
+
+        <TextView
+            android:id="@+id/label_receiver_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Người nhận"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/img_avatar"
+            app:layout_constraintTop_toTopOf="@id/img_avatar" />
+
+        <TextView
+            android:id="@+id/text_receiver_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="dai hoc"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/label_receiver_title"
+            app:layout_constraintTop_toBottomOf="@id/label_receiver_title" />
 
         <TextView
             android:id="@+id/text_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="8dp"
+            android:background="@drawable/bg_status_success"
+            android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
-            android:textColor="@color/color_text_home_page_green"
+            android:text="Đã xong"
+            android:textColor="#00C853"
             android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Đang giao" />
-
-        <TextView
-            android:id="@+id/label_sender"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Người nhận:"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/text_receiver_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:textColor="@android:color/black"
-            app:layout_constraintEnd_toStartOf="@id/text_status"
-            app:layout_constraintStart_toEndOf="@id/label_sender"
-            app:layout_constraintTop_toTopOf="@id/label_sender"
-            tools:text="Thu Thu Shop" />
+        <ImageView
+            android:id="@+id/icon_phone"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/img_avatar"
+            app:srcCompat="@android:drawable/ic_menu_call"
+            app:tint="#757575" />
 
         <TextView
-            android:id="@+id/label_receiver_phone"
+            android:id="@+id/label_phone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Số điện thoại:"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_receiver_name" />
+            android:layout_marginStart="12dp"
+            android:text="Số điện thoại"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/icon_phone"
+            app:layout_constraintTop_toTopOf="@id/icon_phone" />
 
         <TextView
             android:id="@+id/tv_receiver_phone"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:text="0987654321"
             android:textColor="@android:color/black"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/label_receiver_phone"
-            app:layout_constraintTop_toTopOf="@id/label_receiver_phone"
-            tools:text="0987654321" />
+            app:layout_constraintStart_toStartOf="@id/label_phone"
+            app:layout_constraintTop_toBottomOf="@id/label_phone" />
+
+        <ImageView
+            android:id="@+id/icon_address"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_receiver_phone"
+            app:srcCompat="@android:drawable/ic_dialog_map"
+            app:tint="#757575" />
 
         <TextView
             android:id="@+id/label_address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Địa chỉ:"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_receiver_phone" />
+            android:layout_marginStart="12dp"
+            android:text="Địa chỉ"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/icon_address"
+            app:layout_constraintTop_toTopOf="@id/icon_address" />
 
         <TextView
             android:id="@+id/text_address"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:text="Trường Đại học Công nghiệp Hà Nội, 298, Đường Cầu Diễn, Hanoi, 34000, Vietnam"
             android:textColor="@android:color/black"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/label_address"
-            app:layout_constraintTop_toTopOf="@id/label_address"
-            tools:text="HH2A Đơn Nguyên A, ngõ 562 Nguyễn Văn Cừ, Long Biên" />
+            app:layout_constraintStart_toStartOf="@id/label_address"
+            app:layout_constraintTop_toBottomOf="@id/label_address" />
+
+        <ImageView
+            android:id="@+id/icon_date"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_address"
+            app:srcCompat="@android:drawable/ic_menu_my_calendar"
+            app:tint="#757575" />
+
         <TextView
             android:id="@+id/label_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:text="Ngày giao"
-            android:textStyle="bold"
-            android:layout_marginTop="5dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_address" />
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/icon_date"
+            app:layout_constraintTop_toTopOf="@id/icon_date" />
 
         <TextView
             android:id="@+id/text_date"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:text="01/12/2025"
             android:textColor="@android:color/black"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/label_date"
-            app:layout_constraintTop_toTopOf="@id/label_date"
-            tools:text="19/11/2025" />
+            app:layout_constraintStart_toStartOf="@id/label_date"
+            app:layout_constraintTop_toBottomOf="@id/label_date" />
 
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="16dp"
+            android:background="#BFBFBF"
+            app:layout_constraintTop_toBottomOf="@id/text_date" />
 
+        <TextView
+            android:id="@+id/tv_view_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Xem chi tiết →"
+            android:textColor="#D32F2F"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
