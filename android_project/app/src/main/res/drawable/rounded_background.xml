@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Bạn có thể thay đổi màu sắc này, nó sẽ đóng vai trò là "khung" để cắt ảnh -->
+    <solid android:color="@android:color/transparent" />
+
+    <!-- Đặt bán kính bo góc (ví dụ: 8dp, 12dp, hoặc một nửa chiều rộng/cao để tạo hình tròn) -->
+    <corners android:radius="12dp" />
+</shape>

@@ -163,18 +163,18 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     private int getStatusColor(String status) {
         switch (status) {
             case MyConstant.REJECT:
-                return Color.parseColor("#D32F2F"); // Đỏ
+                return Color.parseColor("#F6D1D1"); // Đỏ
             case MyConstant.CANCEL_ORDER:
-                return Color.parseColor("#F57C00");
+                return Color.parseColor("#F6D1D1");
             case MyConstant.PREPARED:
-                return Color.parseColor("#7E57C2");
+                return Color.parseColor("#F0F0F0");
             case MyConstant.PICKINGUP:
-                return Color.parseColor("#0288D1");
+                return Color.parseColor("#FFE9A8");
             case MyConstant.DELIVERING:
-                return Color.parseColor("#303F9F");
+                return Color.parseColor("#BFDCED");
             case MyConstant.FINISH:
             default:
-                return Color.parseColor("#388E3C"); // Xanh lá cây
+                return Color.parseColor("#C3E8D8"); // Xanh lá cây
         }
     }
 

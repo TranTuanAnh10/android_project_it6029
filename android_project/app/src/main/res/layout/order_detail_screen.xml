@@ -529,7 +529,24 @@
             app:strokeColor="#E04040"
             app:strokeWidth="1dp" />
 
-
+        <Button
+            android:id="@+id/btn_rate_order"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="16dp"
+            android:backgroundTint="#FFFFFF"
+            android:text="@string/rateOrder"
+            android:textColor="#E04040"
+            app:cornerRadius="12dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_total_label"
+            app:strokeColor="#E04040"
+            app:strokeWidth="1dp" />
         <Button
             android:id="@+id/btn_confirm_order"
             style="@style/Widget.MaterialComponents.Button.TextButton"

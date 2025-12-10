@@ -3,7 +3,9 @@ package vn.haui.android_project.view;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -33,6 +35,7 @@ public class ChooseRecipientActivity extends AppCompatActivity
 
     private RecyclerView recyclerRecipients;
     private Button btnAddRecipient;
+    private ProgressBar progressBarLoading; // Khai báo ProgressBar mới
     private FirebaseLocationManager firebaseLocationManager;
     private RecipientAdapter recipientAdapter;
     private List<UserLocationEntity> recipientList = new ArrayList<>();
@@ -55,13 +58,19 @@ public class ChooseRecipientActivity extends AppCompatActivity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         locationService = new LocationService(this);
         firebaseLocationManager = new FirebaseLocationManager();
+
+        // Khởi tạo các View
         recyclerRecipients = findViewById(R.id.recycler_recipients);
         btnAddRecipient = findViewById(R.id.btn_add_recipient);
+        progressBarLoading = findViewById(R.id.progress_bar_loading); // Ánh xạ ProgressBar
+
         recipientAdapter = new RecipientAdapter(recipientList, this, this);
         recyclerRecipients.setLayoutManager(new LinearLayoutManager(this));
         recyclerRecipients.setAdapter(recipientAdapter);
+
         btnAddRecipient.setOnClickListener(v -> {
             getLocation();
         });
@@ -69,7 +78,7 @@ public class ChooseRecipientActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        loadRecipients();
+        loadRecipients(); // Tải dữ liệu mỗi khi Activity hoạt động lại
     }
     private void startSelectLocationActivity() {
         Intent intent = new Intent(this, SelectLocationActivity.class);
@@ -102,8 +111,19 @@ public class ChooseRecipientActivity extends AppCompatActivity
             finish();
             return;
         }
+
+        // 1. Hiển thị Loading Bar và ẩn RecyclerView
+        progressBarLoading.setVisibility(View.VISIBLE);
+        recyclerRecipients.setVisibility(View.GONE);
+
         firebaseLocationManager.getSortedLocationsByUid(authUser.getUid(), (success, sortedList) -> {
+            // 2. Ẩn Loading Bar sau khi nhận kết quả
+            progressBarLoading.setVisibility(View.GONE);
+
             if (success) {
+                // 3. Hiển thị RecyclerView khi thành công
+                recyclerRecipients.setVisibility(View.VISIBLE);
+
                 recipientList.clear();
                 if (sortedList != null) {
                     recipientList.addAll(sortedList);
@@ -113,6 +133,7 @@ public class ChooseRecipientActivity extends AppCompatActivity
                     Toast.makeText(this, "Không tìm thấy địa chỉ nào.", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                // 3. (Tùy chọn) Có thể ẩn luôn RecyclerView nếu thất bại
                 Toast.makeText(this, "Lỗi khi tải danh sách địa chỉ.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -131,6 +152,8 @@ public class ChooseRecipientActivity extends AppCompatActivity
                     message = "Địa chỉ đã được xóa.";
                 }
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                // Tải lại danh sách sau khi thêm/sửa/xóa
+                loadRecipients();
             }
         }
     }

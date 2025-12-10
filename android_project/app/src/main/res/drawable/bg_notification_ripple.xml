@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ripple Effect (Hiệu ứng Gợn sóng) với góc bo 8dp -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#CCCCCC"> <!-- Màu gợn sóng khi chạm -->
+
+    <!-- MASK: Định nghĩa hình dạng và khu vực xảy ra hiệu ứng gợn sóng.
+         Chúng ta sử dụng một `shape` (hình dạng) để tạo góc bo tròn. -->
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <!-- Định nghĩa bán kính (radius) cho 4 góc bo -->
+            <corners android:radius="8dp"/>
+            <!-- Màu mặt nạ phải là một màu đơn giản (ví dụ: trắng) -->
+            <solid android:color="@android:color/white"/>
+        </shape>
+    </item>
+
+    <!-- CONTENT/BACKGROUND: Nền tĩnh của view khi không chạm.
+         Nếu bạn muốn nền trong suốt, giữ nguyên như dưới.
+         Nếu bạn muốn nền có màu, hãy thay thế <color> bằng <shape> màu đó, cũng bo góc 8dp. -->
+    <item>
+        <color android:color="@android:color/transparent" />
+    </item>
+</ripple>

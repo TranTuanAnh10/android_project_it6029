@@ -62,7 +62,7 @@ public class ShipperOrderAdapter extends RecyclerView.Adapter<ShipperOrderAdapte
         });
     }
 
-    private String getTextStatus(String text){
+    public String getTextStatus(String text){
         switch (text){
             case "shipping":
                 return "Đang giao";

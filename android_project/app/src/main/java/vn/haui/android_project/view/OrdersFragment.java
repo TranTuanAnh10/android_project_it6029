@@ -83,20 +83,20 @@ public class OrdersFragment extends Fragment {
         btnDeliver.setOnClickListener(v -> {
             replaceChildFragment(new OrdersActiveFragment());
             setActiveButton(btnDeliver);
-            label.setText("Active orders");
+            label.setText(R.string.label_active_orders);
         });
 
         btnHistory.setOnClickListener(v -> {
             replaceChildFragment(new OrdersHistoryFragment());
             setActiveButton(btnHistory);
-            label.setText("All orders");
+            label.setText(R.string.label_history_orders);
 
         });
 
         btnBasket.setOnClickListener(v -> {
             replaceChildFragment(new OrdersBasketFragment());
             setActiveButton(btnBasket);
-            label.setText("In-basket items");
+            label.setText(R.string.label_basket_orders);
 
 
         });

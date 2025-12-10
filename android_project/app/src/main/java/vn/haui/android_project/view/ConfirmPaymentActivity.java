@@ -55,6 +55,7 @@ import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.entity.PaymentCard;
 import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.UserLocationEntity;
+import vn.haui.android_project.entity.VoucherEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
@@ -66,7 +67,7 @@ import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChooseVoucherBottomSheet.VoucherSelectionListener;
 
 public class ConfirmPaymentActivity extends AppCompatActivity
-        implements VoucherSelectionListener, PaymentSelectionListener { // Implement cả hai interface
+        implements VoucherSelectionListener, PaymentSelectionListener {
 
     // --- Recipient Info Views ---
     private TextView tvTapToChange, tvStandardTime;
@@ -81,13 +82,14 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     // --- VOUCHER VIEWS ---
     private TextView tvTapToChangeVoucher;
-    private TextView tvVoucherCode;
+    private TextView tvVoucherCode; // Sửa tên biến này cho đúng với XML
     private TextView tvVoucherDiscount;
+
 
     // --- Payment Views ---
     private TextView tvTapToChangePayment;
-    private TextView tvPaymentType; // Hiển thị loại thẻ (VISA/Cash)
-    private TextView tvPaymentDetails; // Hiển thị số thẻ/chi tiết COD
+    private TextView tvPaymentType;
+    private TextView tvPaymentDetails;
     private ImageView ivPaymentIcon, imgLocationIcon;
 
     // --- Summary Views ---
@@ -112,15 +114,27 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private FirebaseLocationManager firebaseLocationManager;
     FirebaseUser authUser;
-    private String newAddressDetail, newContact, newTitle, phoneNumber, idLocation;
-    private double latitude, longitude;
+    private UserLocationEntity addressUser = new UserLocationEntity();
+    private String timeDisplay;
+
 
     double pickupLat = 21.0285;
     double pickupLon = 105.8542;
-    private String codeVoucher;
+
     private DatabaseReference orderRef;
+    private DatabaseReference cartRef;
     private FirebaseDatabase firebaseDatabase;
     FirebaseUser currentUser;
+
+    // --- State variables ---
+    private double subTotal = 0;
+    private double discount = 0;
+    private double deliveryFee = 15000;
+    private double finalTotal = 0;
+    private VoucherEntity selectedVoucher;
+    private PaymentCard paymentCard;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,21 +145,21 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        mapViews();
-        // 3️⃣ Khởi tạo Firebase
+
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
+
+        mapViews();
+        mapDeliveryViews();
         loadData();
         setupListeners();
         registerLocationSelectionLauncher();
-
-        mapDeliveryViews();
         setupDeliveryListeners();
     }
 
     private void mapViews() {
         // Header
-        ImageButton btnBack = findViewById(R.id.btn_back);
+        findViewById(R.id.btn_back);
 
         // Recipient Info
         tvTapToChange = findViewById(R.id.tv_tap_to_change);
@@ -159,9 +173,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         recyclerOrderItems = findViewById(R.id.recycler_order_items);
         etNoteToRestaurant = findViewById(R.id.et_note_to_restaurant);
 
-        // VOUCHER VIEWS
+        // ========================================================
+        // SỬA LỖI Ở ĐÂY: Ánh xạ đúng các TextView voucher
+        // ========================================================
         tvTapToChangeVoucher = findViewById(R.id.tv_tap_to_add_voucher);
-        tvVoucherCode = findViewById(R.id.tv_voucher_code);
+        tvVoucherCode = findViewById(R.id.tv_voucher_code); // ID này có trong XML
         tvVoucherDiscount = findViewById(R.id.tv_voucher_discount);
 
         // PAYMENT INFO
@@ -179,8 +195,6 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvStandardTime = findViewById(R.id.tv_standard_time);
     }
 
-    UserLocationEntity addressUser = new UserLocationEntity();
-
     private void registerLocationSelectionLauncher() {
         locationSelectionLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -188,13 +202,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            idLocation = data.getStringExtra("id_location");
+                            String idLocation = data.getStringExtra("id_location");
                             firebaseLocationManager.getLocationById(authUser.getUid(), idLocation, (isSuccess, defaultAddress) -> {
-                                if (isSuccess) {
-                                    if (defaultAddress != null) {
-                                        addressUser = defaultAddress;
-                                        mappingLocation(defaultAddress);
-                                    }
+                                if (isSuccess && defaultAddress != null) {
+                                    this.addressUser = defaultAddress;
+                                    mappingLocation(defaultAddress);
                                 }
                             });
                         }
@@ -202,32 +214,27 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 }
         );
     }
-    String timeDisplay;
+
     private void mappingLocation(UserLocationEntity defaultAddress) {
-        newAddressDetail = defaultAddress.getAddress();
-        newContact = defaultAddress.getPhoneNumber();
-        newTitle = defaultAddress.getLocationType();
-        phoneNumber = defaultAddress.getRecipientName();
-        idLocation = defaultAddress.getId();
-        latitude = defaultAddress.getLatitude();
-        longitude = defaultAddress.getLongitude();
-        if (tvLocationTitle != null) tvLocationTitle.setText(newTitle);
-        if (tvAddressDetail != null) tvAddressDetail.setText(newAddressDetail);
-        if (tvRecipientContact != null) tvRecipientContact.setText(newContact);
-        if (tvRecipientPhone != null) tvRecipientPhone.setText(phoneNumber);
-        if ("Home".equals(newTitle)) {
+        if (defaultAddress == null) return;
+        tvLocationTitle.setText(defaultAddress.getLocationType());
+        tvAddressDetail.setText(defaultAddress.getAddress());
+        tvRecipientContact.setText(defaultAddress.getRecipientName());
+        tvRecipientPhone.setText(defaultAddress.getPhoneNumber());
+
+        if ("Home".equals(defaultAddress.getLocationType())) {
             imgLocationIcon.setImageResource(R.drawable.ic_marker_home);
-        } else if ("Work".equals(newTitle)) {
+        } else if ("Work".equals(defaultAddress.getLocationType())) {
             imgLocationIcon.setImageResource(R.drawable.ic_marker_work);
         } else {
             imgLocationIcon.setImageResource(R.drawable.ic_marker);
         }
-        // tinh thoi gian giao hang
+
         double estimatedTimeMinutes = DeliveryCalculator.calculateEstimatedTime(
                 pickupLat,
                 pickupLon,
-                latitude,
-                longitude
+                defaultAddress.getLatitude(),
+                defaultAddress.getLongitude()
         );
         timeDisplay = DeliveryCalculator.formatTime(estimatedTimeMinutes);
         tvStandardTime.setText(timeDisplay);
@@ -236,19 +243,18 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private void setupListeners() {
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
+        tvTapToChange.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ChooseRecipientActivity.class);
+            locationSelectionLauncher.launch(intent);
+        });
 
-        if (tvTapToChange != null) {
-            tvTapToChange.setOnClickListener(v ->
-                    {
-                        Intent intent = new Intent(this, ChooseRecipientActivity.class); // Giả định Activity này tồn tại
-                        locationSelectionLauncher.launch(intent);
-                    }
-            );
-        }
-
-        // BẮT SỰ KIỆN MỞ VOUCHER BOTTOM SHEET
-        if (tvTapToChangeVoucher != null) {
-            tvTapToChangeVoucher.setOnClickListener(v -> showVoucherBottomSheet());
+        // ========================================================
+        // SỬA LỖI Ở ĐÂY: Chỉ đặt Listener cho các View có tồn tại
+        // ========================================================
+        tvTapToChangeVoucher.setOnClickListener(v -> showVoucherBottomSheet());
+        // tvVoucherCode ban đầu ẩn đi, nhưng khi hiện ra cũng nên cho phép click để đổi
+        if (tvVoucherCode != null) {
+            tvVoucherCode.setOnClickListener(v -> showVoucherBottomSheet());
         }
 
         // BẮT SỰ KIỆN MỞ PAYMENT BOTTOM SHEET
@@ -257,66 +263,83 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         }
     }
 
-    // HÀM MỞ PAYMENT BOTTOM SHEET
     private void showPaymentBottomSheet() {
-        ChoosePaymentBottomSheet bottomSheet = ChoosePaymentBottomSheet.newInstance(this);
+        ChoosePaymentBottomSheet bottomSheet = new ChoosePaymentBottomSheet();
+        // Giả sử ChoosePaymentBottomSheet đã được sửa để có hàm này
+        // Nếu hàm này báo lỗi, bạn cần sửa file ChoosePaymentBottomSheet.java
+        bottomSheet.setPaymentSelectionListener(this);
         bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
     }
 
     private void showVoucherBottomSheet() {
-        ChooseVoucherBottomSheet bottomSheet = ChooseVoucherBottomSheet.newInstance(this);
-        bottomSheet.show(getSupportFragmentManager(), bottomSheet.getTag());
+        ChooseVoucherBottomSheet bottomSheet = ChooseVoucherBottomSheet.newInstance(subTotal);
+        bottomSheet.setVoucherSelectionListener(this);
+        bottomSheet.show(getSupportFragmentManager(), "VoucherBottomSheetTag");
     }
 
     @Override
-    public void onVoucherSelected(String voucherCode, String discountAmount) {
-        if (tvVoucherCode != null) {
-            tvVoucherCode.setText(voucherCode);
-        }
-        if (tvVoucherDiscount != null) {
-            tvVoucherDiscount.setText(discountAmount);
+    public void onVoucherSelected(VoucherEntity voucher, double discountAmount) {
+        if (voucher == null) {
+            // Có thể thêm logic để xóa voucher đã chọn nếu người dùng bấm "Bỏ chọn"
+            this.selectedVoucher = null;
+            this.discount = 0;
+
+            // Reset lại giao diện về ban đầu
+            tvTapToChangeVoucher.setText(R.string.tap_to_add); // "Chạm để thêm voucher"
+            tvVoucherCode.setVisibility(View.GONE);
+            if (tvVoucherDiscount != null) {
+                tvVoucherDiscount.setVisibility(View.GONE);
+            }
+        } else {
+            // Khi người dùng chọn một voucher thành công
+            this.selectedVoucher = voucher;
+            this.discount = discountAmount;
+
+            // ========================================================
+            // SỬA LỖI Ở ĐÂY: Thay đổi Text thay vì ẩn View
+            // ========================================================
+            // 1. Thay đổi dòng chữ mời gọi
+            tvTapToChangeVoucher.setText(R.string.tap_to_change); // Thay bằng "Chạm để thay đổi"
+
+            // 2. Hiển thị tên voucher và số tiền giảm giá
+            tvVoucherCode.setText(voucher.getName());
+            tvVoucherCode.setVisibility(View.VISIBLE);
+
+            if (tvVoucherDiscount != null) {
+                tvVoucherDiscount.setText("- " + new DecimalFormat("#,###").format(discountAmount) + "đ");
+                tvVoucherDiscount.setVisibility(View.VISIBLE);
+            }
         }
 
-        Toast.makeText(this, "Voucher " + voucherCode + " applied! (" + discountAmount + ")", Toast.LENGTH_SHORT).show();
-        codeVoucher = voucherCode;
-        // Cần gọi hàm tính toán lại tổng tiền thực tế
-        updateSummary(productList);
+        // Luôn tính toán lại tổng tiền sau mỗi lần thay đổi
+        updateSummary(this.productList);
     }
-    PaymentCard paymentCard;
+
+
     @Override
     public void onCardSelected(PaymentCard selectedCard) {
         if (selectedCard == null) return;
-        if (tvPaymentType != null) {
-            tvPaymentType.setText(selectedCard.getCardType());
-        }
-        if (tvPaymentDetails != null) {
-            paymentCard=selectedCard;
-            String fullNumber = selectedCard.getCardNumber();
-            String last4Digits = fullNumber != null && fullNumber.length() >= 4
-                    ? fullNumber.substring(fullNumber.length() - 4)
-                    : "••••";
-            tvPaymentDetails.setText("•••• " + last4Digits);
-        }
-        if (ivPaymentIcon != null) {
-            int iconResId = getCardIconResId(selectedCard.getCardType());
-            ivPaymentIcon.setImageResource(iconResId);
+        this.paymentCard = selectedCard;
+        tvPaymentType.setText(selectedCard.getCardType());
 
-        }
+        String fullNumber = selectedCard.getCardNumber();
+        String last4Digits = fullNumber != null && fullNumber.length() >= 4
+                ? fullNumber.substring(fullNumber.length() - 4)
+                : "****";
+        tvPaymentDetails.setText("**** " + last4Digits);
+        ivPaymentIcon.setImageResource(getCardIconResId(selectedCard.getCardType()));
     }
 
     @Override
     public void onCashSelected() {
-        if (tvPaymentType != null) {
-            tvPaymentType.setText(R.string.cash);
-        }
-        if (tvPaymentDetails != null) {
-            tvPaymentDetails.setText(R.string.cash_on_delivery);
-        }
-        if (ivPaymentIcon != null) {
-            ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
-        }
-        paymentCard= new PaymentCard();
-        paymentCard.setCardType("cash");
+        tvPaymentType.setText(R.string.cash);
+        tvPaymentDetails.setText(R.string.cash_on_delivery);
+        ivPaymentIcon.setImageResource(R.drawable.ic_credit_card);
+
+        PaymentCard cashPayment = new PaymentCard();
+        cashPayment.setCardType("Cash");
+        cashPayment.setCardNumber("Thanh toán khi nhận hàng");
+        this.paymentCard = cashPayment;
     }
 
 
@@ -328,10 +351,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             return R.drawable.ic_mastercard;
         } else if ("JCB".equalsIgnoreCase(cardType)) {
             return R.drawable.ic_jcb;
+        } else if ("Cash".equalsIgnoreCase(cardType)) {
+            return R.drawable.ic_credit_card;
         }
         return R.drawable.ic_credit_card;
     }
-
 
     private void loadData() {
         authUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -340,21 +364,21 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             finish();
             return;
         }
+
         firebaseLocationManager = new FirebaseLocationManager();
         firebaseLocationManager.getDefaultLocation(authUser.getUid(), (isSuccess, defaultAddress) -> {
             if (isSuccess && defaultAddress != null) {
-                addressUser = defaultAddress;
+                this.addressUser = defaultAddress;
                 mappingLocation(defaultAddress);
             }
         });
-        productList = new ArrayList<>();
-        productAdapter = new OrderProductAdapter(productList); // KHỞI TẠO NGAY
-        recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
-        recyclerOrderItems.setAdapter(productAdapter); // GÁN NGAY
-        DatabaseReference cartRef = FirebaseDatabase.getInstance()
-                .getReference("carts")
-                .child(authUser.getUid());
 
+        productList = new ArrayList<>();
+        productAdapter = new OrderProductAdapter(productList);
+        recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
+        recyclerOrderItems.setAdapter(productAdapter);
+
+        cartRef = FirebaseDatabase.getInstance().getReference("carts").child(authUser.getUid());
         cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -363,7 +387,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 if (cart != null && cart.items != null) {
                     for (CartItem item : cart.items) {
                         ProductItem productItem = item.item_details;
-                        if (productItem != null) { // Thêm kiểm tra null để an toàn hơn
+                        if (productItem != null) {
                             int quantity = 0;
                             try {
                                 quantity = Integer.parseInt(item.quantityToString());
@@ -390,49 +414,44 @@ public class ConfirmPaymentActivity extends AppCompatActivity
                 Log.w(TAG, "Lỗi đọc RTDB: " + error.getMessage(), error.toException());
                 productList.clear();
                 productAdapter.notifyDataSetChanged();
-                updateSummary(productList); // Cập nhật tổng tiền về 0
+                updateSummary(productList);
             }
         });
-//        etNoteToRestaurant.setText("No onions in Pizza Margherita, please.");
     }
 
-    double subTotal = 0;
-    double discount = 0;
-    double deliveryFee = 50000;
-    double finalTotal = 0;
-
     private void updateSummary(List<ItemOrderProduct> products) {
-        for (ItemOrderProduct p : products) {
-            subTotal += p.getTotalPrice();
-        }
-        //tinh ma giam gia
-        if ("FIRSTBITE".equals(codeVoucher)) {
-            discount = 10000;
-        } else if ("WEEKEND20".equals(codeVoucher)) {
-            discount = 20000;
-        } else if ("LOYALTYL".equals(codeVoucher)) {
-            discount = subTotal * 0.15;
-        } else if ("FAMILYBON".equals(codeVoucher)) {
-            discount = 5000;
-        } else if ("NEWMEMBER".equals(codeVoucher)) {
-            discount = 50000;
+        subTotal = 0;
+        if (products != null) {
+            for (ItemOrderProduct p : products) {
+                subTotal += p.getTotalPrice();
+            }
         }
         finalTotal = subTotal - discount + deliveryFee;
 
         DecimalFormat formatter = new DecimalFormat("#,###");
-        String priceText = formatter.format(finalTotal) + "đ";
         String allItemsText = formatter.format(subTotal) + "đ";
         String deliveryFeeText = formatter.format(deliveryFee) + "đ";
-        String discountText = "-" + formatter.format(discount) + "đ";
+        String discountText = "- " + formatter.format(discount) + "đ";
+        String totalText = formatter.format(finalTotal) + "đ";
 
         tvAllItemsValue.setText(allItemsText);
         tvDeliveryFeeValue.setText(deliveryFeeText);
-        tvDiscountValue.setText(discountText);
-        tvTotalValue.setText(priceText);
+
+        if (discount > 0) {
+            tvDiscountValue.setText(discountText);
+            tvDiscountValue.setVisibility(View.VISIBLE);
+        } else {
+            tvDiscountValue.setVisibility(View.GONE);
+        }
+
+        tvTotalValue.setText(totalText);
     }
 
     private void placeOrder() {
-        writeSampleOrder();
+        if (!validateOrder()) {
+            return;
+        }
+        writeOrderToFirebase();
     }
 
 
@@ -461,12 +480,14 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         tvPickup1100 = findViewById(R.id.tv_pickup_1100);
         tvPickup1130 = findViewById(R.id.tv_pickup_1130);
     }
+
     public static final String DELIVERY_TYPE_STANDARD = "StandardDelivery";
     public static final String DELIVERY_TYPE_SCHEDULE = "ScheduleOrder";
     public static final String DELIVERY_TYPE_PICKUP = "PickUpOrder";
     private String currentDeliveryType = DELIVERY_TYPE_STANDARD;
     private TextView[] scheduleChips;
     private TextView[] pickupChips;
+
     private void setupDeliveryListeners() {
         View.OnClickListener deliveryOptionClickListener = v -> {
             containerStandardDelivery.setActivated(false);
@@ -505,16 +526,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             }
         };
 
-        if (containerStandardDelivery != null)
-            containerStandardDelivery.setOnClickListener(deliveryOptionClickListener);
-        if (containerScheduleOrder != null)
-            containerScheduleOrder.setOnClickListener(deliveryOptionClickListener);
-        if (containerPickUpOrder != null)
-            containerPickUpOrder.setOnClickListener(deliveryOptionClickListener);
+        containerStandardDelivery.setOnClickListener(deliveryOptionClickListener);
+        containerScheduleOrder.setOnClickListener(deliveryOptionClickListener);
+        containerPickUpOrder.setOnClickListener(deliveryOptionClickListener);
 
-        if (containerStandardDelivery != null) {
-            containerStandardDelivery.callOnClick();
-        }
+        containerStandardDelivery.callOnClick();
 
         List<TextView> scheduleChipList = new ArrayList<>();
         if (tvSchedule15min != null) scheduleChipList.add(tvSchedule15min);
@@ -547,29 +563,29 @@ public class ConfirmPaymentActivity extends AppCompatActivity
 
     private void resetTimeChips(TextView... chips) {
         for (TextView chip : chips) {
-            chip.setBackgroundResource(R.drawable.bg_time_chip_default); // Giả định drawable này tồn tại
+            chip.setBackgroundResource(R.drawable.bg_time_chip_default);
             chip.setTextColor(ContextCompat.getColor(this, android.R.color.black));
         }
     }
 
     private String currentScheduleTime = null;
     private String currentPickupTime = null;
+
     private void handleTimeChipSelection(TextView selectedChip, TextView... chipGroup) {
         resetTimeChips(chipGroup);
-        selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected); // Giả định drawable này tồn tại
+        selectedChip.setBackgroundResource(R.drawable.bg_time_chip_selected);
         selectedChip.setTextColor(ContextCompat.getColor(this, android.R.color.white));
         String selectedTime = selectedChip.getText().toString();
 
-        // 3. Phân biệt nhóm chip và cập nhật biến trạng thái chính xác
         if (chipGroup == scheduleChips) {
             currentScheduleTime = selectedTime;
         } else if (chipGroup == pickupChips) {
             currentPickupTime = selectedTime;
         }
     }
+
     public Map<String, String> getDeliveryDataForDatabase() {
         Map<String, String> deliveryData = new HashMap<>();
-
         deliveryData.put("deliveryType", currentDeliveryType);
 
         if (DELIVERY_TYPE_SCHEDULE.equals(currentDeliveryType)) {
@@ -577,29 +593,26 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         } else if (DELIVERY_TYPE_PICKUP.equals(currentDeliveryType)) {
             deliveryData.put("pickupTime", currentPickupTime != null ? currentPickupTime : "");
         }
-
         return deliveryData;
     }
 
-    private static final String DATE_FORMAT = "yyyyMMddHHmmss"; // Định dạng ngày tháng năm giờ phút giây
+    private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final Random RANDOM = new Random();
 
-    /// save du lieu order
-    private void writeSampleOrder() {
+    private void writeOrderToFirebase() {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
         String timestamp = sdf.format(new Date());
-        int randomNumber = RANDOM.nextInt(1000); // 0 to 999
-        String randomSuffix = String.format("%03d", randomNumber); // Đảm bảo luôn có 3 chữ số (vd: 5 -> 005)
+        int randomNumber = RANDOM.nextInt(1000);
+        String randomSuffix = String.format("%03d", randomNumber);
         String orderId = timestamp + "-" + randomSuffix;
 
-        //sinh ma order
         orderRef = firebaseDatabase.getReference(DatabaseTable.ORDERS.getValue()).child(orderId);
         Map<String, Object> orderData = new HashMap<>();
         orderData.put("orderId", orderId);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         orderData.put("uid", currentUser.getUid());
         orderData.put("created_at", TimeUtils.getCreationTime());
-        orderData.put("status", MyConstant.PREPARED); // ✅ trạng thái ban đầu
+        orderData.put("status", MyConstant.PREPARED);
         orderData.put("subTotal", subTotal);
         orderData.put("deliveryFee", deliveryFee);
         orderData.put("discount", discount);
@@ -607,21 +620,19 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("note", etNoteToRestaurant.getText().toString());
         orderData.put("productList", productList);
         orderData.put("addressUser", addressUser);
-        orderData.put("codeVoucher", codeVoucher);
+        orderData.put("voucher", selectedVoucher);
         orderData.put("paymentCard", paymentCard);
         orderData.put("timeDisplay", timeDisplay);
         orderData.put("delivery", getDeliveryDataForDatabase());
-        // --- Vị trí shipper ---
+
         Map<String, Object> shipperLocation = new HashMap<>();
         shipperLocation.put("lat", 0);
         shipperLocation.put("lng", 0);
 
-        // --- Vị trí cửa hàng ---
         Map<String, Object> storeLocation = new HashMap<>();
         storeLocation.put("lat", pickupLat);
         storeLocation.put("lng", pickupLon);
 
-        // --- Vị trí người nhận ---
         Map<String, Object> receiverLocation = new HashMap<>();
         receiverLocation.put("lat", addressUser.getLatitude());
         receiverLocation.put("lng", addressUser.getLongitude());
@@ -631,12 +642,38 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderData.put("receiver", receiverLocation);
 
         orderRef.setValue(orderData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Order data written successfully"))
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "✅ Order data written successfully");
+                    clearCartAndFinish(orderId);
+                })
                 .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
+    }
 
-        Intent intent = new Intent(ConfirmPaymentActivity.this, OrderPlacedActivity.class);
-        intent.putExtra("ORDER_ID", orderId);
-        startActivity(intent);
-        finish();
+    private void clearCartAndFinish(String orderId) {
+        if (cartRef == null) return;
+        cartRef.removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "Giỏ hàng đã được xóa thành công.");
+            } else {
+                Log.e(TAG, "Xóa giỏ hàng thất bại.", task.getException());
+            }
+            Intent intent = new Intent(ConfirmPaymentActivity.this, OrderPlacedActivity.class);
+            intent.putExtra("ORDER_ID", orderId);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+
+    private boolean validateOrder() {
+        if (addressUser == null || addressUser.getAddress() == null || addressUser.getAddress().isEmpty()) {
+            Toast.makeText(this, "Vui lòng chọn địa chỉ giao hàng", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (paymentCard == null) {
+            Toast.makeText(this, "Vui lòng chọn hình thức thanh toán", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 }

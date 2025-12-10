@@ -43,9 +43,11 @@
     <string name="choose_from_map">Chọn địa chỉ mới</string>
 
     <!--    Home Screen-->
-    <string name="category">Categorys</string>
+    <string name="category">Danh mục</string>
+    <string name="top_picks">Lựa chọn hàng đầu</string>
     <string name="top_rate">Đánh giá cao</string>
     <string name="best_selling">Bán chạy</string>
+    <string name="ready_for_lunch">Sẵn sàng cho bữa ăn</string>
 
     <string name="greeting_message">Chào  </string>
     <string name="order_prompt">Bạn đã sẵn sàng đặt hàng chưa?</string>
@@ -94,7 +96,7 @@
     <string name="use_your_location">Sử dụng vị trí của bạn</string>
 
     <string name="recent_search">Kết quả tìm kiếm</string>
-    <string name="choose_from_map2">Chọn từ Bản đồ</string>
+    <string name="choose_from_map2">Tiếp tục</string>
     <string name="confirm_location">Xác nhận</string>
     <string name="add_new">Thêm mới</string>
     <string name="payment_methods">Phương thức thanh toán</string>
@@ -138,4 +140,23 @@
     <string name="terms_agreement_part1">Bằng việc nhấn "Tiếp tục", bạn đồng ý với</string>
     <string name="terms_and_conditions">Điều khoản và Điều kiện</string>
     <string name="button_continue">Tiếp tục</string>
+    <string name="rateOrder">Đánh giá đơn hàng</string>
+    <string name="content_description_back">Nút quay lại</string>
+    <string name="title_rating_activity">Đánh giá Trải nghiệm của Bạn</string>
+    <string name="button_return_home">Trang chủ</string>
+    <string name="button_submit_review">Gửi Đánh giá</string>
+    <!-- Food/Restaurant Rating Section -->
+    <string name="title_food_rating">Đánh giá Món ăn</string>
+    <!-- Driver Rating Section -->
+    <string name="title_driver_rating">Đánh giá Tài xế</string>
+    <string name="driver_info_placeholder">Adam West (34 LD 5225)</string>
+    <string name="hint_driver_rating">Chạm để đánh giá</string>
+    <!-- Comment Section -->
+    <string name="title_comment">Bình luận về Trải nghiệm</string>
+    <string name="hint_comment_experience">Mô tả trải nghiệm của bạn (ví dụ: Món ăn nóng hổi, tài xế thân thiện...)</string>
+    <string name="label_history_orders">Lịch sử mua hàng</string>
+    <string name="label_basket_orders">Giỏ hàng</string>
+    <string name="notifications_title">Thông báo</string>
+    <string name="messages_tab">Tin nhắn</string>
+    <string name="not_applicable">Không áp dụng</string>
 </resources>

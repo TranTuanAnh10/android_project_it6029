@@ -367,9 +367,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 DataSnapshot shipperSnap = snapshot.child("shipper");
                 Double currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
                 Double currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
-                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
-                String shipperName= shipperInfoMap.get("shipperName").toString();
-                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+//                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
+//                String shipperName= shipperInfoMap.get("shipperName").toString();
+//                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
 
                 String jsCall = String.format(Locale.US,
                         "initOrUpdateMap(%f, %f, %f, %f, '%s')",
@@ -411,34 +411,58 @@ public class OrderTrackingActivity extends AppCompatActivity {
         final int ACTIVE_COLOR = Color.parseColor("#EB4D57"); // Màu đỏ active
         if (status.equals(MyConstant.PREPARED)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
+            stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
             tvStatusTag.setText(R.string.prepared);
+            tvStatusTagSummary.setText(R.string.prepared);
             tvStatusDescTag.setText(R.string.preparedDesc);
+            tvStatusDescTagSummary.setText(R.string.preparedDesc);
         } else if (status.equals(MyConstant.PICKINGUP)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
+            stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
             stepPickingUpLine.setBackgroundColor(ACTIVE_COLOR);
+            stepPickingUpSummary.setImageResource(R.drawable.ic_picking_up_order_active);
+
             tvStatusTag.setText(R.string.pickingUp);
+            tvStatusTagSummary.setText(R.string.pickingUp);
             tvStatusDescTag.setText(R.string.pickingUpDesc);
+            tvStatusDescTagSummary.setText(R.string.pickingUpDesc);
             btnCancelOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.DELIVERING)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
+            stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
             stepPickingUpLine.setBackgroundColor(ACTIVE_COLOR);
+            stepPickingUpSummary.setImageResource(R.drawable.ic_picking_up_order_active);
+            stepPickingUpSummaryLine.setBackgroundColor(ACTIVE_COLOR);
             stepDelivering.setImageResource(R.drawable.ic_delivering_order_active);
+            stepDeliveringSummary.setImageResource(R.drawable.ic_delivering_order_active);
             stepDeliveringLine.setBackgroundColor(ACTIVE_COLOR);
+            stepDeliveringSummaryLine.setBackgroundColor(ACTIVE_COLOR);
+
             tvStatusTag.setText(R.string.delivering);
+            tvStatusTagSummary.setText(R.string.delivering);
             tvStatusDescTag.setText(R.string.deliveringDesc);
+            tvStatusDescTagSummary.setText(R.string.deliveringDesc);
             btnCancelOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.FINISH)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
+            stepPreparedSummary.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
             stepPickingUpLine.setBackgroundColor(ACTIVE_COLOR);
+            stepPickingUpSummary.setImageResource(R.drawable.ic_picking_up_order_active);
+            stepPickingUpSummaryLine.setBackgroundColor(ACTIVE_COLOR);
             stepDelivering.setImageResource(R.drawable.ic_delivering_order_active);
             stepDeliveringLine.setBackgroundColor(ACTIVE_COLOR);
+            stepDeliveringSummary.setImageResource(R.drawable.ic_delivering_order_active);
+            stepDeliveringSummaryLine.setBackgroundColor(ACTIVE_COLOR);
+
             stepFinish.setImageResource(R.drawable.ic_finish_order_active);
             stepFinishLine.setBackgroundColor(ACTIVE_COLOR);
             tvStatusTag.setText(R.string.finish);
+            tvStatusTagSummary.setText(R.string.finish);
             tvStatusDescTag.setText(R.string.finishDesc);
+            tvStatusDescTagSummary.setText(R.string.finishDesc);
             btnCancelOrder.setVisibility(View.GONE);
         }
 

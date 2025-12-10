@@ -63,28 +63,13 @@
             android:paddingHorizontal="16dp" />
     </LinearLayout>
 
-    <!-- 3. Thanh tìm kiếm được đặt bên dưới bộ lọc -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/search_view"
-        android:layout_width="0dp"
-        android:layout_height="45dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:background="@drawable/rounded_edittext_bg"
-        app:queryHint="Nhập thông tin đơn cần tìm"
-        app:iconifiedByDefault="false"
-        app:layout_constraintTop_toBottomOf="@id/filter_section"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 4. RecyclerView chiếm toàn bộ không gian còn lại ở dưới -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_orders"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/search_view"
+        app:layout_constraintTop_toBottomOf="@id/filter_section"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

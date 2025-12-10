@@ -18,13 +18,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,8 +32,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import vn.haui.android_project.ActivityRating;
 import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderItemsAdapter;
@@ -62,10 +58,12 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, imgLocationIcon;
     private TextView tvStatusTag, tvStatusDescTag, tvDriverInfoTitle, tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
-    private Button btnCancelOrder;
+    private Button btnCancelOrder, btnRateOrder;
     private ConstraintLayout layoutDriverDetails;
     private View divider1;
     private ImageButton imageButton;
+
+    private boolean rating = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +102,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private void mappingView() {
         tvEstimateArrival = findViewById(R.id.tv_estimate_time);
         btnCancelOrder = findViewById(R.id.btn_cancel_order);
+        btnRateOrder = findViewById(R.id.btn_rate_order);
         // ✅ Gắn view con bên trong layoutSummary)
         stepPrepared = findViewById(R.id.step_prepared);
         stepPickingUp = findViewById(R.id.step_pickingUp);
@@ -134,6 +133,11 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 if (!snapshot.exists()) return;
 
                 String orderId = snapshot.child("orderId").getValue(String.class);
+                DataSnapshot ratings = snapshot.child("ratings");
+                if (ratings.exists()) {
+                    rating = false;
+                    btnRateOrder.setVisibility(View.GONE);
+                }
                 String status = snapshot.child("status").getValue(String.class);
                 // check doi man tracking di giao hang
                 if (MyConstant.DELIVERING.equals(status)) {
@@ -154,7 +158,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
                     layoutDriverDetails.setVisibility(GONE);
                     divider1.setVisibility(GONE);
                 }
-                String driver= null;
+                String driver = null;
 //                DataSnapshot shipperSnap = snapshot.child("shipper");
 //                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
 //                String driver= shipperInfoMap.get("shipperName").toString();
@@ -224,6 +228,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             tvStatusTag.setText(R.string.prepared);
             tvStatusDescTag.setText(R.string.preparedDesc);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.PICKINGUP)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -231,6 +236,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.pickingUp);
             tvStatusDescTag.setText(R.string.pickingUpDesc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.DELIVERING)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -240,6 +246,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.delivering);
             tvStatusDescTag.setText(R.string.deliveringDesc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         } else if (status.equals(MyConstant.FINISH)) {
             stepPrepared.setImageResource(R.drawable.ic_prepared_order_active);
             stepPickingUp.setImageResource(R.drawable.ic_picking_up_order_active);
@@ -251,14 +258,19 @@ public class OrderDetailsActivity extends AppCompatActivity {
             tvStatusTag.setText(R.string.finish);
             tvStatusDescTag.setText(R.string.finishDesc);
             btnCancelOrder.setVisibility(View.GONE);
-        }else if (status.equals(MyConstant.REJECT)) {
+            if (rating) {
+                btnRateOrder.setVisibility(View.VISIBLE);
+            }
+        } else if (status.equals(MyConstant.REJECT)) {
             tvStatusTag.setText(R.string.reject_status);
             tvStatusDescTag.setText(R.string.reject_status_desc);
             btnCancelOrder.setVisibility(View.GONE);
-        }else if (status.equals(MyConstant.CANCEL_ORDER)) {
+            btnRateOrder.setVisibility(View.GONE);
+        } else if (status.equals(MyConstant.CANCEL_ORDER)) {
             tvStatusTag.setText(R.string.reject_status);
             tvStatusDescTag.setText(R.string.cancel_order_status_desc);
             btnCancelOrder.setVisibility(View.GONE);
+            btnRateOrder.setVisibility(View.GONE);
         }
     }
 
@@ -270,7 +282,13 @@ public class OrderDetailsActivity extends AppCompatActivity {
             // Thực hiện logic hủy đơn hàng (hiển thị dialog xác nhận, gọi API)
             showConfirmationDialog("Bạn có chắc muốn hủy đơn hàng này không?");
         });
+        binding.btnRateOrder.setOnClickListener(v -> {
+            Intent intent1 = new Intent(OrderDetailsActivity.this, ActivityRating.class);
+            intent1.putExtra("ORDER_ID", orderId);
+            intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent1);
 
+        });
         binding.btnChat.setOnClickListener(view -> {
             try {
                 // Lấy số điện thoại từ TextView thông qua binding
@@ -312,6 +330,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
             imgLocationIcon.setImageResource(R.drawable.ic_marker);
         }
     }
+
     private void showConfirmationDialog(String message) {
         // Ở đây cần triển khai DialogFragment hoặc AlertDialog tùy chỉnh.
         // Ví dụ đơn giản:
@@ -326,12 +345,14 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 .setNegativeButton("Không", null)
                 .show();
     }
+
     private void updateOrderStatus(String newStatus) {
         // Cập nhật trạng thái lên Firebase
         orderRef.child("status").setValue(newStatus)
                 .addOnSuccessListener(aVoid -> {
                     String msg = "Đã xác nhận đơn hàng!";
-                    if(newStatus.equals(MyConstant.REJECT) || newStatus.equals(MyConstant.CANCEL_ORDER)) msg = "Đã hủy đơn hàng!";
+                    if (newStatus.equals(MyConstant.REJECT) || newStatus.equals(MyConstant.CANCEL_ORDER))
+                        msg = "Đã hủy đơn hàng!";
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e ->

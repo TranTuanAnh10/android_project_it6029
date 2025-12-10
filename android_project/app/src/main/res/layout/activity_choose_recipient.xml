@@ -34,6 +34,18 @@
             android:textColor="#6D5758"/>
     </LinearLayout>
 
+    <!-- Thanh tiến trình (Loading Indicator) -->
+    <ProgressBar
+        android:id="@+id/progress_bar_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/toolbar_container"
+        android:layout_above="@+id/bottom_action_container"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:indeterminateTint="#FF4560" /> <!-- Đổi màu cho phù hợp với nút Button -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_recipients"
         android:layout_width="match_parent"
