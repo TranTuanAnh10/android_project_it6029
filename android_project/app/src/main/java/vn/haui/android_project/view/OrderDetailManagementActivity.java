@@ -37,10 +37,12 @@ import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.OrderItemsAdapter;
 import vn.haui.android_project.adapter.OrderManagementItemsAdapter;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.NotificationEntity;
 import vn.haui.android_project.entity.Order;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+import vn.haui.android_project.services.FirebaseNotificationService;
 
 public class OrderDetailManagementActivity extends AppCompatActivity {
 
@@ -70,13 +72,15 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
     private DatabaseReference orderRef;
     private String orderId;
     private ImageView btnBack;
+    private String uidUserOrder;
 
+    private FirebaseNotificationService notificationService;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_detail_management);
-
+        notificationService = new FirebaseNotificationService();
         orderId = getIntent().getStringExtra("ORDER_ID");
         if (orderId == null) {
             Toast.makeText(this, "Lỗi: Không tìm thấy ID đơn hàng", Toast.LENGTH_SHORT).show();
@@ -162,7 +166,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                 String license = snapshot.child("licensePlate").getValue(String.class);
                 String estimateArrival = snapshot.child("timeDisplay").getValue(String.class);
                 String timeOrder = snapshot.child("created_at").getValue(String.class);
-
+                uidUserOrder= snapshot.child("uid").getValue(String.class);
                 Double fee = snapshot.child("deliveryFee").getValue(Double.class);
                 Double discount = snapshot.child("discount").getValue(Double.class);
                 Double total = snapshot.child("total").getValue(Double.class);
@@ -383,7 +387,7 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
                     if (newStatus.equals(MyConstant.PICKINGUP)) {
                         findAndNotifyShippers();
                     }
-
+                    sendOrderSuccessNotification(newStatus);
                     // Vì ta dùng addValueEventListener (Realtime) ở hàm loadOrderData
                     // Nên khi Firebase thay đổi status -> UI sẽ tự động cập nhật lại (Ẩn nút, Đổi màu step bar)
                     // Không cần reload thủ công hay finish() trừ khi bạn muốn thoát.
@@ -434,5 +438,24 @@ public class OrderDetailManagementActivity extends AppCompatActivity {
         if (notiId != null) {
             notiRef.child(notiId).setValue(notiMap);
         }
+    }
+
+
+    private void sendOrderSuccessNotification(String newStatus) {
+        String msg = "Đã xác nhận đơn hàng! #" + orderId;
+        if (newStatus.equals(MyConstant.REJECT)) msg = "Đã từ chối đơn hàng! #" + orderId;
+        String body = "Đơn hàng của bạn đã được xác nhận.";
+        if (newStatus.equals(MyConstant.REJECT)) body = "Đơn hàng của bạn đã bị từ chối.";
+        NotificationEntity notification = new NotificationEntity(
+                "Đơn hàng",
+                msg,
+                body,
+                "ORDER_STATUS"   // Loại thông báo
+        );
+        notification.setImageUrl(null);
+        // Target ID là ID của đơn hàng để sau này có thể điều hướng khi người dùng nhấn vào
+        notification.setTargetId(orderId);
+        // Gọi service để thêm thông báo cho người dùng hiện tại (kiểu "bắn và quên")
+        notificationService.addNotification(uidUserOrder, notification);
     }
 }
