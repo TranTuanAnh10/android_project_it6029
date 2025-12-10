@@ -26,7 +26,7 @@ public class VoucherEntity implements Serializable {
 
     public VoucherEntity(String id, String name, String code, String imageUrl,
                          long expiryDate, boolean isActive, String discountType,
-                         double discountValue, double minOrderValue, String description) {
+                         double discountValue, double minOrderValue, double maxOrderValue, String description) {
         this.id = id;
         this.name = name;
         this.code = code;
@@ -35,6 +35,7 @@ public class VoucherEntity implements Serializable {
         this.isActive = isActive;
         this.discountType = discountType;
         this.discountValue = discountValue;
+        this.maxOrderValue = maxOrderValue;
         this.minOrderValue = minOrderValue;
         this.description = description;
     }
