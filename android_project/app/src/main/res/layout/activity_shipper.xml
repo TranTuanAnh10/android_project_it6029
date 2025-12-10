@@ -7,72 +7,20 @@
     android:layout_height="match_parent"
     tools:context=".view.ShipperActivity">
 
-    <!-- 1. AppBarLayout được ghim lên trên cùng của màn hình -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/md_theme_onPrimary"
-            app:title="DANH SÁCH ĐƠN"
-            app:titleTextColor="@android:color/white"
-            app:theme="@style/MyToolbarTheme" />/>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- 2. LinearLayout chứa bộ lọc được đặt ngay bên dưới AppBarLayout -->
-    <LinearLayout
-        android:id="@+id/filter_section"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <Button
-            android:id="@+id/btn_date_picker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="21/01/2022"
-            android:textColor="#fff"
-            android:paddingHorizontal="16dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lọc theo"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            android:textColor="@android:color/black"/>
-
-        <Spinner
-            android:id="@+id/spinner_status_filter"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="40dp"
-            android:background="@drawable/rounded_edittext_bg"
-            android:paddingHorizontal="16dp" />
-    </LinearLayout>
-
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_orders"
-        android:layout_width="0dp"
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/filter_section"
+        android:layout_weight="1"
+        tools:ignore="MissingConstraints" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_shipper_order" />
+        app:menu="@menu/bottom_tabs_shipper"
+        app:labelVisibilityMode="labeled"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

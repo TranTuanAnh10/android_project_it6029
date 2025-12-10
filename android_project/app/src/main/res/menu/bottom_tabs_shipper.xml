@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+  <item
+      android:id="@+id/btn_home"
+      android:title="Đơn hàng"
+      android:icon="@drawable/ic_home"/>
+    <item
+        android:id="@+id/btn_order"
+        android:title="Lịch"
+        android:icon="@drawable/ic_order"/>
+    <item
+        android:id="@+id/btn_profile"
+        android:title="Tài khoản"
+        android:icon="@drawable/ic_notifications"/>
+</menu>

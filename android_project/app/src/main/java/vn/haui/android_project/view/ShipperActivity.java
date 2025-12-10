@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -27,10 +28,13 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -60,7 +64,7 @@ import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.model.OrderShiperHistory;
 import vn.haui.android_project.services.LocationService;
 
-public class ShipperActivity extends AppCompatActivity implements ShipperOrderAdapter.OnItemClickListener {
+public class ShipperActivity extends AppCompatActivity {
     private Spinner spinnerStatus;
     private String currentUserId;
     private Button btnDatePicker;
@@ -73,6 +77,8 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
     private LocationService locationService;
     private DatabaseReference mDatabase;
     Toolbar toolbar;
+    BottomNavigationView bottomNavigationView;
+    FrameLayout container;
     private String nameShipper, phoneShipper, emailShipper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,133 +90,48 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        toolbar = findViewById(R.id.toolbar);
-        toolbar.inflateMenu(R.menu.shipper_menu);
-        toolbar.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.menu_logout) {
-                new AlertDialog.Builder(this)
-                    .setTitle("Xác nhận đăng xuất")
-                    .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
-                    .setPositiveButton("Đồng ý", (dialog, which) -> {
-                        FirebaseAuth.getInstance().signOut();
-                        Intent intent = new Intent(this, LoginScreenActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .setNegativeButton("Hủy", (dialog, which) -> {
-                        dialog.dismiss();
-                    })
-                    .show();
-                return true;
-            }
-            return false;
-        });
-        initDropdown();
-        locationService = new LocationService(this);
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        mDatabase = FirebaseDatabase.getInstance().getReference("shippers").child(currentUserId);
-        myCalendar = Calendar.getInstance();
-        recyclerViewOrders = findViewById(R.id.recycler_view_orders);
-        shipperOrderAdapter = new ShipperOrderAdapter(this, listOrder, this);
-        recyclerViewOrders.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewOrders.setAdapter(shipperOrderAdapter);
-        btnDatePicker = findViewById(R.id.btn_date_picker);
+
 
         Intent intent = getIntent();
         nameShipper = intent.getStringExtra("USER_NAME");
         phoneShipper = intent.getStringExtra("USER_PHONE");
         emailShipper = intent.getStringExtra("USER_EMAIL");
 
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        container = findViewById(R.id.container);
 
-        DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                myCalendar.set(Calendar.YEAR, year);
-                myCalendar.set(Calendar.MONTH, monthOfYear);
-                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-                updateLabel();
-
-                // TODO: Lọc RecyclerView theo ngày
-            }
-        };
-        btnDatePicker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new DatePickerDialog(
-                        ShipperActivity.this,
-                        dateSetListener,
-                        myCalendar.get(Calendar.YEAR),
-                        myCalendar.get(Calendar.MONTH),
-                        myCalendar.get(Calendar.DAY_OF_MONTH)
-                ).show();
-            }
-        });
-//        updateLabel();
-        btnDatePicker.setText("Chọn ngày");
-        getOrderHistory();
         listenForNewOrders();
+        setupCustomerUI();
     }
 
-    @Override
-    public void onItemClick(OrderShiperHistory order) {
-        //Toast.makeText(this, "Bạn đã chọn đơn hàng của: " + order.getReceiverName(), Toast.LENGTH_SHORT).show();
+    private void setupCustomerUI() {
+        bottomNavigationView.setVisibility(View.VISIBLE);
+        container.setVisibility(View.VISIBLE);
 
-        if (order.getStatus().contains(MyConstant.FINISH))
-            return;
 
-        Intent intent1 = new Intent(ShipperActivity.this, OrderTrackingActivity.class);
-        intent1.putExtra("ORDER_ID", order.getOrderId());
-        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        this.startActivity(intent1);
-    }
-
-    private void getOrderHistory(){
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    Map<String, Object> defaultData = new HashMap<>();
-                    defaultData.put("status", "ready");
-                    String myFormat = "dd/MM/yyyy";
-                    SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
-//                    listOrder.add(new OrderShiperHistory("20251118153213-787", "shipping",
-//                            "Thu Thu Shop", "0987654321",
-//                            "Trường Đại học Công nghiệp Hà Nội, 298, Đường Cầu Diễn, Hanoi, 34000, Vietnam",
-//                            "120005", sdf.format(myCalendar.getTime())));
-                    defaultData.put("historys", new ArrayList<>());
-
-                    mDatabase.setValue(defaultData);
-
-                    return;
-                }
-
-                listOrder.clear();
-
-                if (snapshot.hasChild("historys")) {
-                    for (DataSnapshot orderSnapshot : snapshot.child("historys").getChildren()) {
-                        OrderShiperHistory order = orderSnapshot.getValue(OrderShiperHistory.class);
-                        if (order != null) {
-                            listOrder.add(order);
-                        }
-                    }
-                }
-
-                if (snapshot.hasChild("status")) {
-                    String status = snapshot.child("status").getValue(String.class);
-                }
-
-                filterData();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, new HomeFragment()).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, new ShipperOrderFragment()).commit();
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int itemId = item.getItemId();
+            if (itemId == R.id.btn_home) {
+                selectedFragment = new ShipperOrderFragment();
+            } else if (itemId == R.id.btn_order) {
+                selectedFragment = new ShipperCalendarFragment();
+            } else if (itemId == R.id.btn_notification) {
+                selectedFragment = new NotificationsFragment();
+            } else if (itemId == R.id.btn_profile) {
+                selectedFragment = new ProfileFragment();
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(ShipperActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, selectedFragment).addToBackStack(null).commit();
             }
+            return true;
         });
     }
+
+
 
     private void listenForNewOrders() {
         notiRef = FirebaseDatabase.getInstance().getReference("Notifications").child(currentUserId);
@@ -353,76 +274,4 @@ public class ShipperActivity extends AppCompatActivity implements ShipperOrderAd
 
         }
     }
-
-
-    private void filterData() {
-        String selectedStatus = spinnerStatus.getSelectedItem().toString();
-        String selectedDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(myCalendar.getTime());
-
-        List<OrderShiperHistory> filteredList = new ArrayList<>();
-        for (OrderShiperHistory order : listOrder) {
-            boolean statusMatch = false;
-            if (selectedStatus.equals("Tất cả")) {
-                statusMatch = true;
-            } else {
-                if(order.getStatus() != null && shipperOrderAdapter.getTextStatus(order.getStatus()).equalsIgnoreCase(selectedStatus)){
-                    statusMatch = true;
-                }
-            }
-
-            boolean dateMatch = (btnDatePicker.getText().equals("Chọn ngày") || (order.getDate() != null && order.getDate().equals(selectedDate)));
-
-            if (statusMatch && dateMatch) {
-                filteredList.add(order);
-            }
-        }
-
-        shipperOrderAdapter.filterList(filteredList);
-
-        if(filteredList.isEmpty()){
-            Toast.makeText(this, "Không tìm thấy đơn hàng nào.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-
-    private void updateLabel() {
-        String myFormat = "dd/MM/yyyy";
-        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
-
-        btnDatePicker.setText(sdf.format(myCalendar.getTime()));
-    }
-
-    private void initDropdown(){
-        spinnerStatus = findViewById(R.id.spinner_status_filter);
-
-        String[] filterOptions = new String[]{"Tất cả", "Đã xong", "Đang giao"};
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                filterOptions
-        );
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        spinnerStatus.setAdapter(adapter);
-
-        spinnerStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedStatus = filterOptions[position];
-
-                // TODO: Gọi hàm lọc RecyclerView của bạn tại đây
-                // Ví dụ: filterOrderList(selectedStatus);
-                filterData();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-    }
-
 }
