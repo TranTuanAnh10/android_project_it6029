@@ -75,7 +75,9 @@ public class ChoosePaymentBottomSheet extends BottomSheetDialogFragment
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.bottom_sheet_choose_payment, container, false);
     }
-
+    public void setPaymentSelectionListener(PaymentSelectionListener listener) {
+        this.listener = listener;
+    }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
