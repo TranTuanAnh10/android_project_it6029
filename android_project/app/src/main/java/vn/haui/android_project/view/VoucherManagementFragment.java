@@ -380,13 +380,13 @@ public class VoucherManagementFragment extends Fragment {
             }
             double finalMinOrder = tempMinOrder; // Biến final
 
-            // --- MỚI: XỬ LÝ MAX ORDER VALUE (GIẢM TỐI ĐA) ---
-            double maxOrderVal = 0;
+            // --- XỬ LÝ MAX ORDER VALUE (GIẢM TỐI ĐA) ---
+            double tempMaxOrder = 0;
             if (rbPercent.isChecked()) {
                 // Chỉ xử lý Max Discount khi chọn loại là %
                 if (!maxDiscountStr.isEmpty()) {
                     try {
-                        maxOrderVal = Double.parseDouble(maxDiscountStr);
+                        tempMaxOrder = Double.parseDouble(maxDiscountStr);
                     } catch (NumberFormatException e) {
                         edtMaxDiscount.setError("Số liệu không hợp lệ");
                         return;
@@ -394,10 +394,9 @@ public class VoucherManagementFragment extends Fragment {
                 }
             } else {
                 // Nếu là giảm tiền mặt (AMOUNT) -> Max Discount = 0
-                maxOrderVal = 0;
+                tempMaxOrder = 0;
             }
-            double finalMaxOrder = maxOrderVal; // Biến final
-
+            double finalMaxOrder = tempMaxOrder;
             String type = rbPercent.isChecked() ? "PERCENT" : "AMOUNT";
             boolean isActive = switchActive.isChecked();
 
@@ -426,8 +425,7 @@ public class VoucherManagementFragment extends Fragment {
                         });
             } else {
                 // Truyền thêm finalMaxOrder vào hàm save
-                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, finalMinOrder, finalMaxOrder, isActive, pd, dialog);
-            }
+                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, finalMinOrder, finalMaxOrder, isActive, pd, dialog);            }
         });
     }
 
