@@ -77,11 +77,11 @@ public class FirebaseNotificationService {
 
                     if (snapshot.exists()) {
                         // Nếu document của người dùng đã tồn tại, thêm thông báo mới vào mảng "notifications"
-                        transaction.update(userDocRef, "notifications", FieldValue.arrayUnion(notificationMap));
+                        transaction.update(userDocRef, DatabaseTable.NOTIFICATIONS.getValue(), FieldValue.arrayUnion(notificationMap));
                     } else {
                         // Nếu document chưa tồn tại, tạo mới document với một mảng chứa thông báo đầu tiên
                         Map<String, Object> data = new HashMap<>();
-                        data.put("notifications", Collections.singletonList(notificationMap));
+                        data.put(DatabaseTable.NOTIFICATIONS.getValue(), Collections.singletonList(notificationMap));
                         transaction.set(userDocRef, data);
                     }
                     // Transaction yêu cầu phải trả về một giá trị, trả về null khi thành công
@@ -112,7 +112,7 @@ public class FirebaseNotificationService {
                 // Thao tác này sẽ thất bại nếu document chưa tồn tại.
                 // Để đảm bảo, một giải pháp nâng cao hơn là dùng Cloud Function để đọc-rồi-ghi.
                 // Tuy nhiên, với logic hiện tại, chúng ta giả định document đã có hoặc sẽ được tạo khi user dùng app.
-                batch.update(userDocRef, "notifications", FieldValue.arrayUnion(newNotification));
+                batch.update(userDocRef, DatabaseTable.NOTIFICATIONS.getValue(), FieldValue.arrayUnion(newNotification));
             }
         }
         batch.commit()
@@ -120,10 +120,6 @@ public class FirebaseNotificationService {
                 .addOnFailureListener(e -> Log.e(TAG, "❌ (Batch) Lỗi khi gửi thông báo hàng loạt: " + e.getMessage() + ". Có thể một số user chưa có document."));
     }
 
-    /**
-     * Lấy danh sách thông báo cho người dùng đang đăng nhập.
-     * Trả về kết quả qua một callback đơn giản.
-     */
     public void getCurrentUserNotifications(@NonNull NotificationListCallback callback) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -140,31 +136,57 @@ public class FirebaseNotificationService {
                         callback.onComplete(Collections.emptyList(), null);
                         return;
                     }
-                    Object notificationsObject = documentSnapshot.get("notifications");
+                    Object notificationsObject = documentSnapshot.get(DatabaseTable.NOTIFICATIONS.getValue());
                     if (!(notificationsObject instanceof List)) {
                         callback.onComplete(Collections.emptyList(), null);
                         return;
                     }
 
-                    List<NotificationEntity> notificationList = new ArrayList<>();
-                    List<Map<String, Object>> rawNotifications = (List<Map<String, Object>>) notificationsObject;
+                    // --- LOGIC MỚI BẮT ĐẦU TỪ ĐÂY ---
 
+                    List<Map<String, Object>> rawNotifications = (List<Map<String, Object>>) notificationsObject;
+                    List<NotificationEntity> unreadList = new ArrayList<>();
+                    List<NotificationEntity> readList = new ArrayList<>();
+
+                    // 1. Phân loại tất cả thông báo vào 2 danh sách: unread và read
                     for (Map<String, Object> notificationMap : rawNotifications) {
                         NotificationEntity entity = NotificationEntity.fromMap(notificationMap);
                         if (entity != null) {
-                            notificationList.add(entity);
+                            if (entity.isRead()) {
+                                readList.add(entity);
+                            } else {
+                                unreadList.add(entity);
+                            }
                         }
                     }
 
-                    notificationList.sort(Comparator.comparing(NotificationEntity::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
-                    Log.d(TAG, "✅ Lấy và sắp xếp " + notificationList.size() + " thông báo cho người dùng hiện tại.");
-                    callback.onComplete(notificationList, null);
+                    // 2. Sắp xếp mỗi danh sách theo thời gian mới nhất
+                    // Dùng Comparator.nullsLast để tránh crash nếu có ngày null
+                    Comparator<NotificationEntity> dateComparator = Comparator.comparing(
+                            NotificationEntity::getCreatedAt,
+                            Comparator.nullsLast(Comparator.reverseOrder())
+                    );
+                    unreadList.sort(dateComparator);
+                    readList.sort(dateComparator);
+
+                    // 3. Lấy 5 item hàng đầu từ mỗi danh sách (hoặc ít hơn nếu danh sách không đủ 5)
+                    List<NotificationEntity> top5Unread = unreadList.subList(0, Math.min(5, unreadList.size()));
+                    List<NotificationEntity> top5Read = readList.subList(0, Math.min(5, readList.size()));
+
+                    // 4. Gộp hai danh sách đã được giới hạn lại với nhau
+                    List<NotificationEntity> finalList = new ArrayList<>();
+                    finalList.addAll(top5Unread);
+                    finalList.addAll(top5Read);
+
+                    Log.d(TAG, "✅ Lấy và sắp xếp " + finalList.size() + " thông báo (tối đa 5 chưa đọc, 5 đã đọc).");
+                    callback.onComplete(finalList, null);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "❌ Lỗi khi lấy danh sách thông báo: " + e.getMessage());
                     callback.onComplete(Collections.emptyList(), e);
                 });
     }
+
 
     /**
      * Đánh dấu một thông báo là đã đọc cho người dùng ĐANG ĐĂNG NHẬP.
@@ -177,36 +199,54 @@ public class FirebaseNotificationService {
         }
         String uid = currentUser.getUid();
         DocumentReference userDocRef = notificationsRef.document(uid);
-        final Gson gson = new Gson();
+        // Không cần Gson ở đây nữa, chúng ta sẽ dùng hàm toMap()
 
         db.runTransaction((Transaction.Function<Void>) transaction -> {
                     DocumentSnapshot snapshot = transaction.get(userDocRef);
                     if (!snapshot.exists()) {
                         throw new FirebaseFirestoreException("Document người dùng không tồn tại.", FirebaseFirestoreException.Code.NOT_FOUND);
                     }
-                    List<Map<String, Object>> rawNotifications = (List<Map<String, Object>>) snapshot.get("notifications");
-                    if (rawNotifications == null) {
-                        throw new FirebaseFirestoreException("Danh sách notifications rỗng.", FirebaseFirestoreException.Code.NOT_FOUND);
+
+                    // Lấy danh sách thô từ Firestore
+                    Object rawObject = snapshot.get(DatabaseTable.NOTIFICATIONS.getValue());
+                    if (!(rawObject instanceof List)) {
+                        throw new FirebaseFirestoreException("Trường 'notifications' không phải là một danh sách hoặc không tồn tại.", FirebaseFirestoreException.Code.INVALID_ARGUMENT);
                     }
-                    List<NotificationEntity> newNotifications = new ArrayList<>();
-                    boolean found = false;
-                    for (Map<String, Object> map : rawNotifications) {
-                        NotificationEntity currentNotif = gson.fromJson(gson.toJson(map), NotificationEntity.class);
-                        if (notificationId.equals(currentNotif.getId())) {
-                            currentNotif.setRead(true);
-                            found = true;
+                    List<Map<String, Object>> originalNotifications = (List<Map<String, Object>>) rawObject;
+
+                    // Danh sách mới để chứa các Map đã được cập nhật
+                    List<Map<String, Object>> updatedNotificationsAsMap = new ArrayList<>();
+                    boolean foundAndUpdated = false;
+
+                    // Lặp qua danh sách gốc
+                    for (Map<String, Object> notificationMap : originalNotifications) {
+                        // Lấy ID từ map
+                        Object idObj = notificationMap.get("id");
+                        if (idObj != null && notificationId.equals(idObj.toString())) {
+                            // TÌM THẤY: Cập nhật trường 'read' thành true
+                            notificationMap.put("read", true);
+                            foundAndUpdated = true;
                         }
-                        newNotifications.add(currentNotif);
+                        // Thêm map (dù đã sửa hay chưa) vào danh sách mới
+                        updatedNotificationsAsMap.add(notificationMap);
                     }
-                    if (!found) {
-                        throw new FirebaseFirestoreException("Không tìm thấy thông báo với ID: " + notificationId, FirebaseFirestoreException.Code.NOT_FOUND);
+
+                    if (!foundAndUpdated) {
+                        // Nếu không tìm thấy thông báo, không làm gì cả để tránh lỗi
+                        Log.w(TAG, "Không tìm thấy thông báo với ID: " + notificationId + " để đánh dấu đã đọc.");
+                        // Không ném lỗi để tránh làm crash các flow khác, chỉ ghi log
+                        return null;
                     }
-                    transaction.update(userDocRef, "notifications", newNotifications);
+
+                    // <<--- SỬA LỖI TẠI ĐÂY ---
+                    // Cập nhật lại toàn bộ mảng với danh sách các Map đã được sửa
+                    transaction.update(userDocRef, "notifications", updatedNotificationsAsMap);
                     return null;
                 })
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Đánh dấu đã đọc thành công cho thông báo: " + notificationId))
-                .addOnFailureListener(e -> Log.e(TAG, "❌ Lỗi khi đánh dấu đã đọc: " + e.getMessage()));
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ (Transaction) Đánh dấu đã đọc thành công cho thông báo: " + notificationId))
+                .addOnFailureListener(e -> Log.e(TAG, "❌ (Transaction) Lỗi khi đánh dấu đã đọc: " + e.getMessage()));
     }
+
 
     /**
      * Xóa một thông báo theo ID cho người dùng ĐANG ĐĂNG NHẬP.

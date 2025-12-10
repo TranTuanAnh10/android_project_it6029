@@ -5,7 +5,9 @@ public enum DatabaseTable {
     USER_LOCATIONS("user_locations"),
     ORDERS("orders"),
     NOTIFICATIONS("notifications"),
-    USER_PAYMENT_METHOD("user_payment_method")
+    USER_PAYMENT_METHOD("user_payment_method"),
+    VOUCHERS("vouchers"),
+    VOUCHER_USER("voucher_user"),
    ;
 
     private final String value;

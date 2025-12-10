@@ -24,6 +24,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import vn.haui.android_project.MainActivity;
 import vn.haui.android_project.R;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
@@ -93,6 +94,11 @@ public class OrderPlacedActivity extends AppCompatActivity {
 //                }
             });
         }
+        btnReturnHome.setOnClickListener(v -> {
+            Intent intent1 = new Intent(OrderPlacedActivity.this, MainActivity.class);
+            startActivity(intent1);
+            finish();
+        });
     }
 
     private void listenOrderRealtime() {

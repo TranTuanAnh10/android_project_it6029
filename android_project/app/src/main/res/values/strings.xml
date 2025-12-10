@@ -158,5 +158,5 @@
     <string name="label_basket_orders">Giỏ hàng</string>
     <string name="notifications_title">Thông báo</string>
     <string name="messages_tab">Tin nhắn</string>
-    <string name="not_applicable">Không áp dụng</string>
+    <string name="not_applicable">Không đủ điều kiện</string>
 </resources>

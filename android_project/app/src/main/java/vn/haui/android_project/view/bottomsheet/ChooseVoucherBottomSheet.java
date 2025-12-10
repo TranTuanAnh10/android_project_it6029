@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -26,6 +25,8 @@ import java.util.List;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.VoucherAdapter;
 import vn.haui.android_project.entity.VoucherEntity;
+import vn.haui.android_project.enums.DatabaseTable;
+import vn.haui.android_project.services.FirebaseVoucherUserService;
 
 public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
 
@@ -45,6 +46,7 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
     private RecyclerView recyclerView;
     private EditText etVoucherCode;
     private Button btnUseCode;
+    private FirebaseVoucherUserService voucherUserService;
 
     // --- 2. Phương thức khởi tạo an toàn để truyền totalBill ---
     public static ChooseVoucherBottomSheet newInstance(double totalBill) {
@@ -84,11 +86,15 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
         etVoucherCode = view.findViewById(R.id.et_voucher_code);
         btnUseCode = view.findViewById(R.id.btn_use_code);
         view.findViewById(R.id.btn_close).setOnClickListener(v -> dismiss());
+        voucherUserService = new FirebaseVoucherUserService();
 
+        // Khởi tạo và thiết lập Adapter
         setupRecyclerView();
         setupListeners();
-        loadVouchers();
+//        loadVouchers();
+        loadVoucherUserFromFirebase();
     }
+
 
     /**
      * Khởi tạo và thiết lập RecyclerView
@@ -123,8 +129,8 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
     /**
      * Tải danh sách voucher từ Firestore và cập nhật Adapter
      */
-    private void loadVouchers() {
-        FirebaseFirestore.getInstance().collection("vouchers")
+    private void loadVouchers(List<String> idVoucherUser2) {
+        FirebaseFirestore.getInstance().collection(DatabaseTable.VOUCHERS.getValue())
                 .orderBy("minOrderValue", Query.Direction.ASCENDING) // Sắp xếp theo đơn tối thiểu
                 .get() // Dùng get() để tải 1 lần, không cần realtime
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -135,7 +141,9 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
                         VoucherEntity voucher = doc.toObject(VoucherEntity.class);
                         if (voucher != null) {
                             voucher.setId(doc.getId()); // Gán ID từ Firestore Document
-                            newVouchers.add(voucher);
+                            if (!idVoucherUser2.contains(voucher.getId())) {
+                                newVouchers.add(voucher);
+                            }
                         }
                     }
                     // Cập nhật dữ liệu vào Adapter
@@ -156,7 +164,6 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
                 break;
             }
         }
-
         if (foundVoucher == null) {
             Toast.makeText(getContext(), "Mã giảm giá không hợp lệ.", Toast.LENGTH_SHORT).show();
             return;
@@ -205,5 +212,16 @@ public class ChooseVoucherBottomSheet extends BottomSheetDialogFragment {
             discount = voucher.getDiscountValue();
         }
         return discount;
+    }
+
+
+    private void loadVoucherUserFromFirebase() {
+        voucherUserService.getCurrentVoucherUser((idVoucherUser, exception) -> {
+            if (getContext() == null || !isAdded()) {
+                return; // Fragment đã bị hủy, không làm gì cả
+            }
+            Log.d(TAG, "Tải thành công " + idVoucherUser.size() + " voucher user");
+            loadVouchers(idVoucherUser);
+        });
     }
 }
