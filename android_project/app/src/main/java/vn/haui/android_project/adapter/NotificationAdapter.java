@@ -1,8 +1,6 @@
 package vn.haui.android_project.adapter;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,10 +9,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
@@ -24,7 +20,6 @@ import java.util.Locale;
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.NotificationEntity;
 import vn.haui.android_project.model.NotificationItem;
-import vn.haui.android_project.view.OrderDetailsActivity;
 
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -108,8 +103,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 case "ORDER_STATUS":
                     iconResId = R.drawable.ic_box; // Thay bằng icon của bạn
                     break;
-                case "PROMOTION":
-                    iconResId = R.drawable.ic_tag;
+                case "VOUCHER":
+                    iconResId = R.drawable.ic_voucher_sale;
                     break;
                 case "SYSTEM_UPDATE":
                     iconResId = R.drawable.ic_abount_yumyard;
