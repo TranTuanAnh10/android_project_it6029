@@ -379,6 +379,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     tvDriverName.setText(shipperName);
                     tvDriverNameSummary.setText(shipperName);
                     tvLicensePlateSummary.setText(shipperPhone);
+                    tvLicensePlate.setText(shipperPhone);
                     UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
                     mappingLocation(fetchedUserLocation);
                     if (MyConstant.DELIVERING.equals(status)) {

@@ -225,12 +225,6 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
             <TextView
-                android:id="@+id/order_history"
-                style="@style/ProfileMenuItem"
-                android:drawableStart="@drawable/ic_order_history"
-                android:text="@string/profile_order_history" />
-
-            <TextView
                 android:id="@+id/save_recipients"
                 style="@style/ProfileMenuItem"
                 android:drawableStart="@drawable/ic_save_recipients"
