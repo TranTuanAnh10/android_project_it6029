@@ -44,6 +44,8 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -61,7 +63,10 @@ import java.util.Map;
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.ShipperOrderAdapter;
 import vn.haui.android_project.entity.ProductItem;
+import vn.haui.android_project.entity.UserEntity;
+import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
+import vn.haui.android_project.enums.UserRole;
 import vn.haui.android_project.model.OrderShiperHistory;
 import vn.haui.android_project.services.LocationService;
 
@@ -168,7 +173,7 @@ public class ShipperActivity extends AppCompatActivity {
                     locationService.getCurrentLocation(new LocationService.LocationCallbackListener() {
                         @Override
                         public void onLocationResult(double la, double log, String add) {
-                            processOrderAcceptance(orderId, notiKey, la, log);
+                            LoadDataUser(orderId, notiKey, la, log);
                         }
                         @Override
                         public void onLocationError(String errorMessage) {
@@ -184,7 +189,19 @@ public class ShipperActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void processOrderAcceptance(String orderId, String notiKey, double la, double log) {
+    private void LoadDataUser(String orderId, String notiKey, double la, double log){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection(DatabaseTable.USERS.getValue()).document(currentUserId);
+        userRef.get()
+                .addOnSuccessListener(snapshot -> {
+                    UserEntity userFirebase = snapshot.toObject(UserEntity.class);
+                    processOrderAcceptance(orderId, notiKey, la, log, userFirebase.getName(), userFirebase.getPhoneNumber(), userFirebase.getEmail())
+;                })
+                .addOnFailureListener(exception -> {
+
+                });
+    }
+    private void processOrderAcceptance(String orderId, String notiKey, double la, double log, String userName, String phone, String email) {
         DatabaseReference orderRef = FirebaseDatabase.getInstance().getReference("orders").child(orderId);
 
         orderRef.runTransaction(new Transaction.Handler() {
@@ -201,12 +218,14 @@ public class ShipperActivity extends AppCompatActivity {
 
                     shipperNode.child("lat").setValue(la);
                     shipperNode.child("lng").setValue(log);
+//                    shipperNode.child("lat").setValue(21.053736);
+//                    shipperNode.child("lng").setValue(105.7325319);
 
                     Map<String, Object> shipperInfoMap = new HashMap<>();
                     shipperInfoMap.put("shipperId", currentUserId);
-                    shipperInfoMap.put("shipperName", nameShipper);
-                    shipperInfoMap.put("shipperPhone", phoneShipper);
-                    shipperInfoMap.put("shipperEmail", emailShipper );
+                    shipperInfoMap.put("shipperName", userName);
+                    shipperInfoMap.put("shipperPhone", phone);
+                    shipperInfoMap.put("shipperEmail", email);
                     shipperNode.child("shipperInfo").setValue(shipperInfoMap);
 
                     currentData.child("status").setValue(MyConstant.DELIVERING);
