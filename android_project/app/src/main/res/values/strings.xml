@@ -159,4 +159,5 @@
     <string name="notifications_title">Thông báo</string>
     <string name="messages_tab">Tin nhắn</string>
     <string name="not_applicable">Không đủ điều kiện</string>
+    <string name="me">Tài khỏan</string>
 </resources>
