@@ -381,7 +381,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
         recyclerOrderItems.setAdapter(productAdapter);
 
-        cartRef = FirebaseDatabase.getInstance().getReference("carts").child(authUser.getUid());
+        cartRef = FirebaseDatabase.getInstance().getReference(DatabaseTable.CART.getValue()).child(authUser.getUid());
         cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

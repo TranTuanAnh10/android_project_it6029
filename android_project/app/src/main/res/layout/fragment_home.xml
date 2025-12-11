@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Scroll View chứa toàn bộ nội dung chính của màn hình -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,13 +26,29 @@
                 android:padding="16dp">
 
                 <include layout="@layout/layout_browser_cuisines" />
-<!--                <include layout="@layout/layout_flash_deals" />-->
-                 <include layout="@layout/layout_top_picks" />
-                 <include layout="@layout/layout_best_selling" />
-                 <include layout="@layout/layout_ready_for_lunch" />
+
+                <include layout="@layout/layout_top_picks" />
+
+                <include layout="@layout/layout_best_selling" />
+
+                <include layout="@layout/layout_ready_for_lunch" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+
+    <!-- Floating Action Button (FAB) cho Giỏ hàng đã được chỉnh kích thước -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_cart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/label_basket_orders"
+        app:backgroundTint="?attr/colorError"
+        app:fabSize="auto"
+        app:maxImageSize="30dp"
+        app:srcCompat="@drawable/ic_order"
+        app:tint="@android:color/white"/>
 
     <!-- Overlay loading -->
     <FrameLayout
@@ -42,11 +60,11 @@
         android:visibility="gone">
 
         <ProgressBar
-            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:indeterminateTint="@android:color/white"
-            android:indeterminate="true" />
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:indeterminateTint="@android:color/white" />
     </FrameLayout>
 
 </FrameLayout>
