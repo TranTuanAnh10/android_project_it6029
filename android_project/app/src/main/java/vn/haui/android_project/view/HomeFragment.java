@@ -64,7 +64,7 @@ public class HomeFragment extends Fragment {
     TextView tv_hello;
     LinearLayout topPickLayout, bestSellerLayout;
     FrameLayout loadingPanel;
-    private FloatingActionButton fabCart;
+    private FrameLayout fabCart;
     private DatabaseReference cartRef;
     private Animation shakeAnimation;
 
@@ -79,6 +79,9 @@ public class HomeFragment extends Fragment {
     private FirebaseAuth mAuth;
     FirebaseUser authUser;
     private ValueEventListener cartValueEventListener;
+    MaterialTextView tv_countCard;
+    FloatingActionButton actionButton;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -100,15 +103,10 @@ public class HomeFragment extends Fragment {
         if (fabCart != null) {
             // Ban đầu ẩn FAB, sẽ được checkCartData() hiện lên nếu có sản phẩm
             fabCart.setVisibility(View.GONE);
-            fabCart.setOnClickListener(v -> {
-                // Chỉ cho phép chuyển màn hình nếu giỏ hàng đang được hiển thị
-                if (fabCart.getVisibility() == View.VISIBLE) {
-                    Intent intent = new Intent(this.getContext(), ConfirmPaymentActivity.class); // Dùng this.getContext()
-                    startActivity(intent);
-                } else {
-                    // Có thể thêm Toast thông báo giỏ hàng trống ở đây
-                    Log.d(TAG, "Giỏ hàng trống. Không thể thanh toán.");
-                }
+            actionButton.setOnClickListener(v -> {
+                Intent intent = new Intent(this.getContext(), ConfirmPaymentActivity.class); // Dùng this.getContext()
+                startActivity(intent);
+
             });
         }
         return view;
@@ -119,7 +117,9 @@ public class HomeFragment extends Fragment {
         bestSellerLayout = view.findViewById(R.id.layoutBestSelling);
         loadingPanel = view.findViewById(R.id.loadingOverlay);
         tv_hello = view.findViewById(R.id.greeting_message);
-        fabCart = view.findViewById(R.id.fab_cart);
+        fabCart = view.findViewById(R.id.count_card);
+        tv_countCard = view.findViewById(R.id.tv_cart_count_badge);
+        actionButton = view.findViewById(R.id.fab_cart);
         // Cập nhật để tải animation mới (tên file giả định là jump_animation)
         if (getContext() != null) {
             shakeAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.shake_animation);
@@ -500,6 +500,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    int countData = 0;
 
     private void checkCartData() {
         if (mAuth == null || mAuth.getCurrentUser() == null || fabCart == null || cartRef == null) {
@@ -517,9 +518,14 @@ public class HomeFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Cart cart = snapshot.getValue(Cart.class);
                 boolean hasItems = cart != null && cart.items != null && !cart.items.isEmpty();
-
                 if (fabCart != null) {
+                    countData = 0;
                     if (hasItems) {
+                        List<CartItem> items = cart.items;
+                        for (CartItem item : items) {
+                            countData += item.getQuantity();
+                        }
+                        tv_countCard.setText(String.valueOf(countData));
                         if (fabCart.getVisibility() != View.VISIBLE) {
                             fabCart.setVisibility(View.VISIBLE);
                             if (shakeAnimation != null) {
