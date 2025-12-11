@@ -365,14 +365,12 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
                     DataSnapshot shipperInfoSnapshot = shipperSnap.child("shipperInfo");
                     String shipperName = "Đang cập nhật...";
-                    String shipperPhone = "";
-
+                    String shipperPhone = "Đang cập nhật...";
                     if (shipperInfoSnapshot.exists()) {
                         Object nameObj = shipperInfoSnapshot.child("shipperName").getValue();
                         if (nameObj != null) {
                             shipperName = nameObj.toString();
                         }
-
                         Object phoneObj = shipperInfoSnapshot.child("shipperPhone").getValue();
                         if (phoneObj != null) {
                             shipperPhone = phoneObj.toString();
@@ -380,15 +378,17 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     }
                     tvDriverName.setText(shipperName);
                     tvDriverNameSummary.setText(shipperName);
-
+                    tvLicensePlateSummary.setText(shipperPhone);
                     UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
                     mappingLocation(fetchedUserLocation);
-                    String jsCall = String.format(Locale.US,
-                            "initOrUpdateMap(%f, %f, %f, %f, '%s')",
-                            currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
-                            fetchedUserLocation.getLatitude(), fetchedUserLocation.getLongitude(),             // 3, 4: Vị trí người nhận (Tĩnh)
-                            status);                              // 5: Trạng thái
-                    webViewMap.evaluateJavascript(jsCall, null);
+                    if (MyConstant.DELIVERING.equals(status)) {
+                        String jsCall = String.format(Locale.US,
+                                "initOrUpdateMap(%f, %f, %f, %f, '%s')",
+                                currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
+                                fetchedUserLocation.getLatitude(), fetchedUserLocation.getLongitude(),             // 3, 4: Vị trí người nhận (Tĩnh)
+                                status);                              // 5: Trạng thái
+                        webViewMap.evaluateJavascript(jsCall, null);
+                    }
                 }
 
             }
