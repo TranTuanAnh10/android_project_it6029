@@ -330,11 +330,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String fee = String.valueOf(snapshot.child("deliveryFee").getValue(Double.class));
                 String discount = String.valueOf(snapshot.child("discount").getValue(Double.class));
                 String total = String.valueOf(snapshot.child("total").getValue(Double.class));
-                DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
-                if (addressUserSnapshot.exists()) {
-                    UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
-                    mappingLocation(fetchedUserLocation);
-                }
+                Double currentShipperLat ;
+                Double currentShipperLon;
                 DataSnapshot productListSnapshot = snapshot.child("productList");
                 GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {
                 };
@@ -361,22 +358,23 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 rvOrderItems.setAdapter(orderItemsAdapter);
                 // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
-                DataSnapshot receiverSnap = snapshot.child("receiver");
-                Double receiverLat = receiverSnap.child("lat").getValue(Double.class);
-                Double receiverLon = receiverSnap.child("lng").getValue(Double.class);
                 DataSnapshot shipperSnap = snapshot.child("shipper");
-                Double currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
-                Double currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
+                 currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
+                 currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
 //                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
 //                String shipperName= shipperInfoMap.get("shipperName").toString();
 //                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+                DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
+                if (addressUserSnapshot.exists()) {
+                    UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
+                    String jsCall = String.format(Locale.US,
+                            "initOrUpdateMap(%f, %f, %f, %f, '%s')",
+                            currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
+                            fetchedUserLocation.getLatitude(), fetchedUserLocation.getLongitude(),             // 3, 4: Vị trí người nhận (Tĩnh)
+                            status);                              // 5: Trạng thái
+                    webViewMap.evaluateJavascript(jsCall, null);
+                }
 
-                String jsCall = String.format(Locale.US,
-                        "initOrUpdateMap(%f, %f, %f, %f, '%s')",
-                        currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
-                        receiverLat, receiverLon,             // 3, 4: Vị trí người nhận (Tĩnh)
-                        status);                              // 5: Trạng thái
-                webViewMap.evaluateJavascript(jsCall, null);
             }
 
             @Override

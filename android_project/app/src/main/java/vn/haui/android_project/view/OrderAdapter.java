@@ -80,15 +80,11 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             if (MyConstant.DELIVERING.equals(order.getStatus())) {
                 Intent intent1 = new Intent(context, OrderTrackingActivity.class);
                 intent1.putExtra("ORDER_ID", order.getOrderId());
-                intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 context.startActivity(intent1);
-                ;
             } else {
                 Intent intent1 = new Intent(context, OrderDetailsActivity.class);
                 intent1.putExtra("ORDER_ID", order.getOrderId());
-                intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 context.startActivity(intent1);
-                ;
             }
         });
     }
