@@ -1,44 +1,52 @@
 package vn.haui.android_project.view;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
-
-// Import các lớp cần thiết từ dự án của bạn
-import vn.haui.android_project.R;
-import vn.haui.android_project.adapter.NotificationAdapter;
-import vn.haui.android_project.entity.Notification;
-
 
 import java.util.ArrayList;
 import java.util.List;
 
+import vn.haui.android_project.R;
+import vn.haui.android_project.adapter.NotificationAdapter;
+import vn.haui.android_project.entity.NotificationEntity;
+import vn.haui.android_project.model.NotificationItem;
+import vn.haui.android_project.services.FirebaseNotificationService;
+
 /**
  * Fragment hiển thị màn hình Danh sách Thông báo (Notifications)
+ * Đã được sửa lỗi và bỏ phần loading.
  */
-public class NotificationsFragment extends Fragment {
+public class NotificationsFragment extends Fragment implements NotificationAdapter.OnNotificationClickListener {
+
+    private static final String TAG = "NotificationsFragment";
 
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
-    private List<Notification> notificationList;
+    private FirebaseNotificationService notificationService;
+
+    // Danh sách để hiển thị, chứa cả header và item. Luôn được khởi tạo.
+    private List<NotificationItem> displayList = new ArrayList<>();
+
+    // View để hiển thị trạng thái rỗng hoặc lỗi
 
     public NotificationsFragment() {
         // Required empty public constructor
     }
 
-    // ... (Phần newInstance và onCreate giữ nguyên) ...
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // 1. Inflate Layout và giữ lại View gốc của Fragment
         return inflater.inflate(R.layout.fragment_notifications, container, false);
     }
 
@@ -46,74 +54,101 @@ public class NotificationsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 2. Khởi tạo và thiết lập RecyclerView
+        // 1. Ánh xạ Views
         recyclerView = view.findViewById(R.id.notifications_recycler_view);
+        // 2. Khởi tạo các đối tượng cần thiết
+        notificationService = new FirebaseNotificationService(); // <<--- SỬA LỖI 1: KHỞI TẠO SERVICE
+        // 3. Thiết lập RecyclerView với danh sách chính xác
+        setupRecyclerView();
 
-        // Thiết lập Layout Manager (cần thiết cho RecyclerView)
+        // 4. Tải dữ liệu từ Firestore
+        loadNotificationsFromFirebase();
+    }
+    @Override
+    public void onNotificationItemClick(NotificationEntity entity) {
+        // Kiểm tra để đảm bảo entity và getContext() không null
+        if (entity == null || getContext() == null) {
+            return;
+        }
+        // Logic điều hướng dựa trên type của thông báo
+        if ("ORDER_STATUS".equals(entity.getType())) {
+            Intent intent = new Intent(getContext(), OrderDetailsActivity.class);
+            intent.putExtra("ORDER_ID", entity.getTargetId());
+            startActivity(intent);
+        } else if ("VOUCHER".equals(entity.getType())) {
+            Toast.makeText(getContext(), "Mở màn hình khuyến mãi...", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Đã nhấn vào: " + entity.getTitle(), Toast.LENGTH_SHORT).show();
+        }
+        notificationService.markAsRead(entity.getId());
+    }
+    private void setupRecyclerView() {
+        // Truyền 'this' vì Fragment này đã implement OnNotificationClickListener
+        adapter = new NotificationAdapter(getContext(), displayList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // 3. Chuẩn bị dữ liệu và thiết lập Adapter
-        notificationList = prepareNotificationData();
-        adapter = new NotificationAdapter(getContext(), notificationList);
         recyclerView.setAdapter(adapter);
-
-        // 4. Thiết lập sự kiện cho các View khác trong Fragment
-        setupEventListeners(view);
     }
 
-    private void setupEventListeners(View view) {
+    private void loadNotificationsFromFirebase() {
+        // Ban đầu, ẩn RecyclerView và hiển thị thông báo "Đang tải..."
+        recyclerView.setVisibility(View.GONE);
 
+        notificationService.getCurrentUserNotifications((notifications, exception) -> {
+            if (getContext() == null || !isAdded()) {
+                return; // Fragment đã bị hủy, không làm gì cả
+            }
+
+            if (exception != null) {
+                Log.e(TAG, "Lỗi khi tải thông báo: ", exception);
+                showStateMessage("Lỗi tải dữ liệu. Vui lòng thử lại.");
+                return;
+            }
+
+            if (notifications == null || notifications.isEmpty()) {
+                Log.d(TAG, "Không có thông báo nào.");
+                showStateMessage("Bạn chưa có thông báo nào.");
+            } else {
+                Log.d(TAG, "Tải thành công " + notifications.size() + " thông báo.");
+                recyclerView.setVisibility(View.VISIBLE);
+                processAndGroupNotifications(notifications);
+            }
+        });
     }
 
-    // Hàm tạo dữ liệu mẫu (Mock Data)
-    private List<Notification> prepareNotificationData() {
-        // Trong dự án thực tế, bạn sẽ lấy dữ liệu từ ViewModel/Repository/API
-        List<Notification> list = new ArrayList<>();
+    private void processAndGroupNotifications(List<NotificationEntity> notifications) {
+        displayList.clear(); // Xóa dữ liệu cũ trước khi thêm mới
 
-        // Cần thay R.drawable.xxx và R.color.xxx bằng các tài nguyên thực tế của bạn
+        List<NotificationEntity> unreadList = new ArrayList<>();
+        List<NotificationEntity> readList = new ArrayList<>();
 
-        // --- Nhóm 1: New updates
-        list.add(new Notification("New updates"));
+        for (NotificationEntity entity : notifications) {
+            if (entity.isRead()) {
+                readList.add(entity);
+            } else {
+                unreadList.add(entity);
+            }
+        }
 
-        list.add(new Notification(
-                "Adam West",
-                "Hi, I'm on my way",
-                "Just now",
-                true,
-                R.drawable.ic_abount_yumyard,
-                R.color.red_primary
-        ));
+        if (!unreadList.isEmpty()) {
+            displayList.add(NotificationItem.asHeader("Mới"));
+            for (NotificationEntity entity : unreadList) {
+                displayList.add(NotificationItem.asItem(entity));
+            }
+        }
 
-        list.add(new Notification(
-                "Your Order is on its Way!",
-                "Your order is now out for delivery. Our driver is en route to bring you your fresh...",
-                "Just now",
-                true,
-                R.drawable.ic_abount_yumyard,
-                R.color.red_primary
-        ));
+        if (!readList.isEmpty()) {
+            displayList.add(NotificationItem.asHeader("Cũ hơn"));
+            for (NotificationEntity entity : readList) {
+                displayList.add(NotificationItem.asItem(entity));
+            }
+        }
 
-        // --- Nhóm 2: Older
-        list.add(new Notification("Older"));
+        // <<--- SỬA LỖI 3: THÔNG BÁO CHO ADAPTER DỮ LIỆU ĐÃ THAY ĐỔI
+        adapter.notifyDataSetChanged();
+    }
 
-        list.add(new Notification(
-                "Limited Time Offer Inside!",
-                "Hungry for savings? We've got you covered! Check out our latest offer: Buy...",
-                "Fri",
-                false,
-                R.drawable.ic_tag,
-                R.color.red_primary
-        ));
-
-        list.add(new Notification(
-                "App Maintenance Update",
-                "Attention, foodies! We’re conducting routine maintenance to improve your ap...",
-                "a week ago",
-                false,
-                R.drawable.ic_abount_yumyard,
-                R.color.red_primary
-        ));
-
-        return list;
+    // Hàm helper để quản lý trạng thái rỗng/lỗi
+    private void showStateMessage(String message) {
+        recyclerView.setVisibility(View.GONE);
     }
 }

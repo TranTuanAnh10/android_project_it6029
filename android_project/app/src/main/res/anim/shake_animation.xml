@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="400"
+    android:shareInterpolator="true">
+
+    <!--
+    Di chuyển theo chiều dọc (Jump/Nảy)
+
+    android:fromYDelta: Bắt đầu từ vị trí Y hiện tại (0%)
+    android:toYDelta: Nhảy lên 20% kích thước đối tượng (giá trị âm để đi lên)
+    android:repeatCount: 1 lần lặp (tổng cộng 2 chu kỳ: lên và xuống)
+    android:repeatMode: reverse (đảo ngược animation ở lần lặp thứ hai, tức là đi xuống)
+    android:interpolator: ease-out (giảm tốc khi nhảy lên, giúp chuyển động tự nhiên hơn)
+    -->
+    <translate
+        android:duration="200"
+        android:fromYDelta="0%"
+        android:toYDelta="-20%"
+        android:repeatCount="1"
+        android:repeatMode="reverse"
+        android:interpolator="@android:anim/decelerate_interpolator" />
+
+</set>

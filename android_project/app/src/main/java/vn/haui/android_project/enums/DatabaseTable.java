@@ -4,6 +4,11 @@ public enum DatabaseTable {
     USERS("users"),
     USER_LOCATIONS("user_locations"),
     ORDERS("orders"),
+    NOTIFICATIONS("notifications"),
+    USER_PAYMENT_METHOD("user_payment_method"),
+    VOUCHERS("vouchers"),
+    VOUCHER_USER("voucher_user"),
+    CART("carts"),
    ;
 
     private final String value;

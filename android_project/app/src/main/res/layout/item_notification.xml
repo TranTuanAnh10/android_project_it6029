@@ -17,11 +17,10 @@
         android:background="@drawable/bg_icon_red"> <!-- Ví dụ nền icon mặc định -->
         <!-- ImageView cho Icon/Avatar. Dùng thư viện như Glide/Picasso cho ảnh đại diện thực tế -->
         <ImageView
-            android:id="@+id/iv_icon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:id="@+id/iv_icon_noti"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:src="@drawable/ic_box"
-            android:tint="@color/md_theme_onPrimary"
             android:layout_gravity="center"/>
     </FrameLayout>
 

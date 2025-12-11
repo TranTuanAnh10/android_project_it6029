@@ -24,13 +24,13 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import vn.haui.android_project.entity.PaymentCard;
+import vn.haui.android_project.enums.DatabaseTable;
 // Giả định DatabaseTable.USER_PAYMENT_METHOD tồn tại hoặc dùng hằng số
 // import vn.haui.android_project.enums.DatabaseTable;
 
 public class FirebasePaymentManager {
 
     private static final String TAG = "FirebasePaymentManager";
-    private static final String ROOT_COLLECTION = "user_payment_method"; // Collection chính
     private static final String CARD_LIST_FIELD = "listCard"; // Tên field chứa Array of Cards
 
     private static FirebasePaymentManager instance;
@@ -64,7 +64,7 @@ public class FirebasePaymentManager {
         if (currentUserId == null) {
             return null;
         }
-        return db.collection(ROOT_COLLECTION)
+        return db.collection(DatabaseTable.USER_PAYMENT_METHOD.getValue())
                 .document(currentUserId);
     }
 
@@ -220,7 +220,7 @@ public class FirebasePaymentManager {
         });
     }
     public void updateCard(String uid, PaymentCard updatedCard, BiConsumer<Boolean, String> onComplete) {
-        DocumentReference userDocRef = db.collection(ROOT_COLLECTION).document(uid);
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_PAYMENT_METHOD.getValue()).document(uid);
         String targetId = updatedCard.cardId;
 
         db.runTransaction((Transaction.Function<Void>) transaction -> {
@@ -286,7 +286,7 @@ public class FirebasePaymentManager {
             return;
         }
 
-        DocumentReference userDocRef = db.collection(ROOT_COLLECTION).document(uid);
+        DocumentReference userDocRef = db.collection(DatabaseTable.USER_PAYMENT_METHOD.getValue()).document(uid);
 
         db.runTransaction((Transaction.Function<Void>) transaction -> {
             // ... (Logic Transaction giữ nguyên) ...

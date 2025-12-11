@@ -105,7 +105,18 @@
             android:layout_height="wrap_content"
             android:hint="Đơn tối thiểu (VD: 100000)"
             android:inputType="numberDecimal" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Giảm tối đa (Chỉ dùng cho %)">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edt_max_discount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <TextView
             android:id="@+id/tv_expiry_date"
             android:layout_width="match_parent"

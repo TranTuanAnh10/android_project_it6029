@@ -5,14 +5,13 @@ import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter; // Thêm import này
+import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -199,22 +198,24 @@ public class VoucherManagementFragment extends Fragment {
 
         EditText edtCode = dialogView.findViewById(R.id.edt_voucher_code);
         // TỐI ƯU: Đảm bảo nhập mã mượt mà bằng cách cho phép nhập thường, chỉ ép kiểu khi validate
-        // Nếu muốn ép kiểu cứng code ko có dấu cách, dùng InputFilter (nhẹ hơn TextWatcher)
         edtCode.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
 
         EditText edtName = dialogView.findViewById(R.id.edt_voucher_name);
         EditText edtDesc = dialogView.findViewById(R.id.edt_voucher_desc);
+
         EditText edtVal = dialogView.findViewById(R.id.edt_discount_value);
         EditText edtMinOrder = dialogView.findViewById(R.id.edt_min_order);
-        // --- THÊM: Gắn bộ format số vào ô nhập ---
+        // MỚI: Ánh xạ ô Giảm tối đa
+        EditText edtMaxDiscount = dialogView.findViewById(R.id.edt_max_discount);
+
+        // GẮN BỘ FORMAT SỐ (Để nhập 10000 -> 10,000)
         edtVal.addTextChangedListener(new MoneyTextWatcher(edtVal));
         edtMinOrder.addTextChangedListener(new MoneyTextWatcher(edtMinOrder));
-        // -----------------------------------------
+        edtMaxDiscount.addTextChangedListener(new MoneyTextWatcher(edtMaxDiscount));
+
 
         TextView tvExpiry = dialogView.findViewById(R.id.tv_expiry_date);
-
         SwitchMaterial switchActive = dialogView.findViewById(R.id.switch_active);
-
         RadioGroup rgType = dialogView.findViewById(R.id.radio_group_type);
         RadioButton rbPercent = dialogView.findViewById(R.id.radio_percent);
         RadioButton rbAmount = dialogView.findViewById(R.id.radio_amount);
@@ -254,9 +255,10 @@ public class VoucherManagementFragment extends Fragment {
             edtDesc.setText(voucherToEdit.getDescription());
             edtImageUrl.setText(voucherToEdit.getImageUrl());
 
-            // Format số: bỏ đuôi .0
+            // Format số: bỏ đuôi .0 và thêm dấu phẩy
             edtVal.setText(formatDoubleToString(voucherToEdit.getDiscountValue()));
             edtMinOrder.setText(formatDoubleToString(voucherToEdit.getMinOrderValue()));
+            edtMaxDiscount.setText(formatDoubleToString(voucherToEdit.getMaxOrderValue())); // MỚI
 
             switchActive.setChecked(voucherToEdit.isActive());
             switchActive.setText(voucherToEdit.isActive() ? "Trạng thái: Đang hoạt động" : "Trạng thái: Ngừng hoạt động");
@@ -292,8 +294,7 @@ public class VoucherManagementFragment extends Fragment {
 
         // Nút Lưu - Validate kỹ
         btnSave.setOnClickListener(v -> {
-            // Nút Lưu - Validate kỹ        btnSave.setOnClickListener(v -> {
-            // VALIDATE VÀ FORMAT TẠI ĐÂY ĐỂ TRÁNH LAG KHI GÕ
+            // VALIDATE VÀ FORMAT TẠI ĐÂY
             String rawCode = edtCode.getText().toString();
             String code = rawCode.replaceAll("\\s+", "").toUpperCase();
 
@@ -301,11 +302,10 @@ public class VoucherManagementFragment extends Fragment {
             String desc = edtDesc.getText().toString().trim();
             String imgUrl = edtImageUrl.getText().toString().trim();
 
-            // --- SỬA Ở ĐÂY: Xóa dấu phẩy và dấu chấm trước khi parse ---
-            // Thay vì lấy raw text, ta replace hết ký tự format đi
+            // Xóa dấu phẩy format trước khi parse
             String valStr = edtVal.getText().toString().trim().replaceAll("[,.]", "");
             String minOrderStr = edtMinOrder.getText().toString().trim().replaceAll("[,.]", "");
-            // -----------------------------------------------------------
+            String maxDiscountStr = edtMaxDiscount.getText().toString().trim().replaceAll("[,.]", ""); // MỚI
 
             // Validate
             if (TextUtils.isEmpty(code)) {
@@ -332,7 +332,6 @@ public class VoucherManagementFragment extends Fragment {
 
             double discountVal;
             try {
-                // Bây giờ chuỗi valStr chỉ còn số (vd: "10000"), parse sẽ không lỗi
                 discountVal = Double.parseDouble(valStr);
             } catch (NumberFormatException e) {
                 edtVal.setError("Giá trị giảm không hợp lệ");
@@ -341,20 +340,17 @@ public class VoucherManagementFragment extends Fragment {
 
             // Logic check số âm/phần trăm
             if (rbPercent.isChecked()) {
-                // Nếu đang chọn % mà nhập > 100 thì báo lỗi là đúng rồi
                 if (discountVal <= 0 || discountVal > 100) {
                     edtVal.setError("Phần trăm giảm phải từ 1 đến 100");
                     edtVal.requestFocus();
                     return;
                 }
             } else {
-                // Nếu là Tiền mặt
                 if (discountVal <= 0) {
                     edtVal.setError("Số tiền giảm phải lớn hơn 0");
                     edtVal.requestFocus();
                     return;
                 }
-                // Check thêm: Giảm tiền không được quá lố (ví dụ > 100 triệu)
                 if (discountVal > 100000000) {
                     edtVal.setError("Số tiền giảm quá lớn");
                     edtVal.requestFocus();
@@ -372,21 +368,35 @@ public class VoucherManagementFragment extends Fragment {
                 return;
             }
 
-            double tempMinOrder = 0; // Dùng biến tạm để xử lý logic
+            // Xử lý Min Order
+            double tempMinOrder = 0;
             if (!minOrderStr.isEmpty()) {
                 try {
-                    // Min order cũng đã được xóa dấu phẩy ở trên
                     tempMinOrder = Double.parseDouble(minOrderStr);
                 } catch (NumberFormatException e) {
                     edtMinOrder.setError("Giá trị đơn tối thiểu không hợp lệ");
                     return;
                 }
             }
-            // Gán giá trị từ biến tạm vào biến chính.
-            // Từ dòng này trở đi KHÔNG được thay đổi giá trị của minOrder nữa để thỏa mãn điều kiện của Lambda.
-            double minOrder = tempMinOrder;
+            double finalMinOrder = tempMinOrder; // Biến final
 
-
+            // --- XỬ LÝ MAX ORDER VALUE (GIẢM TỐI ĐA) ---
+            double tempMaxOrder = 0;
+            if (rbPercent.isChecked()) {
+                // Chỉ xử lý Max Discount khi chọn loại là %
+                if (!maxDiscountStr.isEmpty()) {
+                    try {
+                        tempMaxOrder = Double.parseDouble(maxDiscountStr);
+                    } catch (NumberFormatException e) {
+                        edtMaxDiscount.setError("Số liệu không hợp lệ");
+                        return;
+                    }
+                }
+            } else {
+                // Nếu là giảm tiền mặt (AMOUNT) -> Max Discount = 0
+                tempMaxOrder = 0;
+            }
+            double finalMaxOrder = tempMaxOrder;
             String type = rbPercent.isChecked() ? "PERCENT" : "AMOUNT";
             boolean isActive = switchActive.isChecked();
 
@@ -395,22 +405,18 @@ public class VoucherManagementFragment extends Fragment {
             pd.show();
 
             // --- KIỂM TRA TRÙNG MÃ (DUPLICATE) ---
-            // Nếu là Thêm mới (voucherToEdit == null) hoặc Mã đã thay đổi so với mã cũ
-            // thì mới cần check xem mã mới có trùng với ai không.
             boolean isNewCode = (voucherToEdit == null) || !voucherToEdit.getCode().equals(code);
 
             if (isNewCode) {
-                // Query tìm xem có voucher nào có mã 'code' này không
                 vouchersRef.whereEqualTo("code", code).get()
                         .addOnSuccessListener(querySnapshot -> {
                             if (!querySnapshot.isEmpty()) {
-                                // Nếu tìm thấy kết quả -> Đã trùng
                                 pd.dismiss();
                                 edtCode.setError("Mã voucher này đã tồn tại!");
                                 edtCode.requestFocus();
                             } else {
-                                // Không trùng -> Tiến hành lưu
-                                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, minOrder, isActive, pd, dialog);
+                                // Truyền thêm finalMaxOrder vào hàm save
+                                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, finalMinOrder, finalMaxOrder, isActive, pd, dialog);
                             }
                         })
                         .addOnFailureListener(e -> {
@@ -418,15 +424,15 @@ public class VoucherManagementFragment extends Fragment {
                             Toast.makeText(getContext(), "Lỗi kiểm tra trùng: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });
             } else {
-                // Nếu là Sửa và mã không đổi -> Lưu thẳng
-                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, minOrder, isActive, pd, dialog);
-            }
+                // Truyền thêm finalMaxOrder vào hàm save
+                saveVoucherToFirestore(voucherToEdit, code, name, desc, imgUrl, type, discountVal, finalMinOrder, finalMaxOrder, isActive, pd, dialog);            }
         });
     }
 
-    // --- Hàm tách logic Lưu để tránh viết lặp lại ---
+    // --- Hàm tách logic Lưu để code gọn hơn ---
     private void saveVoucherToFirestore(VoucherEntity currentVoucher, String code, String name, String desc,
                                         String imgUrl, String type, double discountVal, double minOrder,
+                                        double maxOrderVal, // <--- THÊM THAM SỐ NÀY
                                         boolean isActive, ProgressDialog pd, AlertDialog dialog) {
 
         String voucherId = (currentVoucher == null) ? vouchersRef.document().getId() : currentVoucher.getId();
@@ -440,6 +446,7 @@ public class VoucherManagementFragment extends Fragment {
         newVoucher.setDiscountType(type);
         newVoucher.setDiscountValue(discountVal);
         newVoucher.setMinOrderValue(minOrder);
+        newVoucher.setMaxOrderValue(maxOrderVal); // <--- LƯU MAX ORDER VALUE
         newVoucher.setExpiryDate(selectedExpiryTimestamp);
         newVoucher.setActive(isActive);
 
@@ -455,12 +462,14 @@ public class VoucherManagementFragment extends Fragment {
                 });
     }
 
-    // Helper: Format số bỏ đuôi .0
+    // Helper: Format số bỏ đuôi .0 và thêm dấu phẩy (Dùng để hiển thị lên dialog)
     private String formatDoubleToString(double value) {
+        if (value == 0) return "0";
+        // Dùng String.format để thêm dấu phẩy phân cách hàng nghìn
         if (value == (long) value) {
-            return String.format(Locale.getDefault(), "%d", (long) value);
+            return String.format(Locale.US, "%,d", (long) value);
         } else {
-            return String.format(Locale.getDefault(), "%s", value);
+            return String.format(Locale.US, "%,.2f", value); // Hoặc giữ nguyên logic cũ nếu muốn
         }
     }
 
@@ -475,8 +484,7 @@ public class VoucherManagementFragment extends Fragment {
                     vouchersRef.document(voucher.getId()).delete()
                             .addOnSuccessListener(unused -> {
                                 Toast.makeText(getContext(), "Đã xóa voucher", Toast.LENGTH_SHORT).show();
-                                if (parentDialog != null)
-                                    parentDialog.dismiss(); // Đóng dialog cha nếu có
+                                if (parentDialog != null) parentDialog.dismiss();
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi xóa: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                 })
@@ -515,16 +523,14 @@ public class VoucherManagementFragment extends Fragment {
         }
 
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
         @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
         @Override
         public void afterTextChanged(Editable s) {
-            editText.removeTextChangedListener(this); // Tạm ngắt listener để tránh vòng lặp vô tận
+            editText.removeTextChangedListener(this); // Tạm ngắt listener
 
             try {
                 String originalString = s.toString();
@@ -532,7 +538,6 @@ public class VoucherManagementFragment extends Fragment {
                     // Xóa các dấu phân cách cũ đi để lấy số thô
                     String cleanString = originalString.replaceAll("[,.]", "");
 
-                    // Format lại
                     double parsed = Double.parseDouble(cleanString);
                     // Định dạng số nguyên có dấu phẩy phân cách
                     String formatted = String.format(Locale.US, "%,d", (long) parsed);
@@ -543,11 +548,10 @@ public class VoucherManagementFragment extends Fragment {
                     editText.setSelection(formatted.length());
                 }
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                // e.printStackTrace();
             }
 
             editText.addTextChangedListener(this); // Bật lại listener
         }
     }
-
 }

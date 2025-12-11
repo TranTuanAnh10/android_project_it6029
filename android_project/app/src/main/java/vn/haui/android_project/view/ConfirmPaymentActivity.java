@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -52,6 +51,7 @@ import vn.haui.android_project.adapter.OrderProductAdapter;
 import vn.haui.android_project.entity.Cart;
 import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.ItemOrderProduct;
+import vn.haui.android_project.entity.NotificationEntity;
 import vn.haui.android_project.entity.PaymentCard;
 import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.UserLocationEntity;
@@ -60,6 +60,8 @@ import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
 import vn.haui.android_project.services.FirebaseLocationManager;
+import vn.haui.android_project.services.FirebaseNotificationService;
+import vn.haui.android_project.services.FirebaseVoucherUserService;
 import vn.haui.android_project.utils.TimeUtils;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
@@ -133,7 +135,8 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private double finalTotal = 0;
     private VoucherEntity selectedVoucher;
     private PaymentCard paymentCard;
-
+    private FirebaseNotificationService notificationService;
+    private FirebaseVoucherUserService firebaseVoucherUserService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,10 +148,10 @@ public class ConfirmPaymentActivity extends AppCompatActivity
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
-
+        notificationService = new FirebaseNotificationService();
+        firebaseVoucherUserService = new FirebaseVoucherUserService();
         mapViews();
         mapDeliveryViews();
         loadData();
@@ -378,7 +381,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
         recyclerOrderItems.setAdapter(productAdapter);
 
-        cartRef = FirebaseDatabase.getInstance().getReference("carts").child(authUser.getUid());
+        cartRef = FirebaseDatabase.getInstance().getReference(DatabaseTable.CART.getValue()).child(authUser.getUid());
         cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -644,6 +647,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         orderRef.setValue(orderData)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "✅ Order data written successfully");
+                    sendOrderSuccessNotification(orderId);
                     clearCartAndFinish(orderId);
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "❌ Failed to write order: " + e.getMessage()));
@@ -676,4 +680,33 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         }
         return true;
     }
+
+    private void sendOrderSuccessNotification(String orderId) {
+        if (authUser == null) {
+            return; // Không gửi thông báo nếu không có người dùng
+        }
+        String title = "Đặt hàng thành công! #" + orderId;
+        String body = "Đơn hàng của bạn đang được chuẩn bị và sẽ sớm được giao đi.";
+
+        // BƯỚC 1: TẠO ĐỐI TƯỢNG NOTIFICATION VỚI CONSTRUCTOR ĐÚNG
+        // Giả sử bạn có constructor cơ bản nhận (title, body, type)
+        NotificationEntity notification = new NotificationEntity(
+                "Đơn hàng",
+                title,
+                body,
+                "ORDER_STATUS"   // Loại thông báo
+        );
+        notification.setImageUrl(null);
+        // Target ID là ID của đơn hàng để sau này có thể điều hướng khi người dùng nhấn vào
+        notification.setTargetId(orderId);
+        // Gọi service để thêm thông báo cho người dùng hiện tại (kiểu "bắn và quên")
+        notificationService.addNotification(authUser.getUid(), notification);
+
+        // luu voucher da dung cua user
+        if (selectedVoucher != null) {
+            firebaseVoucherUserService.addNotification(authUser.getUid(),selectedVoucher);
+        }
+    }
+
+
 }

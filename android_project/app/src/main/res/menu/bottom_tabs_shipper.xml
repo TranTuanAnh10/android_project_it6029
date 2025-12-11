@@ -3,18 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
       android:id="@+id/btn_home"
-      android:title="@string/button_return_home"
+      android:title="Đơn hàng"
       android:icon="@drawable/ic_home"/>
     <item
         android:id="@+id/btn_order"
-        android:title="@string/order_detail"
+        android:title="Lịch"
         android:icon="@drawable/ic_order"/>
     <item
-        android:id="@+id/btn_notification"
-        android:title="@string/notifications_title"
-        android:icon="@drawable/ic_notifications"/>
-    <item
         android:id="@+id/btn_profile"
-        android:title="@string/me"
+        android:title="Tài khoản"
         android:icon="@drawable/ic_user"/>
 </menu>

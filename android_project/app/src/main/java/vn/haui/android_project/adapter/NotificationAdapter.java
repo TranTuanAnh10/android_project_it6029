@@ -1,133 +1,159 @@
 package vn.haui.android_project.adapter;
 
-
 import android.content.Context;
-import android.graphics.PorterDuff;
+import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import vn.haui.android_project.R;
-import vn.haui.android_project.entity.Notification;
+import vn.haui.android_project.entity.NotificationEntity;
+import vn.haui.android_project.model.NotificationItem;
 
-// Hằng số để phân biệt View Type (Quan trọng cho nhóm header)
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int VIEW_TYPE_HEADER = 0;
     private static final int VIEW_TYPE_ITEM = 1;
 
-    private final List<Notification> notifications;
+    private final List<NotificationItem> itemList;
     private final Context context;
-
-    public NotificationAdapter(Context context, List<Notification> notifications) {
-        this.context = context;
-        this.notifications = notifications;
+    public interface OnNotificationClickListener {
+        void onNotificationItemClick(NotificationEntity entity);
     }
 
-    // ----------------------------------------------------
-    // PHÂN BIỆT VIEW TYPE
-    // ----------------------------------------------------
+    private final OnNotificationClickListener clickListener;
+    public NotificationAdapter(Context context, List<NotificationItem> itemList, OnNotificationClickListener listener) {
+        this.context = context;
+        this.itemList = itemList;
+        this.clickListener = listener; // Gán listener
+    }
+
     @Override
     public int getItemViewType(int position) {
-        if (notifications.get(position).isGroupHeader()) {
+        if (itemList.get(position).isGroupHeader()) {
             return VIEW_TYPE_HEADER;
         } else {
             return VIEW_TYPE_ITEM;
         }
     }
 
-    // ----------------------------------------------------
-    // KHỞI TẠO VIEWHOLDER (Inflate Layout)
-    // ----------------------------------------------------
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(context);
         if (viewType == VIEW_TYPE_HEADER) {
-            // Layout cho Tiêu đề nhóm
-            View view = LayoutInflater.from(context).inflate(R.layout.header_notification, parent, false);
+            View view = inflater.inflate(R.layout.header_notification, parent, false);
             return new HeaderViewHolder(view);
         } else {
-            // Layout cho Mục thông báo
-            View view = LayoutInflater.from(context).inflate(R.layout.item_notification, parent, false);
+            View view = inflater.inflate(R.layout.item_notification, parent, false);
             return new ItemViewHolder(view);
         }
     }
 
-    // ----------------------------------------------------
-    // BIND DỮ LIỆU
-    // ----------------------------------------------------
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Notification notification = notifications.get(position);
+        // <<--- SỬA LỖI 1: LẤY ĐÚNG ĐỐI TƯỢNG NotificationItem
+        NotificationItem currentItem = itemList.get(position);
 
         if (holder.getItemViewType() == VIEW_TYPE_HEADER) {
             HeaderViewHolder headerHolder = (HeaderViewHolder) holder;
-            headerHolder.tvHeaderTitle.setText(notification.getHeaderTitle());
+            // Lấy tiêu đề header từ NotificationItem
+            headerHolder.tvHeaderTitle.setText(currentItem.getHeaderTitle());
         } else {
             ItemViewHolder itemHolder = (ItemViewHolder) holder;
 
-            // Đặt dữ liệu
-            itemHolder.tvTitle.setText(notification.getTitle());
-            itemHolder.tvSubtitle.setText(notification.getSubtitle());
-            itemHolder.tvTime.setText(notification.getTime());
+            // <<--- SỬA LỖI 2: LẤY ĐỐI TƯỢNG NotificationEntity TỪ BÊN TRONG NotificationItem
+            NotificationEntity entity = currentItem.getEntity();
 
-            // Xử lý Icon và Màu sắc
-            itemHolder.ivIcon.setImageResource(notification.getIconResId());
-
-            // Đặt màu cho icon (dùng PorterDuff.Mode.SRC_IN)
-            int iconColor = ContextCompat.getColor(context, notification.getIconColorResId());
-            itemHolder.ivIcon.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
-
-            // Xử lý trạng thái Chưa đọc
-            if (notification.isUnread()) {
-                itemHolder.vUnreadDot.setVisibility(View.VISIBLE);
-                // Đặt màu nền cho mục (tùy chọn theo thiết kế)
-                // itemHolder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.unread_background));
-                itemHolder.tvTitle.setTypeface(null, android.graphics.Typeface.BOLD); // In đậm tiêu đề
-            } else {
-                itemHolder.vUnreadDot.setVisibility(View.GONE);
-                // itemHolder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
-                itemHolder.tvTitle.setTypeface(null, android.graphics.Typeface.NORMAL);
+            // Kiểm tra null để tránh crash (dù không nên xảy ra)
+            if (entity == null) {
+                Log.e("NotificationAdapter", "NotificationEntity is null for an item view at position: " + position);
+                return;
             }
 
-            // Xử lý sự kiện click
+            // --- Bắt đầu bind dữ liệu từ NotificationEntity ---
+
+            // 1. Đặt dữ liệu văn bản
+            itemHolder.tvTitle.setText(entity.getTitle());
+            itemHolder.tvSubtitle.setText(entity.getBody());
+
+            // Format và hiển thị thời gian
+            if (entity.getCreatedAt() != null) {
+                // Ví dụ: hiển thị "dd/MM/yyyy HH:mm"
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm, dd/MM/yyyy", Locale.getDefault());
+                itemHolder.tvTime.setText(sdf.format(entity.getCreatedAt()));
+            } else {
+                itemHolder.tvTime.setText(""); // Hoặc "vừa xong"
+            }
+
+            // 2. Xử lý Icon và Màu sắc dựa trên type
+            int iconResId;
+            switch (entity.getType() != null ? entity.getType() : "") {
+                case "ORDER_STATUS":
+                    iconResId = R.drawable.ic_box; // Thay bằng icon của bạn
+                    break;
+                case "VOUCHER":
+                    iconResId = R.drawable.ic_voucher_sale;
+                    break;
+                case "SYSTEM_UPDATE":
+                    iconResId = R.drawable.ic_abount_yumyard;
+                    break;
+                default:
+                    iconResId = R.drawable.ic_feedback;
+                    break;
+            }
+            itemHolder.ivIcon.setImageResource(iconResId);
+
+
+            // 3. <<--- SỬA LỖI 3: XỬ LÝ ĐÚNG LOGIC TRẠNG THÁI "ĐÃ ĐỌC"
+            if (entity.isRead()) {
+                // ĐÃ ĐỌC: Ẩn chấm tròn, chữ bình thường
+                itemHolder.vUnreadDot.setVisibility(View.GONE);
+                itemHolder.tvTitle.setTypeface(null, Typeface.NORMAL);
+            } else {
+                // CHƯA ĐỌC: Hiển thị chấm tròn, chữ in đậm
+                itemHolder.vUnreadDot.setVisibility(View.VISIBLE);
+                itemHolder.tvTitle.setTypeface(null, Typeface.BOLD);
+            }
+
+            // 4. Xử lý sự kiện click
             itemHolder.itemView.setOnClickListener(v -> {
-                // Thêm logic xử lý khi người dùng nhấn vào thông báo
-                // Ví dụ: Mở chi tiết thông báo, đánh dấu đã đọc
+                // Kiểm tra listener có tồn tại không để tránh NullPointerException
+                if (clickListener != null) {
+                    // Gọi callback về cho Fragment, gửi kèm đối tượng entity đã được click
+                    clickListener.onNotificationItemClick(entity);
+                }
             });
         }
     }
 
     @Override
     public int getItemCount() {
-        return notifications.size();
+        // Phải kiểm tra null để phòng trường hợp Fragment truyền vào danh sách null
+        return itemList != null ? itemList.size() : 0;
     }
 
-    // ----------------------------------------------------
-    // VIEWHOLDER CHO HEADER (Tiêu đề nhóm)
-    // ----------------------------------------------------
+    // ----- Các ViewHolder không thay đổi -----
     public static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeaderTitle;
 
         public HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Cần có layout notification_header.xml (xem phía dưới)
             tvHeaderTitle = itemView.findViewById(R.id.tv_header_title);
         }
     }
 
-    // ----------------------------------------------------
-    // VIEWHOLDER CHO ITEM (Mục thông báo)
-    // ----------------------------------------------------
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvSubtitle, tvTime;
         ImageView ivIcon;
@@ -139,7 +165,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvSubtitle = itemView.findViewById(R.id.tv_subtitle);
             tvTime = itemView.findViewById(R.id.tv_time);
-            ivIcon = itemView.findViewById(R.id.iv_icon);
+            ivIcon = itemView.findViewById(R.id.iv_icon_noti);
             vUnreadDot = itemView.findViewById(R.id.v_unread_dot);
             iconContainer = itemView.findViewById(R.id.icon_container);
         }

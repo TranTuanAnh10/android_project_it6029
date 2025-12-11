@@ -139,6 +139,11 @@ public class OrdersBasketFragment extends Fragment {
 
         return view;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadCart();
+    }
     private void loadCart() {
         progressBar.setVisibility(View.VISIBLE); // ⬅️ Hiện loading
 
