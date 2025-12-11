@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Định nghĩa màu nền của badge, thường là màu đỏ (Error color) -->
+    <solid android:color="@android:color/white" />
+
+    <!-- Kích thước tối thiểu của hình tròn (sẽ tự động mở rộng theo nội dung) -->
+    <!-- Sử dụng size nếu muốn nó luôn là hình tròn cố định, nhưng thường dùng minWidth/minHeight trong TextView để linh hoạt hơn -->
+    <!-- Nếu bạn muốn nó là hình tròn, hãy đảm bảo width và height bằng nhau -->
+    <size
+        android:width="20dp"
+        android:height="20dp" />
+
+</shape>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -13,9 +14,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="80dp"> <!-- Thêm padding để FAB không che mất nội dung cuối -->
 
             <!-- Header -->
+            <!-- Giả định layout_home_header đã được định nghĩa -->
             <include layout="@layout/layout_home_header" />
 
             <!-- Nội dung cuộn -->
@@ -25,6 +28,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
+                <!-- Giả định các include layouts đã được định nghĩa -->
                 <include layout="@layout/layout_browser_cuisines" />
 
                 <include layout="@layout/layout_top_picks" />
@@ -36,19 +40,42 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Floating Action Button (FAB) cho Giỏ hàng đã được chỉnh kích thước -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_cart"
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/count_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/label_basket_orders"
-        app:backgroundTint="?attr/colorError"
-        app:fabSize="auto"
-        app:maxImageSize="30dp"
-        app:srcCompat="@drawable/ic_order"
-        app:tint="@android:color/white"/>
+        android:layout_margin="24dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_cart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/label_basket_orders"
+            app:backgroundTint="?attr/colorError"
+            app:fabSize="auto"
+            app:maxImageSize="30dp"
+            app:srcCompat="@drawable/ic_order"
+            app:tint="@android:color/white" />
+
+        <!-- Badge số lượng -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_cart_count_badge"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="0dp"
+            android:background="@drawable/badge_background"
+            android:elevation="12dp"
+            android:gravity="center"
+            android:paddingHorizontal="1dp"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="10sp"
+            tools:visibility="visible" />
+    </FrameLayout>
 
     <!-- Overlay loading -->
     <FrameLayout
