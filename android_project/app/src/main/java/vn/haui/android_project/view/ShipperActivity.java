@@ -41,6 +41,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
@@ -100,7 +101,7 @@ public class ShipperActivity extends AppCompatActivity {
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         container = findViewById(R.id.container);
-
+        locationService = new LocationService(this);
         listenForNewOrders();
         setupCustomerUI();
     }

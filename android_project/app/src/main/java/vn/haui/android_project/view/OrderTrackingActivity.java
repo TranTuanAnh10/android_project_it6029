@@ -363,9 +363,23 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 if (addressUserSnapshot.exists()&&shipperSnap.exists()) {
                     currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
                     currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
-                    Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
-                    String shipperName= shipperInfoMap.get("shipperName").toString();
-                    String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+                    DataSnapshot shipperInfoSnapshot = shipperSnap.child("shipperInfo");
+                    String shipperName = "Đang cập nhật...";
+                    String shipperPhone = "";
+
+                    if (shipperInfoSnapshot.exists()) {
+                        Object nameObj = shipperInfoSnapshot.child("shipperName").getValue();
+                        if (nameObj != null) {
+                            shipperName = nameObj.toString();
+                        }
+
+                        Object phoneObj = shipperInfoSnapshot.child("shipperPhone").getValue();
+                        if (phoneObj != null) {
+                            shipperPhone = phoneObj.toString();
+                        }
+                    }
+                    tvDriverName.setText(shipperName);
+                    tvDriverNameSummary.setText(shipperName);
 
                     UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
                     mappingLocation(fetchedUserLocation);

@@ -29,9 +29,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -149,6 +153,34 @@ public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapte
                 filteredList.add(order);
             }
         }
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        Collections.sort(filteredList, new Comparator<OrderShiperHistory>() {
+            @Override
+            public int compare(OrderShiperHistory o1, OrderShiperHistory o2) {
+                final String PRIORITY_STATUS = "shipping";
+
+                boolean isO1Shipping = PRIORITY_STATUS.equals(o1.getStatus());
+                boolean isO2Shipping = PRIORITY_STATUS.equals(o2.getStatus());
+
+                if (isO1Shipping && !isO2Shipping) {
+                    return -1;
+                }
+                if (!isO1Shipping && isO2Shipping) {
+                    return 1;
+                }
+
+                try {
+                    Date date1 = sdf.parse(o1.getDate());
+                    Date date2 = sdf.parse(o2.getDate());
+
+                    return date1.compareTo(date2);
+
+                } catch (ParseException | NullPointerException e) {
+                    e.printStackTrace();
+                    return 0;
+                }
+            }
+        });
         shipperOrderAdapter.filterList(filteredList);
 
         if(filteredList.isEmpty()){
