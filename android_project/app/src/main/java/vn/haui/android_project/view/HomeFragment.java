@@ -210,13 +210,8 @@ public class HomeFragment extends Fragment {
                     imageSizePx
             );
             imageView.setLayoutParams(imageLayoutParams);
-            String drawableName = item.getImage();
-            int drawableId = context.getResources().getIdentifier(
-                    drawableName,
-                    "drawable",
-                    context.getPackageName()
-            );
-            imageView.setImageResource(drawableId);
+
+            loadPreviewImage(item.getImage(),imageView);
 
             MaterialTextView textView = new MaterialTextView(context);
             LinearLayout.LayoutParams textLayoutParams = new LinearLayout.LayoutParams(
