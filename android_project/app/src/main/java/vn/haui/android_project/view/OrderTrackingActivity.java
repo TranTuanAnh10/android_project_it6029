@@ -359,14 +359,16 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 // ✅ Cập nhật UI đơn hàng
                 updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
                 DataSnapshot shipperSnap = snapshot.child("shipper");
-                 currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
-                 currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
-//                Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
-//                String shipperName= shipperInfoMap.get("shipperName").toString();
-//                String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
                 DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
-                if (addressUserSnapshot.exists()) {
+                if (addressUserSnapshot.exists()&&shipperSnap.exists()) {
+                    currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
+                    currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
+                    Map<String, Object> shipperInfoMap = shipperSnap.child("shipperInfo").getValue(Map.class);
+                    String shipperName= shipperInfoMap.get("shipperName").toString();
+                    String shipperPhone = shipperInfoMap.get("shipperPhone").toString();
+
                     UserLocationEntity fetchedUserLocation = addressUserSnapshot.getValue(UserLocationEntity.class);
+                    mappingLocation(fetchedUserLocation);
                     String jsCall = String.format(Locale.US,
                             "initOrUpdateMap(%f, %f, %f, %f, '%s')",
                             currentShipperLat, currentShipperLon, // 1, 2: Vị trí shipper (Động)
