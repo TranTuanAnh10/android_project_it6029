@@ -6,33 +6,32 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.google.android.material.textfield.TextInputEditText;
-
-import android.view.Gravity;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -44,19 +43,20 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.Cart;
 import vn.haui.android_project.entity.CartItem;
 import vn.haui.android_project.entity.CategoryItem;
+import vn.haui.android_project.entity.ItemOrderProduct;
 import vn.haui.android_project.entity.ProductItem;
+import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.services.FirebaseUserManager;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.text.DecimalFormat;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
     // Khai báo biến ở đây để có thể truy cập trong onResume
@@ -64,6 +64,9 @@ public class HomeFragment extends Fragment {
     TextView tv_hello;
     LinearLayout topPickLayout, bestSellerLayout;
     FrameLayout loadingPanel;
+    private FloatingActionButton fabCart;
+    private DatabaseReference cartRef;
+    private Animation shakeAnimation;
 
     public HomeFragment() {
     }
@@ -75,7 +78,7 @@ public class HomeFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     FirebaseUser authUser;
-
+    private ValueEventListener cartValueEventListener;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -88,13 +91,39 @@ public class HomeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         loadAllHomeData();
         mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getCurrentUser() != null) {
+            cartRef = FirebaseDatabase.getInstance()
+                    .getReference(DatabaseTable.CART.getValue())
+                    .child(mAuth.getCurrentUser().getUid());
+        }
+        checkCartData();
+        if (fabCart != null) {
+            // Ban đầu ẩn FAB, sẽ được checkCartData() hiện lên nếu có sản phẩm
+            fabCart.setVisibility(View.GONE);
+            fabCart.setOnClickListener(v -> {
+                // Chỉ cho phép chuyển màn hình nếu giỏ hàng đang được hiển thị
+                if (fabCart.getVisibility() == View.VISIBLE) {
+                    Intent intent = new Intent(this.getContext(), ConfirmPaymentActivity.class); // Dùng this.getContext()
+                    startActivity(intent);
+                } else {
+                    // Có thể thêm Toast thông báo giỏ hàng trống ở đây
+                    Log.d(TAG, "Giỏ hàng trống. Không thể thanh toán.");
+                }
+            });
+        }
         return view;
     }
-    private void mapping(){
+
+    private void mapping() {
         topPickLayout = view.findViewById(R.id.layoutTopPicks);
         bestSellerLayout = view.findViewById(R.id.layoutBestSelling);
         loadingPanel = view.findViewById(R.id.loadingOverlay);
         tv_hello = view.findViewById(R.id.greeting_message);
+        fabCart = view.findViewById(R.id.fab_cart);
+        // Cập nhật để tải animation mới (tên file giả định là jump_animation)
+        if (getContext() != null) {
+            shakeAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.shake_animation);
+        }
     }
 
     private void loadAllHomeData() {
@@ -211,6 +240,7 @@ public class HomeFragment extends Fragment {
             parentLayout.addView(itemLayout);
         }
     }
+
     private void populateProductLayout(List<ProductItem> items, LinearLayout parent, int type) {
         if (parent == null || getContext() == null) {
             Log.e(TAG, "Parent LinearLayout cho Product bị null");
@@ -233,7 +263,7 @@ public class HomeFragment extends Fragment {
 //            TextView tvProductRating = itemView.findViewById(R.id.tvProductRating);
             TextView tvProductPrice = itemView.findViewById(R.id.tvProductPrice);
 
-            switch (type){
+            switch (type) {
                 case 0:
                     toprate.setImageResource(R.drawable.ic_tag);
                     bestSelling.setText(R.string.top_rate);
@@ -293,6 +323,7 @@ public class HomeFragment extends Fragment {
                 .error(android.R.drawable.ic_delete)
                 .into(imageView);
     }
+
     private void populateProductReadyToLunch(List<ProductItem> items) {
         LinearLayout parent = view.findViewById(R.id.layoutReadyForLunch);
         if (parent == null || getContext() == null) {
@@ -353,11 +384,11 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void onProductItemClick(ProductItem item){
+    private void onProductItemClick(ProductItem item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
 
         builder.setTitle("Xác nhận");
-        builder.setMessage("Bạn có chắc chắn muốn thêm "+ item.getName() + " vào giỏ hàng không?");
+        builder.setMessage("Bạn có chắc chắn muốn thêm " + item.getName() + " vào giỏ hàng không?");
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
@@ -410,8 +441,11 @@ public class HomeFragment extends Fragment {
                 }
 
                 cartRef.setValue(cart)
-                        .addOnSuccessListener(aVoid ->
-                                Toast.makeText(getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+                            fabCart.setVisibility(View.VISIBLE);
+                            fabCart.startAnimation(shakeAnimation);
+                        })
                         .addOnFailureListener(e ->
                                 Log.e(TAG, "Lỗi ghi RTDB", e));
             }
@@ -422,12 +456,14 @@ public class HomeFragment extends Fragment {
             }
         });
     }
+
     private void onCuisineItemClicked(CategoryItem item) {
 //        Toast.makeText(requireContext(), "Bạn đã chọn: " + item.getName(), Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getActivity(), SearchResultActivity.class);
         intent.putExtra("category", item.getName());
         startActivity(intent);
     }
+
     private static int dpToPx(Context context, int dp) {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
@@ -452,7 +488,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void showLoading(boolean isShow){
+    private void showLoading(boolean isShow) {
         loadingPanel.setVisibility(isShow ? View.VISIBLE : View.GONE);
     }
 
@@ -461,6 +497,61 @@ public class HomeFragment extends Fragment {
         super.onResume();
         if (edtSearch != null) {
             edtSearch.clearFocus();
+        }
+    }
+
+
+    private void checkCartData() {
+        if (mAuth == null || mAuth.getCurrentUser() == null || fabCart == null || cartRef == null) {
+            // Đảm bảo không gọi nếu chưa đăng nhập hoặc chưa khởi tạo
+            return;
+        }
+
+        // Gỡ listener cũ nếu có để tránh trùng lặp
+        if (cartValueEventListener != null) {
+            cartRef.removeEventListener(cartValueEventListener);
+        }
+
+        cartValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Cart cart = snapshot.getValue(Cart.class);
+                boolean hasItems = cart != null && cart.items != null && !cart.items.isEmpty();
+
+                if (fabCart != null) {
+                    if (hasItems) {
+                        if (fabCart.getVisibility() != View.VISIBLE) {
+                            fabCart.setVisibility(View.VISIBLE);
+                            if (shakeAnimation != null) {
+                                fabCart.startAnimation(shakeAnimation);
+                            }
+                        }
+                    } else {
+                        fabCart.setVisibility(View.GONE);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w(TAG, "Lỗi đọc RTDB (Listener): " + error.getMessage(), error.toException());
+                if (fabCart != null) {
+                    fabCart.setVisibility(View.GONE);
+                }
+            }
+        };
+
+        // Thêm listener mới để lắng nghe thay đổi thời gian thực
+        cartRef.addValueEventListener(cartValueEventListener);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Gỡ bỏ listener khi View bị hủy để tránh rò rỉ bộ nhớ
+        if (cartRef != null && cartValueEventListener != null) {
+            cartRef.removeEventListener(cartValueEventListener);
+            Log.d(TAG, "Đã gỡ bỏ ValueEventListener của giỏ hàng.");
         }
     }
 }

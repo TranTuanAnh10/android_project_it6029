@@ -61,6 +61,7 @@ import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.services.DeliveryCalculator;
 import vn.haui.android_project.services.FirebaseLocationManager;
 import vn.haui.android_project.services.FirebaseNotificationService;
+import vn.haui.android_project.services.FirebaseVoucherUserService;
 import vn.haui.android_project.utils.TimeUtils;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet;
 import vn.haui.android_project.view.bottomsheet.ChoosePaymentBottomSheet.PaymentSelectionListener;
@@ -135,6 +136,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
     private VoucherEntity selectedVoucher;
     private PaymentCard paymentCard;
     private FirebaseNotificationService notificationService;
+    private FirebaseVoucherUserService firebaseVoucherUserService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +151,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         FirebaseApp.initializeApp(this);
         firebaseDatabase = FirebaseDatabase.getInstance();
         notificationService = new FirebaseNotificationService();
+        firebaseVoucherUserService = new FirebaseVoucherUserService();
         mapViews();
         mapDeliveryViews();
         loadData();
@@ -378,7 +381,7 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         recyclerOrderItems.setLayoutManager(new LinearLayoutManager(this));
         recyclerOrderItems.setAdapter(productAdapter);
 
-        cartRef = FirebaseDatabase.getInstance().getReference("carts").child(authUser.getUid());
+        cartRef = FirebaseDatabase.getInstance().getReference(DatabaseTable.CART.getValue()).child(authUser.getUid());
         cartRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -698,6 +701,11 @@ public class ConfirmPaymentActivity extends AppCompatActivity
         notification.setTargetId(orderId);
         // Gọi service để thêm thông báo cho người dùng hiện tại (kiểu "bắn và quên")
         notificationService.addNotification(authUser.getUid(), notification);
+
+        // luu voucher da dung cua user
+        if (selectedVoucher != null) {
+            firebaseVoucherUserService.addNotification(authUser.getUid(),selectedVoucher);
+        }
     }
 
 

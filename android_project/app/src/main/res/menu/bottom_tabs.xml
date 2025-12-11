@@ -3,18 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
       android:id="@+id/btn_home"
-      android:title="Home"
+      android:title="@string/button_return_home"
       android:icon="@drawable/ic_home"/>
     <item
         android:id="@+id/btn_order"
-        android:title="Orders"
+        android:title="@string/order_detail"
         android:icon="@drawable/ic_order"/>
     <item
         android:id="@+id/btn_notification"
-        android:title="Notifications"
+        android:title="@string/notifications_title"
         android:icon="@drawable/ic_notifications"/>
     <item
         android:id="@+id/btn_profile"
-        android:title="Me"
+        android:title="@string/me"
         android:icon="@drawable/ic_user"/>
 </menu>

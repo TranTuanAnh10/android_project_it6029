@@ -87,7 +87,7 @@ public class VoucherAdapter extends RecyclerView.Adapter<VoucherAdapter.VoucherV
     public void onBindViewHolder(@NonNull VoucherViewHolder holder, int position) {
         VoucherEntity voucher = voucherList.get(position);
 
-        holder.tvTitle.setText(voucher.getName());
+        holder.tvTitle.setText(voucher.getName()+" ("+voucher.getCode()+")");
         holder.tvDescription.setText(voucher.getDescription());
 
         // Kiểm tra xem voucher có áp dụng được không
@@ -98,11 +98,11 @@ public class VoucherAdapter extends RecyclerView.Adapter<VoucherAdapter.VoucherV
             holder.tvTitle.setTextColor(Color.BLACK);
             holder.tvDescription.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
             holder.tvApply.setText(R.string.use_voucher);
-            holder.tvApply.setTextColor(ContextCompat.getColor(context, R.color.color_text_home_page_black));
+            holder.tvApply.setTextColor(ContextCompat.getColor(context, R.color.color_text_home_page_red));
             holder.tvApply.setAlpha(1.0f);
         } else {
             // Trạng thái KHÔNG Áp dụng được (Mờ đi)
-            int greyColor = ContextCompat.getColor(context, R.color.color_text_home_page_text_black);
+            int greyColor = ContextCompat.getColor(context, R.color.color_text_home_page_bg_green2);
             holder.tvTitle.setTextColor(greyColor);
             holder.tvDescription.setTextColor(greyColor);
             holder.tvApply.setText(R.string.not_applicable);

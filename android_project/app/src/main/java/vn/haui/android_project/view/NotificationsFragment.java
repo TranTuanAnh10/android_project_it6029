@@ -75,7 +75,7 @@ public class NotificationsFragment extends Fragment implements NotificationAdapt
             Intent intent = new Intent(getContext(), OrderDetailsActivity.class);
             intent.putExtra("ORDER_ID", entity.getTargetId());
             startActivity(intent);
-        } else if ("PROMOTION".equals(entity.getType())) {
+        } else if ("VOUCHER".equals(entity.getType())) {
             Toast.makeText(getContext(), "Mở màn hình khuyến mãi...", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(getContext(), "Đã nhấn vào: " + entity.getTitle(), Toast.LENGTH_SHORT).show();
