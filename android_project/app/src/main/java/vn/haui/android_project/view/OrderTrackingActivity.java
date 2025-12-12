@@ -3,17 +3,23 @@ package vn.haui.android_project.view;
 import static android.content.ContentValues.TAG;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+
 import androidx.fragment.app.Fragment;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -78,7 +84,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     // View con trong layoutDetail
     private TextView tvEstimateArrival, tvOrderId, tvStatusTag, tvStatusDescTag;
     private TextView tvDriverName, tvLicensePlate, tvDeliveryFeeValue, tvDiscountValue, tvTotalValue, itemDefaulCount, itemDefaul;
-    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, itemDefaulImg;
+    private ImageView stepPrepared, stepPickingUp, stepDelivering, stepFinish, itemDefaulImg, btnCall,btnSms;
     ;
     private View stepPickingUpLine, stepDeliveringLine, stepFinishLine;
 
@@ -88,7 +94,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     // View con trong layoutDetail
     private TextView tvEstimateArrivalSummary, tvOrderIdSummary, tvStatusTagSummary, tvStatusDescTagSummary, tvLocationTitle, tvAddressDetail, tvRecipientContact, tvRecipientPhone;
     private TextView tvDriverNameSummary, tvLicensePlateSummary, tvTotalValueSummary;
-    private ImageView stepPreparedSummary, stepPickingUpSummary, stepDeliveringSummary, stepFinishSummary, imgLocationIcon;
+    private ImageView stepPreparedSummary, stepPickingUpSummary, stepDeliveringSummary, stepFinishSummary, imgLocationIcon, btnCallSummary,btnSmsSummary;
     private View stepPickingUpSummaryLine, stepDeliveringSummaryLine, stepFinishSummaryLine;
     // =============================
 
@@ -104,6 +110,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private String userRole;
     private List<ItemOrderProduct> productList = new ArrayList<>();
     DecimalFormat formatter = new DecimalFormat("#,###");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +148,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
         userRef.get().addOnSuccessListener(snapshot -> {
             UserEntity userFirebase = snapshot.toObject(UserEntity.class);
             userRole = userFirebase.getRole();
-            if(userRole.contains(UserRole.SHIPPER.getValue())){
+            if (userRole.contains(UserRole.SHIPPER.getValue())) {
                 btnConfirmOrder.setVisibility(VISIBLE);
             }
         });
@@ -207,7 +214,46 @@ public class OrderTrackingActivity extends AppCompatActivity {
                     .show();
 
         });
+        btnCall.setOnClickListener(v -> {
+            callShipper();
+        });
+        btnCallSummary.setOnClickListener(v -> {
+            callShipper();
+        });
+        btnSms.setOnClickListener(v -> {
+            sendMessageToPhoneNumber();
+        });
+        btnSmsSummary.setOnClickListener(v -> {
+            sendMessageToPhoneNumber();
+        });
+    }
 
+    private void callShipper() {
+        String phoneNumber = tvLicensePlate.getText().toString().trim();
+        if (phoneNumber.isEmpty() || phoneNumber.equals("Đang cập nhật...")) {
+            Toast.makeText(this, "Không tìm thấy số điện thoại của tài xế.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent callIntent = new Intent(Intent.ACTION_DIAL);
+        callIntent.setData(Uri.parse("tel:" + phoneNumber));
+        try {
+            startActivity(callIntent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Không thể mở ứng dụng gọi điện.", Toast.LENGTH_SHORT).show();
+            Log.e("CallError", "Failed to start dial intent", e);
+        }
+    }
+
+    private void sendMessageToPhoneNumber() {
+        String phoneNumber = tvLicensePlate.getText().toString().trim();
+        Intent smsIntent = new Intent(Intent.ACTION_SENDTO);
+        smsIntent.setData(Uri.parse("smsto:" + phoneNumber));
+        try {
+            startActivity(smsIntent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Không thể mở ứng dụng nhắn tin.", Toast.LENGTH_SHORT).show();
+            Log.e("MessageError", "Failed to start SMS intent", e);
+        }
     }
 
     private void completeOrder(String orderId) {
@@ -242,13 +288,14 @@ public class OrderTrackingActivity extends AppCompatActivity {
         tvStatusDescTag = layoutDetail.findViewById(R.id.tv_status_tag);
 
 
-
         // ✅ Gắn view con bên trong layoutDetail
         tvDriverName = layoutDetail.findViewById(R.id.tv_driver_name);
         tvLicensePlate = layoutDetail.findViewById(R.id.tv_license_plate);
         tvDeliveryFeeValue = layoutDetail.findViewById(R.id.tv_delivery_fee_value);
         tvDiscountValue = layoutDetail.findViewById(R.id.tv_discount_value);
         tvTotalValue = layoutDetail.findViewById(R.id.tv_total_value);
+        btnCall = layoutDetail.findViewById(R.id.btn_call);
+        btnSms= layoutDetail.findViewById(R.id.btn_chat);
 
         stepPrepared = layoutDetail.findViewById(R.id.step_prepared);
         stepPickingUp = layoutDetail.findViewById(R.id.step_pickingUp);
@@ -288,6 +335,8 @@ public class OrderTrackingActivity extends AppCompatActivity {
         itemDefaulImg = layoutSummary.findViewById(R.id.item_defaul_img);
         itemDefaulCount = layoutSummary.findViewById(R.id.item_defaul_count);
         itemDefaul = layoutSummary.findViewById(R.id.item_defaul);
+        btnCallSummary= layoutSummary.findViewById(R.id.btn_call);
+        btnSmsSummary=layoutSummary.findViewById(R.id.btn_chat);
     }
 
     private void initSprings() {
@@ -330,7 +379,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 String fee = String.valueOf(snapshot.child("deliveryFee").getValue(Double.class));
                 String discount = String.valueOf(snapshot.child("discount").getValue(Double.class));
                 String total = String.valueOf(snapshot.child("total").getValue(Double.class));
-                Double currentShipperLat ;
+                Double currentShipperLat;
                 Double currentShipperLon;
                 DataSnapshot productListSnapshot = snapshot.child("productList");
                 GenericTypeIndicator<List<ItemOrderProduct>> t = new GenericTypeIndicator<List<ItemOrderProduct>>() {
@@ -360,7 +409,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 updateOrderUI(orderId, status, driver, license, fee, discount, total, estimateArrival);
                 DataSnapshot shipperSnap = snapshot.child("shipper");
                 DataSnapshot addressUserSnapshot = snapshot.child("addressUser");
-                if (addressUserSnapshot.exists()&&shipperSnap.exists()) {
+                if (addressUserSnapshot.exists() && shipperSnap.exists()) {
                     currentShipperLat = shipperSnap.child("lat").getValue(Double.class);
                     currentShipperLon = shipperSnap.child("lng").getValue(Double.class);
                     DataSnapshot shipperInfoSnapshot = shipperSnap.child("shipperInfo");
@@ -422,6 +471,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
             mappingStep(status);
         });
     }
+
     private void mappingStep(String status) {
         final int ACTIVE_COLOR = Color.parseColor("#EB4D57"); // Màu đỏ active
         if (status.equals(MyConstant.PREPARED)) {
@@ -483,15 +533,40 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
 
     }
+
     private void mappingViewMap() {
         webViewMap = findViewById(R.id.webViewMap);
-        webViewMap.getSettings().setJavaScriptEnabled(true);
-        webViewMap.getSettings().setAllowFileAccess(true);
-        webViewMap.getSettings().setAllowFileAccessFromFileURLs(true);
-        webViewMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
-// Load map.html trong assets
-        webViewMap.loadUrl("file:///android_asset/map.html");
 
+        // --- CÀI ĐẶT CƠ BẢN ---
+        webViewMap.getSettings().setJavaScriptEnabled(true); // Cho phép chạy JavaScript
+        webViewMap.getSettings().setDomStorageEnabled(true); // Cho phép lưu trữ DOM, cần cho nhiều thư viện JS
+
+        // --- CÀI ĐẶT QUAN TRỌNG ĐỂ TẢI FILE CỤC BỘ ---
+        webViewMap.getSettings().setAllowFileAccess(true); // Cho phép truy cập hệ thống tệp
+        webViewMap.getSettings().setAllowContentAccess(true); // Cho phép truy cập content provider
+
+        // --- BẮT SỰ KIỆN VÀ LỖI (RẤT QUAN TRỌNG) ---
+        webViewMap.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // Trang đã tải xong.
+                // Tại đây bạn có thể gọi các hàm JavaScript để khởi tạo bản đồ nếu cần.
+                // Ví dụ: webViewMap.evaluateJavascript("initOrUpdateMap(...)", null);
+                // Tuy nhiên, logic của bạn đang gọi hàm này trong listenOrderRealtime() nên có thể để trống ở đây.
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                // Ghi log lỗi để dễ dàng gỡ lỗi khi bản đồ không tải được tài nguyên
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Log.e("WebViewError-Tracking", "Error: " + error.getDescription() + " for URL: " + request.getUrl().toString());
+                }
+            }
+        });
+        // Load map.html trong assets
+        webViewMap.loadUrl("file:///android_asset/map.html");
     }
 
 

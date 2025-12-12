@@ -5,8 +5,11 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -29,11 +32,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.List;
+import java.util.Locale;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.entity.UserLocationEntity;
 import vn.haui.android_project.services.FirebaseLocationManager;
-import vn.haui.android_project.services.LocationService;
 
 public class AddRecipientActivity extends AppCompatActivity {
     private EditText et_recipient_name, et_phone_number, et_address, et_country, et_zip_code;
@@ -45,7 +48,6 @@ public class AddRecipientActivity extends AppCompatActivity {
     private FirebaseLocationManager firebaseLocationManager;
 
     private TextView chooseMap;
-    private LocationService locationService;
 
     private double latitude, longitude;
     private String address;
@@ -69,30 +71,40 @@ public class AddRecipientActivity extends AppCompatActivity {
         setupChipStyling(chipWork);
         setupChipStyling(chipOther);
 
-        Intent intent1 = getIntent();
-        if (intent1 != null) {
-            latitude = intent1.getDoubleExtra("latitude", 0.0);
-            longitude = intent1.getDoubleExtra("longitude", 0.0);
-            address = intent1.getStringExtra("address");
-            if (address != null) et_address.setText(address);
-        }
+        handleIntentData();
+
         setupChipGroupListener();
-        setupWebView();
+        setupWebView(); // Cấu hình WebView
+
         chooseMap.setOnClickListener(v -> {
-            Intent intent = new Intent(AddRecipientActivity.this, SelectLocationActivity.class);
+            // Sửa lại: Chuyển sang MapLocationActivity thay vì SelectLocationActivity
+            Intent intent = new Intent(AddRecipientActivity.this, MapLocationActivity.class);
             intent.putExtra("latitude", latitude);
             intent.putExtra("longitude", longitude);
-            intent.putExtra("address", address);
+            intent.putExtra("address", et_address.getText().toString());
+            // Thêm một flag để MapLocationActivity biết cần trả kết quả về đâu
+            intent.putExtra("activityView", "addNew");
             startActivity(intent);
         });
         btnBack.setOnClickListener(v -> finish());
         btn_save.setOnClickListener(v -> saveRecipient());
     }
 
-
+    private void handleIntentData() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            // Mặc định là Hà Nội nếu không có tọa độ
+            latitude = intent.getDoubleExtra("latitude", 21.0285);
+            longitude = intent.getDoubleExtra("longitude", 105.8542);
+            address = intent.getStringExtra("address");
+            if (address != null) {
+                et_address.setText(address);
+            }
+        }
+    }
 
     private void mapping() {
-        webViewMap= findViewById(R.id.webview_map_add);
+        webViewMap = findViewById(R.id.webview_map_add);
         chooseMap = findViewById(R.id.chooseMap);
         et_recipient_name = findViewById(R.id.et_recipient_name);
         et_phone_number = findViewById(R.id.et_phone_number);
@@ -106,8 +118,51 @@ public class AddRecipientActivity extends AppCompatActivity {
         chipWork = findViewById(R.id.chip_work);
         chipOther = findViewById(R.id.chip_other);
         switchDefaultAddress = findViewById(R.id.switch_default_address);
-        locationService = new LocationService(this);
     }
+
+    private void setupWebView() {
+        // Cài đặt cơ bản
+        webViewMap.getSettings().setJavaScriptEnabled(true);
+        webViewMap.getSettings().setDomStorageEnabled(true);
+
+        // --- THÊM CÁC CÀI ĐẶT QUAN TRỌNG ---
+        webViewMap.getSettings().setAllowFileAccess(true);
+        webViewMap.getSettings().setAllowContentAccess(true);
+
+        // Vô hiệu hóa cuộn và tương tác chạm
+        webViewMap.setVerticalScrollBarEnabled(false);
+        webViewMap.setHorizontalScrollBarEnabled(false);
+        webViewMap.setOnTouchListener((v, event) -> true); // Vô hiệu hóa hoàn toàn touch
+
+        // Không cần cầu nối Javascript vì bản đồ này chỉ để hiển thị
+        // webViewMap.addJavascriptInterface(new WebAppInterfaceAdd(), "Android");
+
+        webViewMap.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // Căn giữa bản đồ sau khi trang đã tải xong
+                centerMapAtLocation(latitude, longitude, 15); // Zoom xa hơn một chút
+            }
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Log.e("WebViewError-Add", "Error: " + error.getDescription() + " for URL: " + request.getUrl().toString());
+                }
+            }
+        });
+        webViewMap.loadUrl("file:///android_asset/map_selector.html");
+    }
+
+    private void centerMapAtLocation(double lat, double lng, int zoom) {
+        // Dùng Locale.US để đảm bảo dấu thập phân là "."
+        final String jsCode = String.format(Locale.US, "javascript:centerMapAtLocation(%.6f, %.6f, %d);", lat, lng, zoom);
+        webViewMap.evaluateJavascript(jsCode, null);
+    }
+
+
+    // --- CÁC PHƯƠNG THỨC KHÁC GIỮ NGUYÊN ---
 
     private void setupChipStyling(Chip chip) {
         if (chip == null) return;
@@ -137,15 +192,10 @@ public class AddRecipientActivity extends AppCompatActivity {
     }
 
     private void setupChipGroupListener() {
-        // Đảm bảo chipGroupLocationType không null
         if (chipGroupLocationType == null) return;
-
-        chipGroupLocationType.setOnCheckedStateChangeListener(new ChipGroup.OnCheckedStateChangeListener() {
-            @Override
-            public void onCheckedChanged(@NonNull ChipGroup chipGroup, @NonNull List<Integer> checkedIds) {
-                if (checkedIds.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Vui lòng chọn loại địa điểm.", Toast.LENGTH_SHORT).show();
-                }
+        chipGroupLocationType.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "Vui lòng chọn loại địa điểm.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -157,83 +207,43 @@ public class AddRecipientActivity extends AppCompatActivity {
             finish();
             return;
         }
-        String updatedRecipientName = et_recipient_name.getText().toString().trim();
-        String updatedPhoneNumber = et_phone_number.getText().toString().trim();
-        String updatedAddress = et_address.getText().toString().trim();
-        String updatedCountry = et_country.getText().toString().trim();
-        String updatedZipCode = et_zip_code.getText().toString().trim();
-        String updatedLocationType = getSelectedLocationType();
+        String recipientName = et_recipient_name.getText().toString().trim();
+        String phoneNumber = et_phone_number.getText().toString().trim();
+        String currentAddress = et_address.getText().toString().trim();
+        String country = et_country.getText().toString().trim();
+        String zipCode = et_zip_code.getText().toString().trim();
+        String locationType = getSelectedLocationType();
         boolean isDefault = switchDefaultAddress != null && switchDefaultAddress.isChecked();
 
-        if (updatedRecipientName.isEmpty() || updatedAddress.isEmpty() || updatedLocationType.equals("N/A")) {
-            Toast.makeText(this, "Vui lòng điền đầy đủ thông tin và chọn loại địa điểm.", Toast.LENGTH_LONG).show();
+        if (recipientName.isEmpty() || currentAddress.isEmpty() || locationType.equals("N/A")) {
+            Toast.makeText(this, "Vui lòng điền đầy đủ Tên, Địa chỉ và chọn Loại địa điểm.", Toast.LENGTH_LONG).show();
             return;
         }
-        if (updatedPhoneNumber.isEmpty()) {
-            updatedPhoneNumber = authUser.getPhoneNumber() != null ? authUser.getPhoneNumber() : "";
+        if (phoneNumber.isEmpty()) {
+            phoneNumber = authUser.getPhoneNumber() != null ? authUser.getPhoneNumber() : "";
         }
         if (!isDefault) {
-            performSave(authUser.getUid(), buildLocationEntity(false, updatedRecipientName, updatedPhoneNumber, updatedAddress, updatedLocationType, updatedCountry, updatedZipCode));
+            performSave(authUser.getUid(), buildLocationEntity(false, recipientName, phoneNumber, currentAddress, locationType, country, zipCode));
             return;
         }
-        String finalUpdatedPhoneNumber = updatedPhoneNumber;
+        String finalPhoneNumber = phoneNumber;
         firebaseLocationManager.hasDefaultLocation(authUser.getUid(),null, (success, hasDefault) -> {
             if (success) {
                 if (hasDefault) {
                     Toast.makeText(this, "Đã có 1 địa chỉ mặc định khác. Vui lòng tắt tùy chọn này để lưu.", Toast.LENGTH_LONG).show();
                 } else {
-                    performSave(authUser.getUid(), buildLocationEntity(true, updatedRecipientName, finalUpdatedPhoneNumber, updatedAddress, updatedLocationType, updatedCountry, updatedZipCode));
+                    performSave(authUser.getUid(), buildLocationEntity(true, recipientName, finalPhoneNumber, currentAddress, locationType, country, zipCode));
                 }
             } else {
                 Toast.makeText(this, "Lỗi kiểm tra trạng thái mặc định. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
             }
         });
     }
-    private void setupWebView() {
-        // Cài đặt cơ bản (Giữ nguyên)
-        webViewMap.getSettings().setJavaScriptEnabled(true);
-        webViewMap.getSettings().setDomStorageEnabled(true);
-        webViewMap.addJavascriptInterface(new WebAppInterfaceAdd(), "Android");
-        webViewMap.setVerticalScrollBarEnabled(false);
-        webViewMap.setHorizontalScrollBarEnabled(false);
-        webViewMap.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
-        webViewMap.setOnTouchListener((v, event) -> (event.getAction() == MotionEvent.ACTION_MOVE));
-        webViewMap.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                // Đảm bảo hàm centerMapAtLocation đã tồn tại
-                centerMapAtLocation(latitude, longitude, 14);
-            }
-        });
-        webViewMap.loadUrl("file:///android_asset/map_selector.html");
-    }
-    private void centerMapAtLocation(double lat, double lng, int zoom) {
-        // Tạo chuỗi JavaScript để gọi hàm
-        final String jsCode = String.format("javascript:centerMapAtLocation(%.6f, %.6f, %d);", lat, lng, zoom);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            webViewMap.evaluateJavascript(jsCode, null);
-        } else {
-            webViewMap.loadUrl(jsCode);
-        }
-    }
-    public class WebAppInterfaceAdd {
-        @JavascriptInterface
-        public void onLocationChanged(final double lat, final double lng) {
-            runOnUiThread(() -> {
-                latitude = lat;
-                longitude = lng;
-            });
-        }
-    }
-    private UserLocationEntity buildLocationEntity(
-            boolean isDefault, String recipientName, String phoneNumber, String address,
-            String locationType, String country, String zipCode) {
-
+    private UserLocationEntity buildLocationEntity(boolean isDefault, String recipientName, String phoneNumber, String address, String locationType, String country, String zipCode) {
         return new UserLocationEntity(
                 String.valueOf(System.currentTimeMillis()),
                 recipientName,
-                latitude, longitude, // lat/lng
+                latitude, longitude,
                 address,
                 phoneNumber,
                 isDefault,
@@ -249,11 +259,14 @@ public class AddRecipientActivity extends AppCompatActivity {
                 location,
                 (success, msg) -> {
                     if (success) {
+                        Toast.makeText(AddRecipientActivity.this, "Thêm địa chỉ thành công!", Toast.LENGTH_SHORT).show();
+                        // Chuyển về màn hình danh sách địa chỉ và kết thúc activity này
                         Intent intent = new Intent(this, ChooseRecipientActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
                         finish();
                     } else {
-                        Toast.makeText(AddRecipientActivity.this, "❌ Lỗi thêm địa chỉ: " + msg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(AddRecipientActivity.this, "Lỗi thêm địa chỉ: " + msg, Toast.LENGTH_LONG).show();
                     }
                 }
         );
@@ -272,4 +285,6 @@ public class AddRecipientActivity extends AppCompatActivity {
             return "N/A";
         }
     }
+    // Lớp WebAppInterfaceAdd không còn cần thiết vì bản đồ này chỉ hiển thị
 }
+
