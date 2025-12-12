@@ -1,9 +1,11 @@
 package vn.haui.android_project.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -68,11 +70,10 @@ public class ShipperCalendarFragment extends Fragment {
     private Map<String, List<OrderShiperHistory>> ordersByDateMap = new HashMap<>();
 
     private ShipperOrderAdapter detailsAdapter;
-    private CalendarAdapter calendarAdapter; // Class Adapter tự viết ở dưới
-    private String selectedDateKey = ""; // Ngày đang được chọn
+    private CalendarAdapter calendarAdapter;
+    private String selectedDateKey = "";
 
     public ShipperCalendarFragment() {
-        // Required empty public constructor
     }
 
     /**
@@ -105,14 +106,12 @@ public class ShipperCalendarFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_shipper_calendar, container, false);
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Ánh xạ View
         textCurrentMonth = view.findViewById(R.id.text_current_month);
         btnPrevMonth = view.findViewById(R.id.btn_prev_month);
         btnNextMonth = view.findViewById(R.id.btn_next_month);
@@ -120,7 +119,6 @@ public class ShipperCalendarFragment extends Fragment {
         recyclerOrdersToday = view.findViewById(R.id.recycler_orders_today);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
 
-        // 2. Khởi tạo
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference("shippers").child(currentUserId);
         currentCalendar = Calendar.getInstance();
@@ -131,7 +129,9 @@ public class ShipperCalendarFragment extends Fragment {
 
         recyclerOrdersToday.setLayoutManager(new LinearLayoutManager(requireContext()));
         detailsAdapter = new ShipperOrderAdapter(requireContext(), new ArrayList<>(), order -> {
-            // Xử lý click vào đơn hàng chi tiết (giữ nguyên logic cũ của bạn)
+            Intent intent1 = new Intent(requireContext(), OrderTrackingActivity.class);
+            intent1.putExtra("ORDER_ID", order.getOrderId());
+            startActivity(intent1);
         });
         recyclerOrdersToday.setAdapter(detailsAdapter);
 
@@ -184,9 +184,6 @@ public class ShipperCalendarFragment extends Fragment {
                         if (order != null) {
                             allOrders.add(order);
 
-                            // *** QUAN TRỌNG: Nhóm đơn hàng theo ngày ***
-                            // Giả sử order.getDate() trả về chuỗi "dd/MM/yyyy".
-                            // Nếu order lưu timestamp dạng long, bạn cần convert sang String trước.
                             String dateKey = order.getDate(); // Ví dụ: "10/12/2025"
 
                             if (!ordersByDateMap.containsKey(dateKey)) {
@@ -196,10 +193,8 @@ public class ShipperCalendarFragment extends Fragment {
                         }
                     }
                 }
-                // Cập nhật lại giao diện lịch sau khi có dữ liệu
                 updateMonthUI();
 
-                // Nếu đang chọn ngày nào thì load lại list của ngày đó
                 if (!selectedDateKey.isEmpty()) {
                     loadOrdersForDate(selectedDateKey);
                 }
@@ -222,7 +217,7 @@ public class ShipperCalendarFragment extends Fragment {
         } else {
             layoutEmptyState.setVisibility(View.GONE);
             recyclerOrdersToday.setVisibility(View.VISIBLE);
-            detailsAdapter.filterList(orders); // Giả sử adapter cũ có hàm update list
+            detailsAdapter.filterList(orders);
         }
     }
 
@@ -255,34 +250,49 @@ public class ShipperCalendarFragment extends Fragment {
             cal.setTime(date);
 
             String dayText = sdfDay.format(date);
-            String fullDateKey = sdfKey.format(date); // Key để map với data (vd: 10/12/2025)
+            String fullDateKey = sdfKey.format(date);
 
             holder.tvDay.setText(dayText);
 
+            int colorOnSurface = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onSurface);
+            int colorOnPrimary = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onPrimary);
+            int colorError = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_error);
+            int colorOnSurfaceVariant = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onSurfaceVariant);
+
             if (cal.get(Calendar.MONTH) != displayMonth) {
-                holder.tvDay.setAlpha(0.3f);
+                holder.tvDay.setTextColor(colorOnSurfaceVariant);
+                holder.tvDay.setAlpha(0.5f);
                 holder.tvCount.setVisibility(View.GONE);
                 holder.container.setBackgroundResource(0);
             } else {
                 holder.tvDay.setAlpha(1.0f);
 
                 List<OrderShiperHistory> orders = dataMap.get(fullDateKey);
+
+                // Xử lý hiển thị số lượng đơn
                 if (orders != null && !orders.isEmpty()) {
                     holder.tvCount.setVisibility(View.VISIBLE);
                     holder.tvCount.setText(orders.size() + " đơn");
-                    holder.container.setBackgroundResource(R.drawable.bg_day_has_order);
+                     holder.container.setBackgroundResource(R.drawable.bg_day_has_order);
                 } else {
                     holder.tvCount.setVisibility(View.GONE);
                     holder.container.setBackgroundResource(0);
                 }
 
+                // Xử lý trạng thái ĐƯỢC CHỌN (Selected)
                 if (fullDateKey.equals(selectedDateKey)) {
+                    // Khi chọn: Background đậm -> Chữ phải sáng (onPrimary)
                     holder.container.setBackgroundResource(R.drawable.bg_day_selected);
-                    holder.tvDay.setTextColor(getResources().getColor(android.R.color.white));
-                    holder.tvCount.setTextColor(getResources().getColor(android.R.color.white));
+
+                    holder.tvDay.setTextColor(colorOnPrimary);
+                    holder.tvCount.setTextColor(colorOnPrimary);
                 } else {
-                    holder.tvDay.setTextColor(getResources().getColor(R.color.md_theme_scrim));
-                    // Reset text color nếu không selected
+                    // Khi KHÔNG chọn:
+                    // 1. Ngày dùng màu onSurface (Đen ở Light, Trắng ở Night)
+                    holder.tvDay.setTextColor(colorOnSurface);
+
+                    // 2. Số lượng đơn dùng màu Error (Đỏ ở Light, Hồng ở Night)
+                    holder.tvCount.setTextColor(colorError);
                 }
             }
 
