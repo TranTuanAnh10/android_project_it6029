@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -253,29 +254,45 @@ public class ShipperCalendarFragment extends Fragment {
 
             holder.tvDay.setText(dayText);
 
+            int colorOnSurface = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onSurface);
+            int colorOnPrimary = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onPrimary);
+            int colorError = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_error);
+            int colorOnSurfaceVariant = ContextCompat.getColor(holder.itemView.getContext(), R.color.md_theme_onSurfaceVariant);
+
             if (cal.get(Calendar.MONTH) != displayMonth) {
-                holder.tvDay.setAlpha(0.3f);
+                holder.tvDay.setTextColor(colorOnSurfaceVariant);
+                holder.tvDay.setAlpha(0.5f);
                 holder.tvCount.setVisibility(View.GONE);
                 holder.container.setBackgroundResource(0);
             } else {
                 holder.tvDay.setAlpha(1.0f);
 
                 List<OrderShiperHistory> orders = dataMap.get(fullDateKey);
+
+                // Xử lý hiển thị số lượng đơn
                 if (orders != null && !orders.isEmpty()) {
                     holder.tvCount.setVisibility(View.VISIBLE);
                     holder.tvCount.setText(orders.size() + " đơn");
-                    holder.container.setBackgroundResource(R.drawable.bg_day_has_order);
+                     holder.container.setBackgroundResource(R.drawable.bg_day_has_order);
                 } else {
                     holder.tvCount.setVisibility(View.GONE);
                     holder.container.setBackgroundResource(0);
                 }
 
+                // Xử lý trạng thái ĐƯỢC CHỌN (Selected)
                 if (fullDateKey.equals(selectedDateKey)) {
+                    // Khi chọn: Background đậm -> Chữ phải sáng (onPrimary)
                     holder.container.setBackgroundResource(R.drawable.bg_day_selected);
-                    holder.tvDay.setTextColor(getResources().getColor(android.R.color.white));
-                    holder.tvCount.setTextColor(getResources().getColor(android.R.color.white));
+
+                    holder.tvDay.setTextColor(colorOnPrimary);
+                    holder.tvCount.setTextColor(colorOnPrimary);
                 } else {
-                    holder.tvDay.setTextColor(getResources().getColor(R.color.md_theme_scrim));
+                    // Khi KHÔNG chọn:
+                    // 1. Ngày dùng màu onSurface (Đen ở Light, Trắng ở Night)
+                    holder.tvDay.setTextColor(colorOnSurface);
+
+                    // 2. Số lượng đơn dùng màu Error (Đỏ ở Light, Hồng ở Night)
+                    holder.tvCount.setTextColor(colorError);
                 }
             }
 

@@ -251,17 +251,19 @@ public class ShipperActivity extends AppCompatActivity {
                             .child(currentUserId).child("status").setValue("busy");
                     DatabaseReference uidRef = FirebaseDatabase.getInstance().getReference("orders")
                             .child(orderId).child("uid");
+
                     uidRef.get().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             DataSnapshot snapshot = task.getResult();
                             if (snapshot.exists()) {
-                                String uid = snapshot.getValue(String.class);
-                                sendOrderSuccessNotification(orderId, uid);
+                                String uidUserOrder = snapshot.getValue(String.class);
+                                sendOrderSuccessNotification(orderId, uidUserOrder);
                             } else {
-                                Toast.makeText(ShipperActivity.this, "Không tìm thấy UID cho orderId: " + orderId, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ShipperActivity.this, "Không tìm thấy trường 'uid' cho đơn hàng: " + orderId, Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Toast.makeText(ShipperActivity.this, "Lỗi khi lấy UID: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            // Lỗi này xảy ra khi không có mạng, sai quyền truy cập...
+                            Toast.makeText(ShipperActivity.this, "Lỗi khi lấy uid: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                     saveToShipperHistory(currentData, orderId);
