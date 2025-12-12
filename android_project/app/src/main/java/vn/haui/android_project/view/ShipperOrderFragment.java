@@ -49,7 +49,6 @@ import vn.haui.android_project.services.LocationService;
 
 public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapter.OnItemClickListener {
 
-    // Khai báo các biến View
     private Spinner spinnerStatus;
     private RecyclerView recyclerViewOrders;
     private Toolbar toolbar;
@@ -60,13 +59,11 @@ public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapte
     private ShipperOrderAdapter shipperOrderAdapter;
     private List<OrderShiperHistory> listOrder = new ArrayList<>();
     private DatabaseReference mDatabase;
-    private LocationService locationService; // Đã thêm vào
+    private LocationService locationService;
 
     public ShipperOrderFragment() {
-        // Required empty public constructor
     }
 
-    // onCreateView chỉ nên làm một việc: Inflate layout và trả về view
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -83,8 +80,7 @@ public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapte
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference("shippers").child(currentUserId);
         myCalendar = Calendar.getInstance();
-        locationService = new LocationService(requireContext()); // Sử dụng requireContext() để đảm bảo không null
-
+        locationService = new LocationService(requireContext());
         setupRecyclerView();
         initDropdown();
 
@@ -120,10 +116,6 @@ public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapte
         });
     }
 
-    // ... các hàm getOrderHistory, filterData, updateLabel, onItemClick không thay đổi ...
-    // Nhưng cần thay thế view.getContext() bằng requireContext() để an toàn hơn
-    // và thay thế this.view.findViewById bằng view.findViewById trong các hàm cũ nếu có.
-
     @Override
     public void onItemClick(OrderShiperHistory order) {
         if (order.getStatus().contains(MyConstant.FINISH))
@@ -131,8 +123,6 @@ public class ShipperOrderFragment extends Fragment implements ShipperOrderAdapte
 
         Intent intent1 = new Intent(requireContext(), OrderTrackingActivity.class);
         intent1.putExtra("ORDER_ID", order.getOrderId());
-        // Không cần xóa task ở đây, trừ khi bạn muốn màn hình lịch sử biến mất
-        // intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent1);
     }
 

@@ -62,12 +62,14 @@ import java.util.Map;
 
 import vn.haui.android_project.R;
 import vn.haui.android_project.adapter.ShipperOrderAdapter;
+import vn.haui.android_project.entity.NotificationEntity;
 import vn.haui.android_project.entity.ProductItem;
 import vn.haui.android_project.entity.UserEntity;
 import vn.haui.android_project.enums.DatabaseTable;
 import vn.haui.android_project.enums.MyConstant;
 import vn.haui.android_project.enums.UserRole;
 import vn.haui.android_project.model.OrderShiperHistory;
+import vn.haui.android_project.services.FirebaseNotificationService;
 import vn.haui.android_project.services.LocationService;
 
 public class ShipperActivity extends AppCompatActivity {
@@ -85,6 +87,7 @@ public class ShipperActivity extends AppCompatActivity {
     Toolbar toolbar;
     BottomNavigationView bottomNavigationView;
     FrameLayout container;
+    private FirebaseNotificationService notificationService;
     private String nameShipper, phoneShipper, emailShipper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +106,7 @@ public class ShipperActivity extends AppCompatActivity {
         phoneShipper = intent.getStringExtra("USER_PHONE");
         emailShipper = intent.getStringExtra("USER_EMAIL");
 
+        notificationService = new FirebaseNotificationService();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         container = findViewById(R.id.container);
@@ -243,21 +247,43 @@ public class ShipperActivity extends AppCompatActivity {
 
                 if (committed) {
                     Toast.makeText(ShipperActivity.this, "Nhận đơn thành công!", Toast.LENGTH_SHORT).show();
-
                     FirebaseDatabase.getInstance().getReference("shippers")
                             .child(currentUserId).child("status").setValue("busy");
-
+                    DatabaseReference uidRef = FirebaseDatabase.getInstance().getReference("orders")
+                            .child(orderId).child("uid");
+                    uidRef.get().addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DataSnapshot snapshot = task.getResult();
+                            if (snapshot.exists()) {
+                                String uid = snapshot.getValue(String.class);
+                                sendOrderSuccessNotification(orderId, uid);
+                            } else {
+                                Toast.makeText(ShipperActivity.this, "Không tìm thấy UID cho orderId: " + orderId, Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(ShipperActivity.this, "Lỗi khi lấy UID: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     saveToShipperHistory(currentData, orderId);
-                    // 2. Chuyển sang màn hình chi tiết đơn hàng
-                    // Intent intent = new Intent(ShipperMainActivity.this, OrderDetailActivity.class);
-                    // intent.putExtra("ORDER_ID", orderId);
-                    // startActivity(intent);
-
                 } else {
                     Toast.makeText(ShipperActivity.this, "Đơn đã có người nhận.", Toast.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    private void sendOrderSuccessNotification(String orderId, String uidUserOrder) {
+        String msg = "Shipper " + nameShipper + " đã nhận đơn hàng #" + orderId + " của bạn.";
+        String body = "Hãy theo dõi hành trình đơn hàng nhé!";
+        NotificationEntity notification = new NotificationEntity(
+                "Đơn hàng",
+                msg,
+                body,
+                "ORDER_STATUS"
+        );
+        notification.setImageUrl(null);
+        notification.setTargetId(orderId);
+        notificationService.addNotification(uidUserOrder, notification);
     }
     private void saveToShipperHistory(DataSnapshot orderSnapshot, String orderId) {
         String price = String.valueOf(orderSnapshot.child("total").getValue());

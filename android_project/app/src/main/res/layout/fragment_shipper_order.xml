@@ -6,7 +6,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".view.ShipperOrderFragment">
 
-    <!-- 2. LinearLayout chứa bộ lọc được đặt ngay bên dưới AppBarLayout -->
     <LinearLayout
         android:id="@+id/filter_section"
         android:layout_width="0dp"
